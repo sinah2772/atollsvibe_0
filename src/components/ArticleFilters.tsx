@@ -1,0 +1,380 @@
+import { useState, useEffect } from 'react';
+import { useAtolls } from '../hooks/useAtolls';
+import { useIslands } from '../hooks/useIslands';
+import { useCategories } from '../hooks/useCategories';
+import { useSubcategories } from '../hooks/useSubcategories';
+
+// Interface for subcategory data
+interface Subcategory {
+  id: number;
+  name: string;
+  name_en?: string;
+  slug?: string;
+  category_id: number;
+}
+
+interface ArticleFiltersProps {
+  onFilterChange: (filters: ArticleFilters) => void;
+  initialFilters?: ArticleFilters;
+}
+
+export interface ArticleFilters {
+  categoryId?: number | null;
+  subcategoryId?: number | null;
+  atollIds?: number[];
+  islandIds?: number[];
+  status?: string;
+  flags?: {
+    isBreaking?: boolean;
+    isFeatured?: boolean;
+    isDeveloping?: boolean;
+    isExclusive?: boolean;
+    isSponsored?: boolean;
+  };
+}
+
+export function ArticleFilters({ onFilterChange, initialFilters }: ArticleFiltersProps) {
+  const { atolls } = useAtolls();
+  const { islands } = useIslands();
+  const { categories } = useCategories();
+  const { subcategories } = useSubcategories();
+  
+  const [filters, setFilters] = useState<ArticleFilters>(initialFilters || {
+    atollIds: [],
+    islandIds: [],
+    flags: {}
+  });
+
+  const [availableSubcategories, setAvailableSubcategories] = useState<Subcategory[]>([]);
+
+  // Update subcategories when category changes
+  useEffect(() => {
+    if (filters.categoryId) {
+      const filtered = subcategories.filter(sub => sub.category_id === filters.categoryId);
+      setAvailableSubcategories(filtered);
+    } else {
+      setAvailableSubcategories(subcategories);
+    }
+  }, [filters.categoryId, subcategories]);
+
+  // Notify parent component when filters change
+  useEffect(() => {
+    onFilterChange(filters);
+  }, [filters, onFilterChange]);
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value ? parseInt(e.target.value) : null;
+    setFilters(prev => ({
+      ...prev,
+      categoryId: value,
+      // Clear subcategory when category changes
+      subcategoryId: null
+    }));
+  };
+
+  const handleSubcategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value ? parseInt(e.target.value) : null;
+    setFilters(prev => ({
+      ...prev,
+      subcategoryId: value
+    }));
+  };
+
+  const handleAtollChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = parseInt(e.target.value);
+    
+    setFilters(prev => {
+      const atollIds = [...(prev.atollIds || [])];
+      
+      if (e.target.value === "") {
+        // "All" option selected
+        return { ...prev, atollIds: [] };
+      }
+      
+      if (atollIds.includes(value)) {
+        // Remove if already selected
+        const updatedIds = atollIds.filter(id => id !== value);
+        return { ...prev, atollIds: updatedIds };
+      } else {
+        // Add if not already selected
+        return { ...prev, atollIds: [...atollIds, value] };
+      }
+    });
+  };
+
+  const handleIslandChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = parseInt(e.target.value);
+    
+    setFilters(prev => {
+      const islandIds = [...(prev.islandIds || [])];
+      
+      if (e.target.value === "") {
+        // "All" option selected
+        return { ...prev, islandIds: [] };
+      }
+      
+      if (islandIds.includes(value)) {
+        // Remove if already selected
+        const updatedIds = islandIds.filter(id => id !== value);
+        return { ...prev, islandIds: updatedIds };
+      } else {
+        // Add if not already selected
+        return { ...prev, islandIds: [...islandIds, value] };
+      }
+    });
+  };
+
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFilters(prev => ({
+      ...prev,
+      status: e.target.value || undefined
+    }));
+  };
+
+  const handleFlagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    
+    setFilters(prev => ({
+      ...prev,
+      flags: {
+        ...(prev.flags || {}),
+        [name]: checked
+      }
+    }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      atollIds: [],
+      islandIds: [],
+      flags: {}
+    });
+  };
+
+  return (
+    <div className="bg-white p-4 rounded-lg shadow mb-6">
+      <h2 className="text-lg font-semibold mb-4">Filter Articles</h2>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        {/* Category filter */}
+        <div>
+          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+            Category
+          </label>
+          <select
+            id="category"
+            className="w-full rounded-md border border-gray-300 px-3 py-2"
+            value={filters.categoryId || ""}
+            onChange={handleCategoryChange}
+          >
+            <option value="">All Categories</option>
+            {categories.map(category => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Subcategory filter */}
+        <div>
+          <label htmlFor="subcategory" className="block text-sm font-medium text-gray-700 mb-1">
+            Subcategory
+          </label>
+          <select
+            id="subcategory"
+            className="w-full rounded-md border border-gray-300 px-3 py-2"
+            value={filters.subcategoryId || ""}
+            onChange={handleSubcategoryChange}
+            disabled={!filters.categoryId}
+          >
+            <option value="">All Subcategories</option>
+            {availableSubcategories.map(subcategory => (
+              <option key={subcategory.id} value={subcategory.id}>
+                {subcategory.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Atoll filter */}
+        <div>
+          <label htmlFor="atoll" className="block text-sm font-medium text-gray-700 mb-1">
+            Atoll
+          </label>
+          <select
+            id="atoll"
+            className="w-full rounded-md border border-gray-300 px-3 py-2"
+            value=""
+            onChange={handleAtollChange}
+          >
+            <option value="">All Atolls</option>
+            {atolls.map(atoll => (
+              <option key={atoll.id} value={atoll.id}>
+                {atoll.name} ({atoll.name_en})
+              </option>
+            ))}
+          </select>
+          {/* Selected atolls */}
+          {filters.atollIds && filters.atollIds.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {filters.atollIds.map(id => {
+                const atoll = atolls.find(a => a.id === id);
+                return atoll ? (
+                  <span key={`selected-atoll-${id}`} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
+                    {atoll.name}
+                    <button
+                      type="button"
+                      className="ml-1 text-teal-600 hover:text-teal-800"
+                      onClick={() => setFilters(prev => ({
+                        ...prev,
+                        atollIds: prev.atollIds?.filter(atollId => atollId !== id)
+                      }))}
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ) : null;
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Island filter */}
+        <div>
+          <label htmlFor="island" className="block text-sm font-medium text-gray-700 mb-1">
+            Island
+          </label>
+          <select
+            id="island"
+            className="w-full rounded-md border border-gray-300 px-3 py-2"
+            value=""
+            onChange={handleIslandChange}
+          >
+            <option value="">All Islands</option>
+            {islands.map(island => (
+              <option key={island.id} value={island.id}>
+                {island.name} ({island.name_en})
+              </option>
+            ))}
+          </select>
+          {/* Selected islands */}
+          {filters.islandIds && filters.islandIds.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {filters.islandIds.map(id => {
+                const island = islands.find(i => i.id === id);
+                return island ? (
+                  <span key={`selected-island-${id}`} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                    {island.name}
+                    <button
+                      type="button"
+                      className="ml-1 text-amber-600 hover:text-amber-800"
+                      onClick={() => setFilters(prev => ({
+                        ...prev,
+                        islandIds: prev.islandIds?.filter(islandId => islandId !== id)
+                      }))}
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ) : null;
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Status filter */}
+        <div>
+          <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+            Status
+          </label>
+          <select
+            id="status"
+            className="w-full rounded-md border border-gray-300 px-3 py-2"
+            value={filters.status || ""}
+            onChange={handleStatusChange}
+          >
+            <option value="">All Statuses</option>
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+            <option value="archived">Archived</option>
+            <option value="scheduled">Scheduled</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Article flags */}
+      <div className="mb-4">
+        <p className="block text-sm font-medium text-gray-700 mb-1">Article Type</p>
+        <div className="flex flex-wrap gap-4">
+          <label className="inline-flex items-center">
+            <input
+              type="checkbox"
+              className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              name="isBreaking"
+              checked={filters.flags?.isBreaking || false}
+              onChange={handleFlagChange}
+            />
+            <span className="ml-2 text-sm text-gray-700">Breaking News</span>
+          </label>
+
+          <label className="inline-flex items-center">
+            <input
+              type="checkbox"
+              className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              name="isFeatured"
+              checked={filters.flags?.isFeatured || false}
+              onChange={handleFlagChange}
+            />
+            <span className="ml-2 text-sm text-gray-700">Featured</span>
+          </label>
+
+          <label className="inline-flex items-center">
+            <input
+              type="checkbox"
+              className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              name="isDeveloping"
+              checked={filters.flags?.isDeveloping || false}
+              onChange={handleFlagChange}
+            />
+            <span className="ml-2 text-sm text-gray-700">Developing</span>
+          </label>
+
+          <label className="inline-flex items-center">
+            <input
+              type="checkbox"
+              className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              name="isExclusive"
+              checked={filters.flags?.isExclusive || false}
+              onChange={handleFlagChange}
+            />
+            <span className="ml-2 text-sm text-gray-700">Exclusive</span>
+          </label>
+
+          <label className="inline-flex items-center">
+            <input
+              type="checkbox"
+              className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              name="isSponsored"
+              checked={filters.flags?.isSponsored || false}
+              onChange={handleFlagChange}
+            />
+            <span className="ml-2 text-sm text-gray-700">Sponsored</span>
+          </label>
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <button
+          type="button"
+          className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
+          onClick={handleResetFilters}
+        >
+          Reset Filters
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default ArticleFilters;

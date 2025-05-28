@@ -1,0 +1,126 @@
+/*! tailwindcss v3.x.x | MIT License | https://tailwindcss.com */
+
+/* Import Noto Sans Thaana from Google Fonts instead of using unreliable sources */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thaana:wght@400;700&display=swap');
+
+/* 
+ * This file uses Tailwind CSS directives (@tailwind, @layer, @apply)
+ * CSS linting errors for these directives can be ignored as they're processed by PostCSS
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'MV Waheed';
+  /* Fallback to Noto Sans Thaana if MV Waheed is not available */
+  src: local('MV Waheed');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  .thaana-waheed {
+    font-family: 'MV Waheed', 'Noto Sans Thaana', sans-serif;
+    direction: rtl;
+  }
+
+  .prose {
+    @apply max-w-none;
+  }
+  
+  .prose p {
+    @apply mb-4;
+  }
+  
+  .prose h1 {
+    @apply text-3xl font-bold mb-4 mt-6;
+  }
+  
+  .prose h2 {
+    @apply text-2xl font-bold mb-3 mt-5;
+  }
+  
+  .prose ul {
+    @apply list-disc pl-6 mb-4;
+  }
+  
+  .prose ol {
+    @apply list-decimal pl-6 mb-4;
+  }
+  
+  .prose blockquote {
+    @apply border-l-4 border-gray-300 pl-4 italic my-4;
+  }
+  
+  .prose code {
+    @apply bg-gray-100 rounded px-1 py-0.5;
+  }
+  
+  .prose pre {
+    @apply bg-gray-100 rounded p-4 mb-4 overflow-x-auto;
+  }
+  
+  .prose img {
+    @apply rounded-lg max-w-full h-auto my-4;
+  }
+  
+  .prose a {
+    @apply text-blue-600 hover:text-blue-800 underline;
+  }
+  
+  .prose mark {
+    @apply bg-yellow-200 px-1 rounded;
+  }
+}
+
+@layer utilities {
+  .placeholder\:thaana-waheed::placeholder {
+    font-family: 'MV Waheed', sans-serif;
+    direction: rtl;
+  }
+  
+  /* Kanban Board Styles */
+  /* Layout container */
+  .kanban-board {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f5f5f5;
+    overflow-x: auto;
+  }
+
+  /* Each column */
+  .kanban-column {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1rem;
+    flex: 1;
+    min-width: 250px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  }
+
+  /* Column headings */
+  .kanban-column h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #e2e2e2;
+    padding-bottom: 0.5rem;
+  }
+
+  /* Cards */
+  .kanban-card {
+    background: #eef2f7;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    cursor: grab;
+  }
+
+  /* Optional hover effect */
+  .kanban-card:hover {
+    background: #dbeafe;
+  }
+}

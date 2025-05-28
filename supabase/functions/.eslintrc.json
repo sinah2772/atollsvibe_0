@@ -1,0 +1,22 @@
+// This file disables ESLint for the Deno Edge Function specifically
+// since we're using Deno-specific features that Node.js ESLint doesn't understand
+{
+  "extends": "../../.eslintrc",
+  "rules": {
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/ban-ts-ignore": "off",
+    "@typescript-eslint/no-unsafe-call": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "no-undef": "off",
+    "import/no-unresolved": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/images/index.ts"],
+      "rules": {
+        "@typescript-eslint/ban-ts-comment": "off"
+      }
+    }
+  ]
+}
