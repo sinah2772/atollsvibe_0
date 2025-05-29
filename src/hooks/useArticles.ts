@@ -32,6 +32,35 @@ export interface Article {
   is_sponsored: boolean;
   sponsored_by: string | null;
   sponsored_url: string | null;
+  // Additional fields migrated from news_articles
+  news_type: string | null;
+  news_priority: number | null;
+  news_source: string | null;
+  meta_title: string | null;
+  meta_description: string | null;
+  meta_keywords: string[] | null;
+  related_articles: string[] | null;
+  tags: string[] | null;
+  // Editorial workflow fields
+  author_notes: string | null;
+  editor_notes: string | null;
+  fact_checked: boolean | null;
+  fact_checker_id: string | null;
+  fact_checked_at: string | null;
+  approved_by_id: string | null;
+  approved_at: string | null;
+  published_by_id: string | null;
+  last_updated_by_id: string | null;
+  // Translation-related fields
+  original_source_url: string | null;
+  translation_source_url: string | null;
+  translation_source_lang: string | null;
+  translation_notes: string | null;
+  // System fields
+  revision_history: Record<string, unknown> | null;
+  scheduled_notifications: Record<string, unknown> | null;
+  notification_sent: boolean | null;
+  notification_sent_at: string | null;
   // Related entities
   category?: {
     id: number;

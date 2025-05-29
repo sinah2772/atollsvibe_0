@@ -9,11 +9,21 @@ import { useArticles } from '../hooks/useArticles';
 import { useCategories } from '../hooks/useCategories';
 import { useAtolls } from '../hooks/useAtolls';
 import { useUser } from '../hooks/useUser';
+// Assuming correct import name  
 import { useGovernment } from '../hooks/useGovernment';
 import { MultiSelect } from '../components/MultiSelect';
 import { IslandsSelect } from '../components/IslandsSelect';
 import ImageBrowser from '../components/ImageBrowser';
 import CategorySelector from '../components/CategorySelector';
+import RelatedArticlesSelector from '../components/RelatedArticlesSelector';
+import TagsInput from '../components/TagsInput';
+import LanguageSelector from '../components/LanguageSelector';
+import ArticlePreview from '../components/EnhancedArticlePreview';
+import WordCounter from '../components/WordCounter';
+import FormValidationIndicator from '../components/FormValidationIndicator';
+import SaveAndContinue from '../components/SaveAndContinue';
+import UnsavedChangesWarning from '../components/UnsavedChangesWarning';
+import useAutoSave from '../hooks/useAutoSave';
 import { supabase } from '../lib/supabase';
 import { 
   Bold, 
@@ -58,6 +68,7 @@ const NewArticle: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [showImageBrowser, setShowImageBrowser] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   // Article flag states
@@ -68,6 +79,106 @@ const NewArticle: React.FC = () => {
   const [isSponsored, setIsSponsored] = useState(false);
   const [sponsoredBy, setSponsoredBy] = useState('');
   const [sponsoredUrl, setSponsoredUrl] = useState('');
+  
+  // New article fields
+  const [newsType, setNewsType] = useState<string>('update');
+  const [newsPriority, setNewsPriority] = useState<number>(3);
+  const [newsSource, setNewsSource] = useState<string>('');
+  const [metaTitle, setMetaTitle] = useState<string>('');
+  const [metaDescription, setMetaDescription] = useState<string>('');
+  const [metaKeywords, setMetaKeywords] = useState<string[]>([]);
+  const [relatedArticles, setRelatedArticles] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
+  const [authorNotes, setAuthorNotes] = useState<string>('');
+  const [originalSourceUrl, setOriginalSourceUrl] = useState<string>('');
+  const [translationSourceUrl, setTranslationSourceUrl] = useState<string>('');
+  const [translationSourceLang, setTranslationSourceLang] = useState<string>('');
+  const [translationNotes, setTranslationNotes] = useState<string>('');
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+  
+  // Form validation state
+  const [formValidated, setFormValidated] = useState(false);
+  const [validationFields, setValidationFields] = useState<Array<{name: string, valid: boolean, errorMessage?: string}>>([]);
+  const [formTouched, setFormTouched] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+    // Auto-save configuration
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+  const [autoSaveInterval, setAutoSaveInterval] = useState(60000); // 1 minute default
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  
+  // Create a data object for the auto-save hook to track
+  const articleData = {
+    title,
+    heading,
+    socialHeading,
+    content: editor?.getJSON(),
+    category,
+    subcategory,
+    selectedAtolls,
+    selectedIslands,
+    selectedGovernmentIds,
+    coverImage,
+    imageCaption,
+    isBreaking,
+    isFeatured,
+    isDeveloping,
+    isExclusive,
+    isSponsored,
+    sponsoredBy,
+    sponsoredUrl,
+    newsType,
+    newsPriority,
+    newsSource,
+    metaTitle,
+    metaDescription,
+    metaKeywords,
+    relatedArticles,
+    tags,
+    authorNotes,
+    originalSourceUrl,
+    translationSourceUrl,
+    translationSourceLang,
+    translationNotes
+  };
+  // Track form changes for unsaved changes detection
+  useEffect(() => {
+    // Skip the initial render
+    const isInitialRender = useRef(true);
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
+      return;
+    }
+    
+    // Mark as having unsaved changes when content is modified
+    setHasUnsavedChanges(true);
+  }, [
+    title, heading, socialHeading, category, subcategory,
+    JSON.stringify(selectedAtolls), JSON.stringify(selectedIslands), 
+    JSON.stringify(selectedGovernmentIds), coverImage, imageCaption,
+    isBreaking, isFeatured, isDeveloping, isExclusive, isSponsored,
+    editor?.getHTML()
+  ]);
+
+  // Auto-save functionality
+  useAutoSave({
+    data: articleData,
+    onSave: async () => {
+      // Only auto-save if we have enough content to make it worthwhile
+      if (editor && (editor.getText().length > 50 || title.length > 10)) {
+        try {
+          await handleSaveDraft(true);
+          // Reset unsaved changes flag after successful auto-save
+          setHasUnsavedChanges(false);
+        } catch (error) {
+          console.error('Auto-save failed:', error);
+          // Keep the unsaved changes flag true if save failed
+        }
+      }
+    },
+    interval: autoSaveInterval,
+    enabled: autoSaveEnabled && !!user,
+    minChanges: 3 // Require at least 3 changes before triggering an auto-save
+  });
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -106,30 +217,126 @@ const NewArticle: React.FC = () => {
         class: `prose prose-lg max-w-none focus:outline-none min-h-[300px] ${language === 'dv' ? 'thaana-waheed' : ''}`,
       },
     },
-  });
-
-  const validateForm = () => {
+  });  const validateForm = () => {
+    const validationResults = [];
+    let isValid = true;
+    
+    // Check user login
     if (!user) {
-      alert(language === 'dv' ? 'އެކައުންޓަށް ވަދެވަޑައިގަންނަވާ' : 'Please log in to continue');
-      return false;
+      validationResults.push({
+        name: language === 'dv' ? 'އެކައުންޓް' : 'Login',
+        valid: false,
+        errorMessage: language === 'dv' ? 'އެކައުންޓަށް ވަދެވަޑައިގަންނަވާ' : 'Please log in to continue'
+      });
+      isValid = false;
     }
-    if (!selectedAtolls || selectedAtolls.length === 0) {
-      alert(language === 'dv' ? 'އަތޮޅެއް އިޚްތިޔާރު ކުރައްވާ' : 'Please select at least one atoll');
-      return false;
+    
+    // Required fields validation
+    // Title validation
+    validationResults.push({
+      name: language === 'dv' ? 'ސުރުޚީ (ލެޓިން)' : 'Title (Latin)',
+      valid: !!title.trim(),
+      errorMessage: language === 'dv' ? 'ސުރުޚީ ލިޔުއްވާ' : 'Please enter a title'
+    });
+    
+    // Heading validation
+    validationResults.push({
+      name: language === 'dv' ? 'ސުރުޚީ (ދިވެހި)' : 'Heading (Thaana)',
+      valid: !!heading.trim(),
+      errorMessage: language === 'dv' ? 'ދިވެހި ސުރުޚީ ލިޔުއްވާ' : 'Please enter a heading'
+    });
+    
+    // Atoll validation
+    validationResults.push({
+      name: language === 'dv' ? 'އަތޮޅުތައް' : 'Atolls',
+      valid: selectedAtolls && selectedAtolls.length > 0,
+      errorMessage: language === 'dv' ? 'އަތޮޅެއް އިޚްތިޔާރު ކުރައްވާ' : 'Please select at least one atoll'
+    });
+    
+    // Category validation
+    validationResults.push({
+      name: language === 'dv' ? 'ބައި' : 'Category',
+      valid: !!category,
+      errorMessage: language === 'dv' ? 'ބައެއް އިޚްތިޔާރު ކުރައްވާ' : 'Please select a category'
+    });
+    
+    // Cover image validation
+    validationResults.push({
+      name: language === 'dv' ? 'މައި ފޮޓޯ' : 'Cover Image',
+      valid: !!coverImage,
+      errorMessage: language === 'dv' ? 'ފޮޓޯއެއް އިންތިޚާބުކުރައްވާ' : 'Please select a cover image'
+    });
+    
+    // Content validation
+    validationResults.push({
+      name: language === 'dv' ? 'މަޢުލޫމާތު' : 'Content',
+      valid: editor ? editor.getText().trim().length > 0 : false,
+      errorMessage: language === 'dv' ? 'މަޢުލޫމާތު ލިޔުއްވާ' : 'Please enter some content'
+    });
+    
+    // Sponsored content validation
+    if (isSponsored) {
+      validationResults.push({
+        name: language === 'dv' ? 'ސްޕޮންސަރ ކުރި ފަރާތް' : 'Sponsor Name',
+        valid: !!sponsoredBy,
+        errorMessage: language === 'dv' ? 'ސްޕޮންސަރ ކުރި ފަރާތް ލިޔުއްވާ' : 'Please enter sponsor name'
+      });
+      
+      validationResults.push({
+        name: language === 'dv' ? 'ސްޕޮންސަރ ލިންކް' : 'Sponsor URL',
+        valid: !!sponsoredUrl && isValidUrl(sponsoredUrl),
+        errorMessage: language === 'dv' ? 'ޞައްޙަ ސްޕޮންސަރ ލިންކެއް ލިޔުއްވާ' : 'Please enter a valid sponsor URL'
+      });
     }
-    if (!category) {
-      alert(language === 'dv' ? 'ބައެއް އިޚްތިޔާރު ކުރައްވާ' : 'Please select a category');
-      return false;
+    
+    // URL validation for any fields containing URLs
+    const urlFields = [
+      { value: originalSourceUrl, name: language === 'dv' ? 'އަސްލު މަސްދަރު ޔޫއާރްއެލް' : 'Original Source URL' },
+      { value: translationSourceUrl, name: language === 'dv' ? 'ތަރުޖަމާ މަސްދަރު ޔޫއާރްއެލް' : 'Translation Source URL' }
+    ];
+    
+    for (const field of urlFields) {
+      if (field.value) {
+        validationResults.push({
+          name: field.name,
+          valid: isValidUrl(field.value),
+          errorMessage: language === 'dv' 
+            ? `${field.name} ގައި ޞައްޙަ ޔޫއާރްއެލްއެއް ލިޔުއްވާ` 
+            : `Please enter a valid URL for ${field.name}`
+        });
+      }
     }
-    if (isSponsored && (!sponsoredBy || !sponsoredUrl)) {
-      alert(language === 'dv' ? 'ސްޕޮންސަރދިޔައްވާންވަނީ އަށްވެސްވަނީ' : 'Please provide sponsor details');
-      return false;
+    
+    // Update validation state
+    setValidationFields(validationResults);
+    setFormValidated(validationResults.every(field => field.valid));
+    
+    // Check if the form is valid overall
+    isValid = validationResults.every(field => field.valid);
+    
+    if (!isValid && formTouched) {
+      // Scroll to the top of the form to show validation messages
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    return true;
+    
+    return isValid;
   };
-
-  const handleSaveDraft = async () => {
+    // Helper function to validate URLs
+  const isValidUrl = (urlString: string): boolean => {
+    try {
+      if (urlString === '') return true; // Empty URLs are considered valid (optional fields)
+      new URL(urlString);
+      return true;
+    } catch {
+      return false;
+    }
+  };  // Add a flag parameter to indicate if we should navigate after saving
+  const handleSaveDraft = async (stayOnPage: boolean = false) => {
     if (!editor) return;
+    
+    // Mark the form as touched to show validation messages
+    setFormTouched(true);
+    
     if (!validateForm()) return;
     
     try {
@@ -139,9 +346,7 @@ const NewArticle: React.FC = () => {
       if (!user) {
         navigate('/login', { replace: true });
         return;
-      }
-
-      await createArticle({
+      }await createArticle({
         title,
         heading,
         social_heading: socialHeading,
@@ -163,10 +368,29 @@ const NewArticle: React.FC = () => {
         is_exclusive: isExclusive,
         is_sponsored: isSponsored,
         sponsored_by: isSponsored ? sponsoredBy : null,
-        sponsored_url: isSponsored ? sponsoredUrl : null
-      });
-
-      navigate('/articles');
+        sponsored_url: isSponsored ? sponsoredUrl : null,
+        // New article fields
+        news_type: newsType,
+        news_priority: newsPriority,
+        news_source: newsSource,
+        meta_title: metaTitle,
+        meta_description: metaDescription,
+        meta_keywords: metaKeywords,
+        related_articles: relatedArticles,
+        tags,
+        author_notes: authorNotes,
+        original_source_url: originalSourceUrl,
+        translation_source_url: translationSourceUrl,
+        translation_source_lang: translationSourceLang,
+        translation_notes: translationNotes
+      });      // Update last saved time and reset unsaved changes flag
+      setLastSaved(new Date());
+      setHasUnsavedChanges(false);
+      
+      // Only navigate away if stayOnPage is false
+      if (!stayOnPage) {
+        navigate('/articles');
+      }
     } catch (error) {
       console.error('Failed to save draft:', error);
       setError(language === 'dv' ? 'ޑްރާފްޓް ކުރުމުގައި މަްސަލައެއް ދިމާވެއްޖެ' : 'Failed to save draft. Please try again.');
@@ -174,9 +398,12 @@ const NewArticle: React.FC = () => {
       setSaving(false);
     }
   };
-
   const handlePublish = async () => {
     if (!editor) return;
+    
+    // Mark the form as touched to show validation messages
+    setFormTouched(true);
+    
     if (!validateForm()) return;
     
     try {
@@ -186,9 +413,7 @@ const NewArticle: React.FC = () => {
       if (!user) {
         navigate('/login', { replace: true });
         return;
-      }
-
-      await createArticle({
+      }await createArticle({
         title,
         heading,
         social_heading: socialHeading,
@@ -210,9 +435,24 @@ const NewArticle: React.FC = () => {
         is_exclusive: isExclusive,
         is_sponsored: isSponsored,
         sponsored_by: isSponsored ? sponsoredBy : null,
-        sponsored_url: isSponsored ? sponsoredUrl : null
-      });
-
+        sponsored_url: isSponsored ? sponsoredUrl : null,
+        // New article fields
+        news_type: newsType,
+        news_priority: newsPriority,
+        news_source: newsSource,
+        meta_title: metaTitle,
+        meta_description: metaDescription,
+        meta_keywords: metaKeywords,
+        related_articles: relatedArticles,
+        tags,
+        author_notes: authorNotes,
+        original_source_url: originalSourceUrl,
+        translation_source_url: translationSourceUrl,
+        translation_source_lang: translationSourceLang,
+        translation_notes: translationNotes      });
+      
+      // Reset unsaved changes flag before navigating
+      setHasUnsavedChanges(false);
       navigate('/articles');
     } catch (error) {
       console.error('Failed to publish:', error);
@@ -266,7 +506,7 @@ const NewArticle: React.FC = () => {
             {language === 'dv' ? 'އައު ލިޔުމެއް' : 'Create New Article'}
           </h1>
           <p className={`text-gray-600 mt-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-            {language === 'dv' ? 'އައު ލިޔުމެއް ލިޔެ ޝާއިޢު ކުރައްވާ' : 'Write and publish your next story'}
+            {language === 'dv' ? 'ައުލިޔުމެއް ލިޔެ ޝާއިޢު ކުރައްވާ' : 'Write and publish your next story'}
           </p>
         </div>
         <button
@@ -279,18 +519,25 @@ const NewArticle: React.FC = () => {
             {language === 'dv' ? 'Switch to English' : 'ދިވެހި އަށް ބަދަލުކުރައްވާ'}
           </span>
         </button>
-      </div>
-
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      </div>      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         {error && (
           <div className="mb-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg">
             {error}
           </div>
         )}
+        
+        {/* Form validation indicator - only show after user has interacted with the form */}
+        {formTouched && (
+          <div className="mb-4">
+            <FormValidationIndicator fields={validationFields} language={language} />
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
             <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-              {language === 'dv' ? 'ސުރުޚީ (ލެޓިން)' : 'Title (Latin)'}
+              {language === 'dv' ? 'ސުރުޚީ (ލެޓިން)' : 'Title (Latin)'
+}
             </label>
             <input
               type="text"
@@ -411,8 +658,7 @@ const NewArticle: React.FC = () => {
                 </div>
               )}
             </div>
-            <MultiSelect
-              options={government.map(item => ({
+            <MultiSelect              options={government.map((item: { id: string; name: string; name_en: string }) => ({
                 id: item.id, // Use original UUID string
                 name: item.name,
                 name_en: item.name_en
@@ -567,8 +813,238 @@ const NewArticle: React.FC = () => {
               </div>
             </div>
           )}
+          
+          {/* Toggle for Advanced Options */}
+          <div className="mt-4 border-t border-gray-200 pt-4">
+            <button
+              type="button"
+              onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+              className="flex items-center text-blue-600 hover:text-blue-800"
+            >
+              <svg
+                className={`w-4 h-4 mr-1 transition-transform ${showAdvancedOptions ? 'rotate-90' : ''}`}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className={language === 'dv' ? 'thaana-waheed' : ''}>
+                {language === 'dv' 
+                  ? (showAdvancedOptions ? 'އިތުރު އޮޕްޝަންތައް ފޮރުވާލާ' : 'އިތުރު އޮޕްޝަންތައް ދައްކާ') 
+                  : (showAdvancedOptions ? 'Hide Advanced Options' : 'Show Advanced Options')}
+              </span>
+            </button>
+          </div>
         </div>
-
+        
+        {/* Advanced Options Section */}
+        {showAdvancedOptions && (
+          <div className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h3 className={`text-lg font-medium mb-3 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+              {language === 'dv' ? 'އިތުރު މަުލޫމާތު' : 'Advanced Options'}
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                  {language === 'dv' ? 'ނިއުސް ބާވަތް' : 'News Type'}
+                </label>                <select
+                  value={newsType}
+                  onChange={(e) => setNewsType(e.target.value)}
+                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  aria-label={language === 'dv' ? 'ނިއުސް ބާވަތް' : 'News Type'}
+                >
+                  <option value="update">{language === 'dv' ? 'އަޕްޑޭޓް' : 'Update'}</option>
+                  <option value="breaking">{language === 'dv' ? 'ބްރޭކިންގ' : 'Breaking'}</option>
+                  <option value="feature">{language === 'dv' ? 'ފީޗަރ' : 'Feature'}</option>
+                  <option value="opinion">{language === 'dv' ? 'ޚިޔާލު' : 'Opinion'}</option>
+                  <option value="interview">{language === 'dv' ? 'އިންޓަރވިއު' : 'Interview'}</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                  {language === 'dv' ? 'ނިއުސް ޕްރައިއޮރިޓީ' : 'News Priority'}
+                </label>                <select
+                  value={newsPriority}
+                  onChange={(e) => setNewsPriority(parseInt(e.target.value))}
+                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  aria-label={language === 'dv' ? 'ނިއުސް ޕްރައިއޮރިޓީ' : 'News Priority'}
+                >
+                  <option value="1">{language === 'dv' ? '1 - އެންމެ މުހިންމު' : '1 - Highest'}</option>
+                  <option value="2">{language === 'dv' ? '2 - ވަރަށް މުހިންމު' : '2 - High'}</option>
+                  <option value="3">{language === 'dv' ? '3 - މުހިންމު' : '3 - Medium'}</option>
+                  <option value="4">{language === 'dv' ? '4 - މެދުމިން' : '4 - Low'}</option>
+                  <option value="5">{language === 'dv' ? '5 - މުހިންމުނޫން' : '5 - Lowest'}</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                  {language === 'dv' ? 'ނިއުސް މަސްދަރު' : 'News Source'}
+                </label>
+                <input
+                  type="text"
+                  value={newsSource}
+                  onChange={(e) => setNewsSource(e.target.value)}
+                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  placeholder={language === 'dv' ? 'މިސާލު: ރިޕޯޓަރ، ނޫސް ބަޔާން، ވެބްސައިޓް' : 'E.g. Reporter, Press Release, Website'}
+                  dir={language === 'dv' ? 'rtl' : 'ltr'}
+                />
+              </div>
+            </div>
+              <div className="mb-4">
+              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                {language === 'dv' ? 'ޓެގްތައް' : 'Tags'}
+              </label>
+              <TagsInput 
+                tags={tags} 
+                onChange={setTags} 
+                language={language} 
+                placeholder={language === 'dv' ? 'ޓެގް ލިޔެ އެންމެރިތައްވާ' : 'Type a tag and press enter'}
+              />
+              <p className="mt-1 text-sm text-gray-500">
+                {language === 'dv' ? 'ޓެގެއް ލިޔުއްވުމަށްފަހު އެންމެރިތައްވާ' : 'Type a tag and press enter to add it'}
+              </p>
+            </div>
+            
+            <div className="mb-4">
+              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                {language === 'dv' ? 'ލިޔުންތެރިޔާގެ ނޯޓްސް' : 'Author Notes'}
+              </label>
+              <textarea
+                value={authorNotes}
+                onChange={(e) => setAuthorNotes(e.target.value)}
+                className={`w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${language === 'dv' ? 'thaana-waheed' : ''}`}
+                rows={2}
+                placeholder={language === 'dv' ? 'ލިޔުންތެރިޔާގެ އިތުރު ނޯޓްސް' : 'Additional notes from the author'}
+                dir={language === 'dv' ? 'rtl' : 'ltr'}
+              ></textarea>
+            </div>
+              {/* Related Articles Section */}            <h4 className={`text-md font-medium mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+              {language === 'dv' ? 'ގުޅުންހުރި ލިޔުންތައް' : 'Related Articles'}
+            </h4>
+            
+            <div className="mb-4">
+              <RelatedArticlesSelector
+                selectedArticleIds={relatedArticles}
+                onChange={setRelatedArticles}
+                language={language}
+              />
+              <p className="mt-1 text-sm text-gray-500">
+                {language === 'dv' ? 'ގުޅުންހުރި ލިޔުންތައް ހޯއްދަވާ އަދި އިންތިޚާބުކުރައްވާ' : 'Search and select related articles'}
+              </p>
+            </div>
+                
+            {/* SEO Section */}
+            <h4 className={`text-md font-medium mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+              {language === 'dv' ? 'އެސްއީއޯ މަޢުލޫމާތު' : 'SEO Information'}
+            </h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                  {language === 'dv' ? 'މެޓާ ޓައިޓަލް' : 'Meta Title'}
+                </label>
+                <input
+                  type="text"
+                  value={metaTitle}
+                  onChange={(e) => setMetaTitle(e.target.value)}
+                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  placeholder={language === 'dv' ? 'އެސްއީއޯ ޓައިޓަލް' : 'SEO title'}
+                  dir={language === 'dv' ? 'rtl' : 'ltr'}
+                />
+              </div>
+              
+              <div>
+                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                  {language === 'dv' ? 'މެޓާ ޑިސްކްރިޕްޝަން' : 'Meta Description'}
+                </label>
+                <input
+                  type="text"
+                  value={metaDescription}
+                  onChange={(e) => setMetaDescription(e.target.value)}
+                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  placeholder={language === 'dv' ? 'އެސްއީއޯ ޑިސްކްރިޕްޝަން' : 'SEO description'}
+                  dir={language === 'dv' ? 'rtl' : 'ltr'}
+                />
+              </div>
+                <div className="md:col-span-2">
+                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                  {language === 'dv' ? 'މެޓާ ކީވޯޑްސް' : 'Meta Keywords'}
+                </label>
+                <TagsInput 
+                  tags={metaKeywords} 
+                  onChange={setMetaKeywords} 
+                  language={language} 
+                  placeholder={language === 'dv' ? 'ކީވާޑް ލިޔެ އެންމެރިތައްވާ' : 'Type a keyword and press enter'}
+                />
+              </div>
+            </div>
+            
+            {/* Translation Section */}
+            <h4 className={`text-md font-medium mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+              {language === 'dv' ? 'ތަރުޖަމާ މަޢުލޫމާތު' : 'Translation Information'}
+            </h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                  {language === 'dv' ? 'އަސްލު މަސްދަރު ޔޫއާރްއެލް' : 'Original Source URL'}
+                </label>
+                <input
+                  type="text"
+                  value={originalSourceUrl}
+                  onChange={(e) => setOriginalSourceUrl(e.target.value)}
+                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  placeholder="https://..."
+                />
+              </div>
+              
+              <div>
+                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                  {language === 'dv' ? 'ތަރުޖަމާ މަސްދަރު ޔޫއާރްއެލް' : 'Translation Source URL'}
+                </label>
+                <input
+                  type="text"
+                  value={translationSourceUrl}
+                  onChange={(e) => setTranslationSourceUrl(e.target.value)}
+                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  placeholder="https://..."
+                />
+              </div>
+                <div>
+                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                  {language === 'dv' ? 'ތަރުޖަމާ ބަސް' : 'Translation Source Language'}
+                </label>
+                <LanguageSelector
+                  value={translationSourceLang}
+                  onChange={setTranslationSourceLang}
+                  language={language}
+                />
+              </div>
+              
+              <div>
+                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                  {language === 'dv' ? 'ތަރުޖަމާ ނޯޓްސް' : 'Translation Notes'}
+                </label>
+                <input
+                  type="text"
+                  value={translationNotes}
+                  onChange={(e) => setTranslationNotes(e.target.value)}
+                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  placeholder={language === 'dv' ? 'ތަރުޖަމާކުރުމާއި ބެހޭ ނޯޓްސް' : 'Notes about the translation'}
+                  dir={language === 'dv' ? 'rtl' : 'ltr'}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div className="border-b border-gray-200 mb-4">
           <div className="flex flex-wrap gap-2 pb-4">
             <button
@@ -686,11 +1162,42 @@ const NewArticle: React.FC = () => {
         </div>
 
         <EditorContent editor={editor} className="min-h-[300px]" />
-      </div>
+        
+        <div className="mt-2 flex justify-end">
+          <WordCounter editor={editor} language={language} />
+        </div>
+      </div>      <div className="flex justify-end gap-4 mt-6">
+        {/* Auto-save toggle */}
+        <div className="flex items-center mr-auto">
+          <input
+            type="checkbox"
+            id="auto-save-toggle"
+            checked={autoSaveEnabled}
+            onChange={(e) => setAutoSaveEnabled(e.target.checked)}
+            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+          />
+          <label 
+            htmlFor="auto-save-toggle" 
+            className={`ml-2 text-sm text-gray-600 ${language === 'dv' ? 'thaana-waheed' : ''}`}
+          >
+            {language === 'dv' ? 'އޮޓޯ ސޭވް (މިނެޓަކުން 1 ފަހަރު)' : 'Auto-save (every 1 min)'}
+          </label>
+        </div>
 
-      <div className="flex justify-end gap-4 mt-6">
         <button
-          onClick={handleSaveDraft}
+          onClick={() => setShowPreview(true)}
+          type="button"
+          className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+          </svg>
+          <span className={language === 'dv' ? 'thaana-waheed' : ''}>
+            {language === 'dv' ? 'ޕްރިވިއު' : 'Preview'}
+          </span>
+        </button>        <button
+          onClick={() => handleSaveDraft(false)}
           disabled={saving}
           className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -719,11 +1226,46 @@ const NewArticle: React.FC = () => {
         </button>
       </div>
 
+      {showPreview && editor && (
+        <ArticlePreview
+          title={title}
+          heading={heading}
+          coverImage={coverImage}
+          imageCaption={imageCaption}
+          content={editor.getJSON()}
+          isBreaking={isBreaking}
+          isFeatured={isFeatured}
+          isDeveloping={isDeveloping}
+          isExclusive={isExclusive}
+          isSponsored={isSponsored}
+          sponsoredBy={sponsoredBy}
+          newsType={newsType}
+          newsSource={newsSource}
+          tags={tags}
+          language={language}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
+
       <ImageBrowser
         isOpen={showImageBrowser}
         onClose={() => setShowImageBrowser(false)}
         onSelect={handleImageSelect}
         language={language}
+      />
+
+      {/* Save and Continue component for long-form content */}      <SaveAndContinue
+        onSaveAsDraft={() => handleSaveDraft(true)}
+        isSaving={saving}
+        lastSaved={lastSaved}
+        language={language}
+      />
+      <UnsavedChangesWarning 
+        hasUnsavedChanges={hasUnsavedChanges} 
+        navigationBlockMessage={language === 'dv' ? 
+          'ފޯމުގައި ސޭވް ނުކުރާ ބަދަލުތަކެއް ހުރެދާނެ. ކަށަވަރުންވެސް މިޞަފްޙާއިން ބޭރަށް ދާން ބޭނުންތޯ؟' : 
+          'You have unsaved changes in your article. Are you sure you want to leave this page?'
+        }
       />
     </div>
   );

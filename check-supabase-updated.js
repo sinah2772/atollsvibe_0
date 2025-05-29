@@ -7,32 +7,21 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Try to load .env file manually
+// Use dotenv package to load environment variables
+import dotenv from 'dotenv';
 const dotenvPath = path.resolve(__dirname, '.env');
 try {
-  const envContent = fs.readFileSync(dotenvPath, 'utf8');
-  const envVars = envContent.split('\n').reduce((acc, line) => {
-    const match = line.match(/^([^=:#]+)=(.*)$/);
-    if (match) {
-      const key = match[1].trim();
-      let value = match[2].trim();
-      // Remove quotes if present
-      if ((value.startsWith('"') && value.endsWith('"')) || 
-          (value.startsWith("'") && value.endsWith("'"))) {
-        value = value.slice(1, -1);
-      }
-      acc[key] = value;
-    }
-    return acc;
-  }, {});
+  console.log('Loading environment variables from:', dotenvPath);
+  const result = dotenv.config({ path: dotenvPath });
   
-  Object.keys(envVars).forEach(key => {
-    process.env[key] = envVars[key];
-  });
+  if (result.error) {
+    throw result.error;
+  }
   
-  console.log("Loaded environment variables from .env file");
+  console.log("Successfully loaded environment variables");
+  console.log("Found keys:", Object.keys(result.parsed || {}));
 } catch (error) {
-  console.warn("Could not load .env file:", error.message);
+  console.error("Could not load .env file:", error);
 }
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
