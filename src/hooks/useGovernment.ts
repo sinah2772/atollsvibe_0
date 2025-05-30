@@ -12,14 +12,13 @@ export const useGovernment = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [useFallbackData, setUseFallbackData] = useState(false);
-
   useEffect(() => {
     const fetchGovernment = async () => {
       try {
         setLoading(true);
         
         const { data, error } = await supabase
-          .from('ministries')
+          .from('government')
           .select('*')
           .order('name', { ascending: true });
         

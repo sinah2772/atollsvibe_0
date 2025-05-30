@@ -1,13 +1,9 @@
 import React from 'react';
 
-interface FormField {
-  name: string;
-  valid: boolean;
-  errorMessage?: string;
-}
+import { ValidationField } from '../types/editor';
 
 interface FormValidationIndicatorProps {
-  fields: FormField[];
+  fields: ValidationField[];
   language: 'en' | 'dv';
 }
 
