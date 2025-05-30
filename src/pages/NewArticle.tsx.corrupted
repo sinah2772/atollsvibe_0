@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
+import { JSONContent } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
@@ -47,6 +48,37 @@ import {
   Languages,
   Loader2
 } from 'lucide-react';
+
+// Define types for nodes in the article JSON structure
+interface MarkType {
+  type: string;
+  attrs?: Record<string, unknown>;
+}
+
+interface NodeType {
+  type: string;
+  content?: NodeType[];
+  attrs?: Record<string, unknown>;
+  text?: string;
+  marks?: MarkType[];
+}
+
+interface TipTapDocument {
+  type: string;
+  content?: NodeType[];
+}
+
+// Utility function to convert JSONContent to TipTapDocument
+const convertToTipTapDocument = (content: JSONContent | undefined): TipTapDocument => {
+  if (!content) {
+    return { type: 'doc', content: [] };
+  }
+  
+  return {
+    type: content.type || 'doc',
+    content: content.content as NodeType[] || []
+  };
+};
 
 const NewArticle: React.FC = () => {
   const navigate = useNavigate();
@@ -105,13 +137,10 @@ const NewArticle: React.FC = () => {
   const [formTouched, setFormTouched] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   // Auto-save configuration
-  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);  const [autoSaveInterval, setAutoSaveInterval] = useState(60000); // 1 minute default
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+  const [autoSaveInterval, setAutoSaveInterval] = useState(60000); // 1 minute default  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   // Reference to track initial render to avoid marking content as unsaved on first load
-  const isInitialRender = useRef(true);
-
-  // Initialize the editor
+  const isInitialRender = useRef(true);// Initialize the editor
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -651,8 +680,10 @@ const NewArticle: React.FC = () => {
               placeholder={language === 'dv' ? 'ދިވެހިން ސުރުޚީ ލިޔުއްވާ' : 'Enter heading in Thaana'}
               dir={language === 'dv' ? 'rtl' : 'ltr'}
             />
-          </div>          <div>
-            <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+          </div>
+
+          <div>
+            <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}></label>
               {language === 'dv' ? 'ސޯޝަލް މީޑިއާ ސުރުޚީ' : 'Social Heading'}
             </label>
             <input

@@ -116,19 +116,15 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({
         }
           
         case 'image': {
-          const src = String(node.attrs?.src || '');
-          const alt = String(node.attrs?.alt || '');
-          const title = String(node.attrs?.title || '');
-          
           return (
             <div key={index} className="my-4">
               <img 
-                src={src}
-                alt={alt} 
+                src={node.attrs?.src?.toString()} 
+                alt={node.attrs?.alt?.toString() || ''} 
                 className="mx-auto rounded-lg max-h-[400px] object-contain"
               />
-              {title && (
-                <p className="text-center text-sm text-gray-600 mt-2">{title}</p>
+              {node.attrs?.title && (
+                <p className="text-center text-sm text-gray-600 mt-2">{node.attrs.title.toString()}</p>
               )}
             </div>
           );
@@ -150,8 +146,7 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({
         // Apply marks (formatting)
         if (node.marks && node.marks.length > 0) {
           return node.marks.reduce<React.ReactNode>((content, mark) => {
-            const contentElement = content;
-            const href = String(mark.attrs?.href || '#');
+            const contentElement = content as React.ReactNode;
             
             switch (mark.type) {
               case 'bold':
@@ -159,7 +154,7 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({
               case 'italic':
                 return <em key={key}>{contentElement}</em>;
               case 'link':
-                return <a key={key} href={href} className="text-blue-600 hover:underline">{contentElement}</a>;
+                return <a key={key} href={mark.attrs?.href?.toString() || '#'} className="text-blue-600 hover:underline">{contentElement}</a>;
               case 'highlight':
                 return <mark key={key} className="bg-yellow-200">{contentElement}</mark>;
               case 'code':

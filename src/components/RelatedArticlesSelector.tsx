@@ -30,14 +30,20 @@ const RelatedArticlesSelector: React.FC<RelatedArticlesSelectorProps> = ({
     const fetchSelectedArticles = async () => {
       if (selectedArticleIds.length === 0) return;
       
-      try {
-        const { data, error } = await supabase
+      try {        const { data, error } = await supabase
           .from('articles')
-          .select('id, title, heading, created_at as published_at')
+          .select('id, title, heading, created_at')
           .in('id', selectedArticleIds);
           
         if (error) throw error;
-        if (data) setSelectedArticles(data);
+        if (data) {
+          // Transform the data to match the Article interface
+          const articlesWithPublishedDate = data.map(article => ({
+            ...article,
+            published_at: article.created_at
+          })) as Article[];
+          setSelectedArticles(articlesWithPublishedDate);
+        }
       } catch (error) {
         console.error('Error fetching selected articles:', error);
       }
@@ -56,16 +62,22 @@ const RelatedArticlesSelector: React.FC<RelatedArticlesSelectorProps> = ({
       
       setLoading(true);
       
-      try {
-        const { data, error } = await supabase
+      try {        const { data, error } = await supabase
           .from('articles')
-          .select('id, title, heading, created_at as published_at')
+          .select('id, title, heading, created_at')
           .or(`title.ilike.%${searchTerm}%,heading.ilike.%${searchTerm}%`)
           .order('created_at', { ascending: false })
           .limit(10);
           
         if (error) throw error;
-        if (data) setArticles(data);
+        if (data) {
+          // Transform the data to match the Article interface
+          const articlesWithPublishedDate = data.map(article => ({
+            ...article,
+            published_at: article.created_at
+          })) as Article[];
+          setArticles(articlesWithPublishedDate);
+        }
       } catch (error) {
         console.error('Error searching articles:', error);
       } finally {
@@ -142,10 +154,11 @@ const RelatedArticlesSelector: React.FC<RelatedArticlesSelectorProps> = ({
           <div key={article.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
             <span className={language === 'dv' ? 'thaana-waheed' : ''}>
               {language === 'dv' ? article.heading : article.title}
-            </span>
-            <button
+            </span>            <button
               onClick={() => handleRemoveArticle(article.id)}
               className="text-red-500 hover:text-red-700"
+              aria-label="Remove article"
+              title="Remove article"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />

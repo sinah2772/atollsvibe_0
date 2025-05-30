@@ -1,5 +1,5 @@
+// filepath: e:\Atolls_mv\atolslvibe\New\atollsvibe_02-main\atollsvibe_02-main\src\components\EnhancedArticlePreview.tsx
 import React, { useState } from 'react';
-import { JSONContent } from '@tiptap/core';
 
 // Define types for nodes in the article JSON structure
 interface MarkType {
@@ -20,24 +20,12 @@ interface TipTapDocument {
   content?: NodeType[];
 }
 
-// Convert JSONContent to TipTapDocument
-const convertToTipTapDocument = (content: JSONContent | undefined): TipTapDocument => {
-  if (!content) {
-    return { type: 'doc', content: [] };
-  }
-  
-  return {
-    type: content.type || 'doc',
-    content: content.content as NodeType[] || []
-  };
-};
-
 interface ArticlePreviewProps {
   title: string;
   heading: string;
   coverImage: string;
   imageCaption: string;
-  content: TipTapDocument | JSONContent; // Accept both TipTapDocument and JSONContent
+  content: TipTapDocument; // The article content in JSON format from TipTap
   isBreaking: boolean;
   isFeatured: boolean;
   isDeveloping: boolean;
@@ -56,7 +44,7 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({
   heading,
   coverImage,
   imageCaption,
-  content: rawContent,
+  content,
   isBreaking,
   // isFeatured is unused but kept in props for compatibility
   isDeveloping,
@@ -75,8 +63,6 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({
 
   // Helper function to render the content with proper formatting
   const renderContent = () => {
-  // Convert content to TipTapDocument format if it's JSONContent
-    const content = convertToTipTapDocument(rawContent as JSONContent | TipTapDocument);
     if (!content) return null;
     
     // Recursive function to render node and its children with proper formatting
