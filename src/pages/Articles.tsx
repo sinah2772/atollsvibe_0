@@ -16,6 +16,7 @@ interface Article {
   subcategory_id: number | null;
   atoll_ids: number[];
   island_ids: number[];
+  government_ids: string[];
   cover_image: string | null;
   image_caption: string | null;
   status: string;
@@ -26,6 +27,8 @@ interface Article {
   user_id: string;
   created_at: string;
   updated_at: string;
+  
+  // Article flags
   is_breaking: boolean;
   is_featured: boolean;
   is_developing: boolean;
@@ -33,6 +36,39 @@ interface Article {
   is_sponsored: boolean;
   sponsored_by: string | null;
   sponsored_url: string | null;
+  
+  // New article metadata
+  news_type: string;
+  news_priority: number;
+  news_source: string | null;
+  meta_title: string | null;
+  meta_description: string | null;
+  meta_keywords: string[];
+  related_articles: string[];
+  tags: string[];
+  author_notes: string | null;
+  original_source_url: string | null;
+  translation_source_url: string | null;
+  translation_source_lang: string | null;
+  translation_notes: string | null;
+  
+  // Workflow fields
+  approved_by_id: string | null;
+  approved_at: string | null;
+  published_by_id: string | null;
+  last_updated_by_id: string;
+  editor_notes: string;
+  fact_checked: boolean;
+  fact_checker_id: string | null;
+  fact_checked_at: string | null;
+  
+  // Notification fields
+  revision_history: Record<string, unknown>;
+  scheduled_notifications: Record<string, unknown>;
+  notification_sent: boolean;
+  notification_sent_at: string | null;
+  
+  // Relations
   category?: {
     id: number;
     name: string;
@@ -77,6 +113,8 @@ const Articles = () => {
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+  const [sortBy, setSortBy] = useState<string>('created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     // Function to fetch articles from Supabase - wrapped with useCallback
   const fetchArticles = useCallback(async () => {
     setIsLoading(true);
@@ -209,9 +247,15 @@ const Articles = () => {
         const title = String(articleData.title || '').toLowerCase();
         const heading = String(articleData.heading || '').toLowerCase();
         const socialHeading = articleData.social_heading ? String(articleData.social_heading).toLowerCase() : '';
+        const newsType = String(articleData.news_type || '').toLowerCase();
+        const newsSource = String(articleData.news_source || '').toLowerCase();
+        const tags = Array.isArray(articleData.tags) ? articleData.tags.join(' ').toLowerCase() : '';
+        const metaKeywords = Array.isArray(articleData.meta_keywords) ? articleData.meta_keywords.join(' ').toLowerCase() : '';
         
         // Check if any of the article text fields match the search term
-        if (!(title.includes(search) || heading.includes(search) || socialHeading.includes(search))) {
+        if (!(title.includes(search) || heading.includes(search) || socialHeading.includes(search) || 
+              newsType.includes(search) || newsSource.includes(search) || tags.includes(search) || 
+              metaKeywords.includes(search))) {
           return false;
         }
       }
@@ -262,15 +306,98 @@ const Articles = () => {
       if (flags.isExclusive && !articleData.is_exclusive) return false;
       if (flags.isSponsored && !articleData.is_sponsored) return false;
 
+      // Filter by news type
+      if (activeFilters.newsType && articleData.news_type !== activeFilters.newsType) {
+        return false;
+      }
+
+      // Filter by news priority
+      if (activeFilters.newsPriority && articleData.news_priority !== activeFilters.newsPriority) {
+        return false;
+      }
+
+      // Filter by news source
+      if (activeFilters.newsSource && articleData.news_source) {
+        const source = String(articleData.news_source).toLowerCase();
+        const filter = activeFilters.newsSource.toLowerCase();
+        if (!source.includes(filter)) {
+          return false;
+        }
+      }
+
+      // Filter by fact check status
+      if (activeFilters.factChecked !== undefined && activeFilters.factChecked !== null) {
+        if (articleData.fact_checked !== activeFilters.factChecked) {
+          return false;
+        }
+      }
+
+      // Filter by approval status
+      if (activeFilters.approved !== undefined && activeFilters.approved !== null) {
+        const isApproved = articleData.approved_by_id !== null;
+        if (isApproved !== activeFilters.approved) {
+          return false;
+        }
+      }
+
       // If it passes all filters, include it
       return true;
     });
   }, [articles, activeFilters, searchTerm, deletingArticles]);
 
-  const displayedArticles = isFiltered ? filteredArticles : articles.filter(article => {
-    const articleData = getArticleData(article);
-    return !deletingArticles.includes(articleData.id);
-  });
+  // Sort articles based on selected sort criteria
+  const sortedArticles = useMemo(() => {
+    const baseArticles = isFiltered ? filteredArticles : articles.filter(article => {
+      const articleData = getArticleData(article);
+      return !deletingArticles.includes(articleData.id);
+    });
+
+    if (!baseArticles || baseArticles.length === 0) return [];
+    
+    const sorted = [...baseArticles].sort((a, b) => {
+      const articleA = getArticleData(a);
+      const articleB = getArticleData(b);
+      
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'title': {
+          comparison = articleA.title.localeCompare(articleB.title);
+          break;
+        }
+        case 'publish_date': {
+          const dateA = new Date(articleA.publish_date || articleA.created_at).getTime();
+          const dateB = new Date(articleB.publish_date || articleB.created_at).getTime();
+          comparison = dateA - dateB;
+          break;
+        }
+        case 'views': {
+          comparison = (articleA.views || 0) - (articleB.views || 0);
+          break;
+        }
+        case 'priority': {
+          // Lower priority number = higher priority (1 is highest, 5 is lowest)
+          const priorityA = articleA.news_priority || 3;
+          const priorityB = articleB.news_priority || 3;
+          comparison = priorityA - priorityB;
+          break;
+        }
+        case 'created_at':
+        default: {
+          const createdA = new Date(articleA.created_at).getTime();
+          const createdB = new Date(articleB.created_at).getTime();
+          comparison = createdA - createdB;
+          break;
+        }
+      }
+      
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+    
+    return sorted;
+  }, [filteredArticles, articles, deletingArticles, sortBy, sortOrder, isFiltered]);
+
+  const displayedArticles = sortedArticles;
 
   if (isLoading) {
     return (
@@ -337,6 +464,29 @@ const Articles = () => {
         <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Articles</h1>
         <div className="flex space-x-3">
+          {/* Sorting controls */}
+          <div className="flex items-center space-x-2">
+            <select 
+              className="text-sm border border-gray-300 rounded-md px-3 py-1.5"
+              value={`${sortBy}_${sortOrder}`}
+              onChange={(e) => {
+                const [field, order] = e.target.value.split('_');
+                setSortBy(field);
+                setSortOrder(order as 'asc' | 'desc');
+              }}
+              title="Sort articles"
+            >
+              <option value="created_at_desc">Newest First</option>
+              <option value="created_at_asc">Oldest First</option>
+              <option value="title_asc">Title A-Z</option>
+              <option value="title_desc">Title Z-A</option>
+              <option value="views_desc">Most Views</option>
+              <option value="views_asc">Least Views</option>
+              <option value="priority_asc">High Priority First</option>
+              <option value="priority_desc">Low Priority First</option>
+            </select>
+          </div>
+
           {/* View toggle buttons */}
           <div className="flex bg-gray-100 rounded-lg mr-2">
             <button
@@ -388,7 +538,7 @@ const Articles = () => {
           <input
             type="text"
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Search articles by title or heading..."
+            placeholder="Search articles by title, heading, news type, source, or tags..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -578,9 +728,29 @@ const Articles = () => {
                         day: 'numeric'
                       })}
                     </span>
-                    <span className="text-xs px-2 py-1 rounded-full bg-gray-100">
+                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                      article.status === 'published' ? 'bg-green-100 text-green-800' :
+                      article.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
+                      article.status === 'archived' ? 'bg-gray-100 text-gray-800' :
+                      article.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
                       {article.status}
                     </span>
+                    {/* Priority indicator */}
+                    {article.news_priority && article.news_priority <= 2 && (
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                        article.news_priority === 1 ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'
+                      }`}>
+                        {article.news_priority === 1 ? 'High Priority' : 'Medium Priority'}
+                      </span>
+                    )}
+                    {/* News type */}
+                    {article.news_type && (
+                      <span className="text-xs px-2 py-1 rounded-full bg-indigo-100 text-indigo-800 font-medium">
+                        {article.news_type}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="flex items-center gap-1">
@@ -598,60 +768,85 @@ const Articles = () => {
                   </div>
                 </div>
 
-                <div className="mt-4 flex flex-wrap gap-2">
+                {/* Enhanced metadata section */}
+                <div className="mt-4">
                   {/* Article flags */}
-                  <div className="mb-2 w-full flex flex-wrap gap-2">
+                  <div className="mb-3 flex flex-wrap gap-2">
                     {article.is_breaking && (
-                      <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">
-                        Breaking
+                      <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-semibold animate-pulse">
+                        🚨 Breaking News
                       </span>
                     )}
                     {article.is_featured && (
-                      <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
-                        Featured
+                      <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                        ⭐ Featured
                       </span>
                     )}
                     {article.is_developing && (
-                      <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
-                        Developing
+                      <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+                        🔄 Developing Story
                       </span>
                     )}
                     {article.is_exclusive && (
-                      <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                        Exclusive
+                      <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                        🔒 Exclusive
                       </span>
                     )}
                     {article.is_sponsored && (
-                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                        Sponsored {article.sponsored_by && `by ${article.sponsored_by}`}
+                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        💼 Sponsored {article.sponsored_by && `by ${article.sponsored_by}`}
                       </span>
                     )}
-                  </div>                  {/* Category and subcategory */}
-                  {article.category && (
-                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm thaana-waheed">
-                      {article.category.name}
-                    </span>
-                  )}
-                  
-                  {/* Subcategory - only for regular articles */}
-                  {source === 'articles' && 'subcategory' in article && article.subcategory && (
-                    <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm thaana-waheed">
-                      {article.subcategory.name}
-                    </span>
-                  )}
-                    {/* Atolls - only for regular articles - using atoll_ids array */}
-                  {source === 'articles' && article.atoll_ids && article.atoll_ids.length > 0 && (
-                    <span className="px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm thaana-waheed">
-                      {article.atoll_ids.length} {article.atoll_ids.length === 1 ? 'Atoll' : 'Atolls'}
-                    </span>
-                  )}
-                  
-                  {/* Islands - only for regular articles - using island_ids array */}
-                  {source === 'articles' && article.island_ids && article.island_ids.length > 0 && (
-                    <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm thaana-waheed">
-                      {article.island_ids.length} {article.island_ids.length === 1 ? 'Island' : 'Islands'}
-                    </span>
-                  )}
+                  </div>
+
+                  {/* Workflow status indicators */}
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    {article.fact_checked && (
+                      <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded text-xs font-medium">
+                        ✓ Fact Checked
+                      </span>
+                    )}
+                    {article.approved_by_id && (
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                        ✓ Approved
+                      </span>
+                    )}
+                    {article.news_source && (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">
+                        Source: {article.news_source}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Category and location info */}
+                  <div className="flex flex-wrap gap-2">
+                    {/* Category and subcategory */}
+                    {article.category && (
+                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm thaana-waheed">
+                        {article.category.name}
+                      </span>
+                    )}
+                    
+                    {/* Subcategory - only for regular articles */}
+                    {source === 'articles' && 'subcategory' in article && article.subcategory && (
+                      <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm thaana-waheed">
+                        {article.subcategory.name}
+                      </span>
+                    )}
+                      {/* Atolls - only for regular articles - using atoll_ids array */}
+                    {source === 'articles' && article.atoll_ids && article.atoll_ids.length > 0 && (
+                      <span className="px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm thaana-waheed">
+                        📍 {article.atoll_ids.length} {article.atoll_ids.length === 1 ? 'Atoll' : 'Atolls'}
+                      </span>
+                    )}
+                    
+                    {/* Islands - only for regular articles - using island_ids array */}
+                    {source === 'articles' && article.island_ids && article.island_ids.length > 0 && (
+                      <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm thaana-waheed">
+                        🏝️ {article.island_ids.length} {article.island_ids.length === 1 ? 'Island' : 'Islands'}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -767,26 +962,6 @@ const Articles = () => {
             </div>
           </div>
         )}
-        </div>
-      )}
-      
-      {/* Only show pagination in list view */}
-      {viewMode === 'list' && !isFiltered && displayedArticles.length > 0 && totalCount > pageSize && (
-        <div className="mt-6 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
-          {/* Existing pagination controls remain here */}
-          <div className="flex flex-1 items-center justify-between">
-            <div className="flex items-center">
-              <p className="text-sm text-gray-700 mr-4">
-                Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{" "}
-                <span className="font-medium">
-                  {Math.min(currentPage * pageSize, totalCount)}
-                </span>{" "}
-                of <span className="font-medium">{totalCount}</span> results
-              </p>
-              {/* Rest of pagination controls */}
-            </div>
-            {/* Rest of pagination controls */}
-          </div>
         </div>
       )}
     </div>

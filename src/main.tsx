@@ -1,3 +1,7 @@
+// Import cache and compatibility modules first to ensure they're available
+import './utils/setupCache';
+import './utils/extensionCompat'; // For browser extension compatibility
+
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';

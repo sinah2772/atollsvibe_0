@@ -5,7 +5,6 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Highlight from '@tiptap/extension-highlight';
-import { convertToTipTapDocument } from '../utils/tiptapUtils';
 import { JSONContent } from '@tiptap/core';
 import { useArticles } from '../hooks/useArticles';
 import { useCategories } from '../hooks/useCategories';
@@ -50,6 +49,18 @@ import {
 
 const NewArticle: React.FC = () => {
   const navigate = useNavigate();
+  
+  // Utility function to convert JSONContent to TipTapDocument
+  const convertToTipTapDocument = (content: JSONContent | undefined) => {
+    if (!content) return { type: 'doc', content: [] };
+    
+  // Ensure the structure matches TipTapDocument
+  return {
+    type: content.type || 'doc',
+    content: (content.content as Record<string, unknown>[]) || []
+  };
+  };
+  
   const { createArticle } = useArticles();
   const { categories } = useCategories();
   const { atolls, error: atollsError, useFallbackData } = useAtolls(); // Base atolls for initial selection
@@ -100,12 +111,12 @@ const NewArticle: React.FC = () => {
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   
   // Form validation state
-  const [formValidated, setFormValidated] = useState(false);
+
   const [validationFields, setValidationFields] = useState<Array<{name: string, valid: boolean, errorMessage?: string}>>([]);
   const [formTouched, setFormTouched] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   // Auto-save configuration
-  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);  const [autoSaveInterval, setAutoSaveInterval] = useState(60000); // 1 minute default
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   // Reference to track initial render to avoid marking content as unsaved on first load
@@ -185,7 +196,13 @@ const NewArticle: React.FC = () => {
     translationSourceUrl,
     translationSourceLang,
     translationNotes
-  };  // Track form changes for unsaved changes detection
+  };  // Extract complex expressions for stable dependency checking
+  const selectedAtollsStr = selectedAtolls?.toString();
+  const selectedIslandsStr = selectedIslands?.toString();
+  const selectedGovernmentIdsStr = selectedGovernmentIds?.toString();
+  const editorHtml = editor?.getHTML();
+
+  // Track form changes for unsaved changes detection
   useEffect(() => {
     // Skip the initial render using the component-wide isInitialRender ref
     if (isInitialRender.current) {
@@ -198,13 +215,13 @@ const NewArticle: React.FC = () => {
   }, [
     title, heading, socialHeading, category, subcategory,
     // Extract complex expressions to avoid ESLint warnings
-    selectedAtolls?.toString(),
-    selectedIslands?.toString(),
-    selectedGovernmentIds?.toString(),
-    coverImage, imageCaption,
+    selectedAtollsStr,
+    selectedIslandsStr,
+    selectedGovernmentIdsStr,    coverImage, imageCaption,
     isBreaking, isFeatured, isDeveloping, isExclusive, isSponsored,
-    editor?.getHTML()
+    editorHtml
   ]);
+
   // Effect to track changes for unsaved changes detection
   useEffect(() => {
     if (isInitialRender.current) {
@@ -215,10 +232,10 @@ const NewArticle: React.FC = () => {
     setHasUnsavedChanges(true);
   }, [
     title, heading, socialHeading, category, subcategory,
-    // Use stable string representations for arrays
-    selectedAtolls?.toString(), 
-    selectedIslands?.toString(), 
-    selectedGovernmentIds?.toString(),
+    // Use extracted stable variables
+    selectedAtollsStr,
+    selectedIslandsStr, 
+    selectedGovernmentIdsStr,
     coverImage, imageCaption, isBreaking, isFeatured, isDeveloping, 
     isExclusive, isSponsored, sponsoredBy, sponsoredUrl,
     newsType, newsPriority, newsSource
@@ -270,7 +287,7 @@ const NewArticle: React.FC = () => {
         }
       }
     },
-    interval: autoSaveInterval,
+    interval: 60000, // 1 minute default
     enabled: autoSaveEnabled && !!user,
     minChanges: 3 // Require at least 3 changes before triggering an auto-save
   });
@@ -295,9 +312,12 @@ const NewArticle: React.FC = () => {
   useEffect(() => {
     setSelectedIslands([]);
   }, [selectedAtolls]);
-
   const validateForm = () => {
-    const validationResults = [];
+    const validationResults: Array<{
+      name: string;
+      valid: boolean;
+      errorMessage?: string;
+    }> = [];
     let isValid = true;
     
     // Check user login
@@ -385,10 +405,8 @@ const NewArticle: React.FC = () => {
         });
       }
     }
-    
-    // Update validation state
+      // Update validation state
     setValidationFields(validationResults);
-    setFormValidated(validationResults.every(field => field.valid));
     
     // Check if the form is valid overall
     isValid = validationResults.every(field => field.valid);
@@ -417,15 +435,16 @@ const NewArticle: React.FC = () => {
     setFormTouched(true);
     
     if (!validateForm()) return;
-    
-    try {
+      try {
       setSaving(true);
       setError(null);
       
       if (!user) {
         navigate('/login', { replace: true });
         return;
-      }await createArticle({
+      }
+      
+      await createArticle({
         title,
         heading,
         social_heading: socialHeading,
@@ -456,12 +475,25 @@ const NewArticle: React.FC = () => {
         meta_description: metaDescription,
         meta_keywords: metaKeywords,
         related_articles: relatedArticles,
-        tags,
-        author_notes: authorNotes,
+        tags,        author_notes: authorNotes,
         original_source_url: originalSourceUrl,
         translation_source_url: translationSourceUrl,
         translation_source_lang: translationSourceLang,
-        translation_notes: translationNotes
+        translation_notes: translationNotes,
+        // Editorial workflow fields
+        editor_notes: '',
+        fact_checked: false,
+        fact_checker_id: null,
+        fact_checked_at: null,
+        approved_by_id: null,
+        approved_at: null,
+        published_by_id: null,
+        last_updated_by_id: user.id,
+        // System fields
+        revision_history: null,
+        scheduled_notifications: null,
+        notification_sent: false,
+        notification_sent_at: null
       });      // Update last saved time and reset unsaved changes flag
       setLastSaved(new Date());
       setHasUnsavedChanges(false);
@@ -484,15 +516,16 @@ const NewArticle: React.FC = () => {
     setFormTouched(true);
     
     if (!validateForm()) return;
-    
-    try {
+      try {
       setPublishing(true);
       setError(null);
       
       if (!user) {
         navigate('/login', { replace: true });
         return;
-      }await createArticle({
+      }
+      
+      await createArticle({
         title,
         heading,
         social_heading: socialHeading,
@@ -523,12 +556,26 @@ const NewArticle: React.FC = () => {
         meta_description: metaDescription,
         meta_keywords: metaKeywords,
         related_articles: relatedArticles,
-        tags,
-        author_notes: authorNotes,
+        tags,        author_notes: authorNotes,
         original_source_url: originalSourceUrl,
         translation_source_url: translationSourceUrl,
         translation_source_lang: translationSourceLang,
-        translation_notes: translationNotes      });
+        translation_notes: translationNotes,
+        // Editorial workflow fields
+        editor_notes: '',
+        fact_checked: false,
+        fact_checker_id: null,
+        fact_checked_at: null,
+        approved_by_id: null,
+        approved_at: null,
+        published_by_id: user.id,
+        last_updated_by_id: user.id,
+        // System fields
+        revision_history: null,
+        scheduled_notifications: null,
+        notification_sent: false,
+        notification_sent_at: null
+      });
       
       // Reset unsaved changes flag before navigating
       setHasUnsavedChanges(false);
@@ -556,24 +603,12 @@ const NewArticle: React.FC = () => {
       editor.chain().focus().setLink({ href: url }).run();
     }
   };
-
   const toggleLanguage = () => {
     setLanguage(prev => prev === 'dv' ? 'en' : 'dv');
     if (editor) {
       editor.setEditable(false);
       editor.setEditable(true);
     }
-  };
-
-  // Utility function to convert JSONContent to TipTapDocument
-  const convertToTipTapDocument = (content: JSONContent | undefined) => {
-    if (!content) return { type: 'doc', content: [] };
-    
-    // Ensure the structure matches TipTapDocument
-    return {
-      type: content.type || 'doc',
-      content: content.content as any[] || []
-    };
   };
 
   if (userLoading) {
@@ -609,7 +644,9 @@ const NewArticle: React.FC = () => {
             {language === 'dv' ? 'Switch to English' : 'ދިވެހި އަށް ބަދަލުކުރައްވާ'}
           </span>
         </button>
-      </div>      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      </div>
+      
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         {error && (
           <div className="mb-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg">
             {error}
@@ -649,9 +686,10 @@ const NewArticle: React.FC = () => {
               onChange={(e) => setHeading(e.target.value)}
               className={`w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${language === 'dv' ? 'thaana-waheed placeholder:thaana-waheed' : ''}`}
               placeholder={language === 'dv' ? 'ދިވެހިން ސުރުޚީ ލިޔުއްވާ' : 'Enter heading in Thaana'}
-              dir={language === 'dv' ? 'rtl' : 'ltr'}
-            />
-          </div>          <div>
+              dir={language === 'dv' ? 'rtl' : 'ltr'}            />
+          </div>
+          
+          <div>
             <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
               {language === 'dv' ? 'ސޯޝަލް މީޑިއާ ސުރުޚީ' : 'Social Heading'}
             </label>
@@ -917,18 +955,23 @@ const NewArticle: React.FC = () => {
                 <path
                   fillRule="evenodd"
                   d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                  clipRule="evenodd"
-                />
+                  clipRule="evenodd"                />
               </svg>
               <span className={language === 'dv' ? 'thaana-waheed' : ''}>
                 {language === 'dv' 
-                  ? (showAdvancedOptions ? 'އިތުރު އޮޕްޝަންތައް ފޮރުވާލާ' : 'އިތުރު އޮ
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
+                  ? (showAdvancedOptions ? 'އިތުރު އޮޕްޝަންތައް ފޮރުވާލާ' : 'އިތުރު އޮޕްޝަންތައް ދައްކާ') 
+                  : (showAdvancedOptions ? 'Hide Advanced Options' : 'Show Advanced Options')}
+              </span>
+            </button>          </div>
+          
+          {showAdvancedOptions && (
+            <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
                 <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
                   {language === 'dv' ? 'ނިއުސް ބާވަތް' : 'News Type'}
-                </label>                <select
+                </label>
+                <select
                   value={newsType}
                   onChange={(e) => setNewsType(e.target.value)}
                   className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -970,10 +1013,10 @@ const NewArticle: React.FC = () => {
                   className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   placeholder={language === 'dv' ? 'މިސާލު: ރިޕޯޓަރ، ނޫސް ބަޔާން، ވެބްސައިޓް' : 'E.g. Reporter, Press Release, Website'}
                   dir={language === 'dv' ? 'rtl' : 'ltr'}
-                />
-              </div>
+                />              </div>
             </div>
-              <div className="mb-4">
+            
+            <div className="mb-4">
               <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
                 {language === 'dv' ? 'ޓެގްތައް' : 'Tags'}
               </label>
@@ -996,12 +1039,13 @@ const NewArticle: React.FC = () => {
                 value={authorNotes}
                 onChange={(e) => setAuthorNotes(e.target.value)}
                 className={`w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${language === 'dv' ? 'thaana-waheed' : ''}`}
-                rows={2}
-                placeholder={language === 'dv' ? 'ލިޔުންތެރިޔާގެ އިތުރު ނޯޓްސް' : 'Additional notes from the author'}
+                rows={2}                placeholder={language === 'dv' ? 'ލިޔުންތެރިޔާގެ އިތުރު ނޯޓްސް' : 'Additional notes from the author'}
                 dir={language === 'dv' ? 'rtl' : 'ltr'}
               ></textarea>
             </div>
-              {/* Related Articles Section */}            <h4 className={`text-md font-medium mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+            
+            {/* Related Articles Section */}
+            <h4 className={`text-md font-medium mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
               {language === 'dv' ? 'ގުޅުންހުރި ލިޔުންތައް' : 'Related Articles'}
             </h4>
             
@@ -1118,9 +1162,136 @@ const NewArticle: React.FC = () => {
                 />
               </div>
             </div>
+          )}
+          
+          {/* Related Articles Section */}
+          <div className="mb-4">
+            <h4 className={`text-md font-medium mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+              {language === 'dv' ? 'ގުޅުންހުރި ލިޔުންތައް' : 'Related Articles'}
+            </h4>
+            
+            <div className="mb-4">
+              <RelatedArticlesSelector
+                selectedArticleIds={relatedArticles}
+                onChange={setRelatedArticles}
+                language={language}
+              />
+              <p className="mt-1 text-sm text-gray-500">
+                {language === 'dv' ? 'ގުޅުންހުރި ލިޔުންތައް ހޯއްދަވާ އަދި އިންތިޚާބުކުރައްވާ' : 'Search and select related articles'}
+              </p>
+            </div>
           </div>
-        )}
+          
+          {showAdvancedOptions && (
+            <div>
+              {/* SEO Section */}
+              <h4 className={`text-md font-medium mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                {language === 'dv' ? 'އެސްއީއޯ މަޢުލޫމާތު' : 'SEO Information'}
+              </h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                    {language === 'dv' ? 'މެޓާ ޓައިޓަލް' : 'Meta Title'}
+                  </label>
+                  <input
+                    type="text"
+                    value={metaTitle}
+                    onChange={(e) => setMetaTitle(e.target.value)}
+                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder={language === 'dv' ? 'އެސްއީއޯ ޓައިޓަލް' : 'SEO title'}
+                    dir={language === 'dv' ? 'rtl' : 'ltr'}
+                  />
+                </div>
+                
+                <div>
+                  <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                    {language === 'dv' ? 'މެޓާ ޑިސްކްރިޕްޝަން' : 'Meta Description'}
+                  </label>
+                  <input
+                    type="text"
+                    value={metaDescription}
+                    onChange={(e) => setMetaDescription(e.target.value)}
+                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder={language === 'dv' ? 'އެސްއީއޯ ޑިސްކްރިޕްޝަން' : 'SEO description'}
+                    dir={language === 'dv' ? 'rtl' : 'ltr'}
+                  />
+                </div>
+                
+                <div className="md:col-span-2">
+                  <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                    {language === 'dv' ? 'މެޓާ ކީވޯޑްސް' : 'Meta Keywords'}
+                  </label>
+                  <TagsInput 
+                    tags={metaKeywords} 
+                    onChange={setMetaKeywords} 
+                    language={language} 
+                    placeholder={language === 'dv' ? 'ކީވާޑް ލިޔެ އެންމެރިތައްވާ' : 'Type a keyword and press enter'}
+                  />
+                </div>
+              </div>
+              
+              {/* Translation Section */}
+              <h4 className={`text-md font-medium mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                {language === 'dv' ? 'ތަރުޖަމާ މަޢުލޫމާތު' : 'Translation Information'}
+              </h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                    {language === 'dv' ? 'އަސްލު މަސްދަރު ޔޫއާރްއެލް' : 'Original Source URL'}
+                  </label>
+                  <input
+                    type="text"
+                    value={originalSourceUrl}
+                    onChange={(e) => setOriginalSourceUrl(e.target.value)}
+                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="https://..."
+                  />
+                </div>
+                
+                <div>
+                  <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                    {language === 'dv' ? 'ތަރުޖަމާ މަސްދަރު ޔޫއާރްއެލް' : 'Translation Source URL'}
+                  </label>
+                  <input
+                    type="text"
+                    value={translationSourceUrl}
+                    onChange={(e) => setTranslationSourceUrl(e.target.value)}
+                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="https://..."
+                  />
+                </div>
+                
+                <div>
+                  <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                    {language === 'dv' ? 'ތަރުޖަމާ ބަސް' : 'Translation Source Language'}
+                  </label>
+                  <LanguageSelector
+                    value={translationSourceLang}
+                    onChange={setTranslationSourceLang}
+                    language={language}
+                  />
+                </div>
+                
+                <div>
+                  <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                    {language === 'dv' ? 'ތަރުޖަމާ ނޯޓްސް' : 'Translation Notes'}
+                  </label>
+                  <input
+                    type="text"
+                    value={translationNotes}
+                    onChange={(e) => setTranslationNotes(e.target.value)}
+                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder={language === 'dv' ? 'ތަރުޖަމާކުރުމާއި ބެހޭ ނޯޓްސް' : 'Notes about the translation'}
+                    dir={language === 'dv' ? 'rtl' : 'ltr'}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         
+        {/* Editor Toolbar */}
         <div className="border-b border-gray-200 mb-4">
           <div className="flex flex-wrap gap-2 pb-4">
             <button
@@ -1238,11 +1409,12 @@ const NewArticle: React.FC = () => {
         </div>
 
         <EditorContent editor={editor} className="min-h-[300px]" />
-        
-        <div className="mt-2 flex justify-end">
+          <div className="mt-2 flex justify-end">
           <WordCounter editor={editor} language={language} />
         </div>
-      </div>      <div className="flex justify-end gap-4 mt-6">
+      </div>
+      
+      <div className="flex justify-end gap-4 mt-6">
         {/* Auto-save toggle */}
         <div className="flex items-center mr-auto">
           <input
@@ -1295,12 +1467,12 @@ const NewArticle: React.FC = () => {
             <Loader2 size={18} className="animate-spin" />
           ) : (
             <Send size={18} />
-          )}
-          <span className={language === 'dv' ? 'thaana-waheed' : ''}>
+          )}          <span className={language === 'dv' ? 'thaana-waheed' : ''}>
             {language === 'dv' ? 'ޝާއިޢު ކުރައްވާ' : 'Publish'}
           </span>
         </button>
       </div>
+      </div> {/* End of the form content div */}
 
       {showPreview && editor && (
         <ArticlePreview
@@ -1319,23 +1491,24 @@ const NewArticle: React.FC = () => {
           newsSource={newsSource}
           tags={tags}
           language={language}
-          onClose={() => setShowPreview(false)}
-        />
+          onClose={() => setShowPreview(false)}        />
       )}
-
+      
       <ImageBrowser
         isOpen={showImageBrowser}
         onClose={() => setShowImageBrowser(false)}
         onSelect={handleImageSelect}
         language={language}
       />
-
-      {/* Save and Continue component for long-form content */}      <SaveAndContinue
+      
+      {/* Save and Continue component for long-form content */}
+      <SaveAndContinue
         onSaveAsDraft={() => handleSaveDraft(true)}
         isSaving={saving}
         lastSaved={lastSaved}
         language={language}
       />
+      
       <UnsavedChangesWarning 
         hasUnsavedChanges={hasUnsavedChanges} 
         navigationBlockMessage={language === 'dv' ? 

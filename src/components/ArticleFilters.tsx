@@ -24,6 +24,11 @@ export interface ArticleFilters {
   atollIds?: number[];
   islandIds?: number[];
   status?: string;
+  newsType?: string;
+  newsPriority?: number | null;
+  newsSource?: string;
+  factChecked?: boolean | null;
+  approved?: boolean | null;
   flags?: {
     isBreaking?: boolean;
     isFeatured?: boolean;
@@ -140,6 +145,50 @@ export function ArticleFilters({ onFilterChange, initialFilters }: ArticleFilter
         ...(prev.flags || {}),
         [name]: checked
       }
+    }));
+  };
+
+  const handleNewsTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFilters(prev => ({
+      ...prev,
+      newsType: e.target.value || undefined
+    }));
+  };
+
+  const handleNewsPriorityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value ? parseInt(e.target.value) : null;
+    setFilters(prev => ({
+      ...prev,
+      newsPriority: value
+    }));
+  };
+
+  const handleNewsSourceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters(prev => ({
+      ...prev,
+      newsSource: e.target.value || undefined
+    }));
+  };
+
+  const handleFactCheckedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    let value: boolean | null = null;
+    if (e.target.value === 'true') value = true;
+    else if (e.target.value === 'false') value = false;
+    
+    setFilters(prev => ({
+      ...prev,
+      factChecked: value
+    }));
+  };
+
+  const handleApprovedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    let value: boolean | null = null;
+    if (e.target.value === 'true') value = true;
+    else if (e.target.value === 'false') value = false;
+    
+    setFilters(prev => ({
+      ...prev,
+      approved: value
     }));
   };
 
@@ -299,6 +348,105 @@ export function ArticleFilters({ onFilterChange, initialFilters }: ArticleFilter
             <option value="published">Published</option>
             <option value="archived">Archived</option>
             <option value="scheduled">Scheduled</option>
+          </select>
+        </div>
+
+        {/* News Type filter */}
+        <div>
+          <label htmlFor="newsType" className="block text-sm font-medium text-gray-700 mb-1">
+            News Type
+          </label>
+          <select
+            id="newsType"
+            className="w-full rounded-md border border-gray-300 px-3 py-2"
+            value={filters.newsType || ""}
+            onChange={handleNewsTypeChange}
+          >
+            <option value="">All Types</option>
+            <option value="breaking">Breaking News</option>
+            <option value="general">General News</option>
+            <option value="politics">Politics</option>
+            <option value="business">Business</option>
+            <option value="sports">Sports</option>
+            <option value="entertainment">Entertainment</option>
+            <option value="technology">Technology</option>
+            <option value="health">Health</option>
+            <option value="education">Education</option>
+            <option value="environment">Environment</option>
+            <option value="culture">Culture</option>
+            <option value="opinion">Opinion</option>
+          </select>
+        </div>
+
+        {/* News Priority filter */}
+        <div>
+          <label htmlFor="newsPriority" className="block text-sm font-medium text-gray-700 mb-1">
+            Priority Level
+          </label>
+          <select
+            id="newsPriority"
+            className="w-full rounded-md border border-gray-300 px-3 py-2"
+            value={filters.newsPriority || ""}
+            onChange={handleNewsPriorityChange}
+          >
+            <option value="">All Priorities</option>
+            <option value="1">High Priority (1)</option>
+            <option value="2">Medium Priority (2)</option>
+            <option value="3">Normal Priority (3)</option>
+            <option value="4">Low Priority (4)</option>
+            <option value="5">Lowest Priority (5)</option>
+          </select>
+        </div>
+
+        {/* News Source filter */}
+        <div>
+          <label htmlFor="newsSource" className="block text-sm font-medium text-gray-700 mb-1">
+            News Source
+          </label>
+          <input
+            type="text"
+            id="newsSource"
+            className="w-full rounded-md border border-gray-300 px-3 py-2"
+            placeholder="Filter by source..."
+            value={filters.newsSource || ""}
+            onChange={handleNewsSourceChange}
+          />
+        </div>
+      </div>
+
+      {/* Workflow Status Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        {/* Fact Checked filter */}
+        <div>
+          <label htmlFor="factChecked" className="block text-sm font-medium text-gray-700 mb-1">
+            Fact Check Status
+          </label>
+          <select
+            id="factChecked"
+            className="w-full rounded-md border border-gray-300 px-3 py-2"
+            value={filters.factChecked === null ? "" : filters.factChecked?.toString() || ""}
+            onChange={handleFactCheckedChange}
+          >
+            <option value="">All</option>
+            <option value="true">Fact Checked</option>
+            <option value="false">Not Fact Checked</option>
+          </select>
+        </div>
+
+        {/* Approved filter */}
+        <div>
+          <label htmlFor="approved" className="block text-sm font-medium text-gray-700 mb-1">
+            Approval Status
+          </label>
+          <select
+            id="approved"
+            className="w-full rounded-md border border-gray-300 px-3 py-2"
+            value={filters.approved === null ? "" : filters.approved?.toString() || ""}
+            onChange={handleApprovedChange}
+          >
+            <option value="">All</option>
+            <option value="true">Approved</option>
+            <option value="false">Pending Approval</option>
           </select>
         </div>
       </div>
