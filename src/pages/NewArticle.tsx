@@ -15,9 +15,9 @@ import { UserSelector } from '../components/UserSelector';
 import { IslandsSelect } from '../components/IslandsSelect';
 import { CollaborativeInput } from '../components/CollaborativeInput';
 import { CollaborativeTextArea } from '../components/CollaborativeTextArea';
-import { EditorJSComponent } from '../components/EditorJSComponent';
 import { CollaborativePresence } from '../components/CollaborativePresence';
 import { AutoSaveStatus } from '../components/AutoSaveStatus';
+import { EditorJSComponent } from '../components/EditorJSComponent';
 import ImageBrowser from '../components/ImageBrowser';
 import { supabase } from '../lib/supabase';
 import { 
@@ -82,11 +82,7 @@ const NewArticle: React.FC = () => {
   // Additional fields
   const [relatedArticles, setRelatedArticles] = useState<string>('');
   const [tags, setTags] = useState<string>('');
-  const [authorNotes, setAuthorNotes] = useState<string>('');
-  const [editorNotes, setEditorNotes] = useState<string>('');
-  
-  // Island filtering states
-  const [selectedIslandCategory, setSelectedIslandCategory] = useState<string[]>([]);
+  const [authorNotes, setAuthorNotes] = useState<string>('');  const [editorNotes, setEditorNotes] = useState<string>('');
   
   // Translation fields (keeping original ones from database)
   const [originalSourceUrl] = useState<string>('');
@@ -122,17 +118,14 @@ const NewArticle: React.FC = () => {
     }
   }, [user, userLoading, navigate]);
 
-  // Clear island selections when atoll selection changes
-  useEffect(() => {
+  // Clear island selections when atoll selection changes  useEffect(() => {
     setSelectedIslands([]);
   }, [selectedAtolls]);
-  // Clear island selections when island category changes
-  useEffect(() => {
-    setSelectedIslands([]);
-  }, [selectedIslandCategory]);
 
-  // Editor.js content state
-  const [editorData, setEditorData] = useState<OutputData | null>(null);  // Prepare data for auto-save (defined after editor)
+  // Article content state - Updated to use EditorJS OutputData format
+  const [content, setContent] = useState<OutputData | null>(null);
+
+  // Prepare data for auto-save (defined after editor)
   const formData = {
     title,
     heading,
@@ -156,19 +149,16 @@ const NewArticle: React.FC = () => {
     sponsoredImage,
     collaborators: collaboratorHook.getCollaboratorsString(),
     newsPriority,
-    relatedArticles,
-    tags,
+    relatedArticles,    tags,
     authorNotes,
     editorNotes,
-    selectedIslandCategory,
     originalSourceUrl,
     sponsoredUrl,
     newsSource,
-    translationSourceUrl,
-    translationSourceLang,
+    translationSourceUrl,    translationSourceLang,
     translationNotes,
     collaborationNotes,
-    content: editorData || null,
+    content: content ? { text: content } : { text: null },
   };
 
   // Enhanced auto-save with collaboration awareness
@@ -241,12 +231,11 @@ const NewArticle: React.FC = () => {
     if (!selectedAtolls || selectedAtolls.length === 0) {
       alert(language === 'dv' ? 'އަތޮޅެއް އިޚްތިޔާރު ކުރައްވާ' : 'Please select at least one atoll');
       return false;
-    }
-    if (!category || category.length === 0) {
+    }    if (!category || category.length === 0) {
       alert(language === 'dv' ? 'ބައެއް އިޚްތިޔާރު ކުރައްވާ' : 'Please select a category');
       return false;
     }
-    if (!editorData || !editorData.blocks || editorData.blocks.length === 0) {
+    if (!content || !content.blocks || content.blocks.length === 0) {
       alert(language === 'dv' ? 'ލިޔުމުގެ ތުންތަކެއް ލިޔުއްވާ' : 'Please write some content');
       return false;
     }
@@ -304,16 +293,14 @@ const NewArticle: React.FC = () => {
     try {
       setSaving(true);
       setError(null);
-      
-      if (!user) {
+        if (!user) {
         navigate('/login', { replace: true });
         return;
-      }
-
-      await createArticle({
+      }      await createArticle({
         title,
-        heading,        social_heading: socialHeading,
-        content: editorData || { time: Date.now(), blocks: [], version: "2.0.0" },
+        heading,
+        social_heading: socialHeading,
+        content: content ? { text: content } : { text: null },
         category_id: parseInt(category[0]),
         subcategory_id: subcategory.length > 0 ? parseInt(subcategory[0]) : null,
         atoll_ids: selectedAtolls || [],
@@ -378,18 +365,19 @@ const NewArticle: React.FC = () => {
     }
   };  const handlePublish = async () => {
     if (!validateForm()) return;
-    
-    try {
+      try {
       setPublishing(true);
       setError(null);
       
       if (!user) {
         navigate('/login', { replace: true });
         return;
-      }      await createArticle({
-        title,
+      }
+
+      await createArticle({        title,
         heading,
-        social_heading: socialHeading,        content: editorData || { time: Date.now(), blocks: [], version: "2.0.0" },
+        social_heading: socialHeading,
+        content: content ? { text: content } : { text: null },
         category_id: parseInt(category[0]),
         subcategory_id: subcategory.length > 0 ? parseInt(subcategory[0]) : null,
         atoll_ids: selectedAtolls || [],
@@ -455,8 +443,7 @@ const NewArticle: React.FC = () => {
     }
   };  const handleSendToReview = async () => {
     if (!validateForm()) return;
-    
-    try {
+      try {
       setSendingToReview(true);
       setError(null);
       
@@ -466,7 +453,8 @@ const NewArticle: React.FC = () => {
       }      await createArticle({
         title,
         heading,
-        social_heading: socialHeading,        content: editorData || { time: Date.now(), blocks: [], version: "2.0.0" },
+        social_heading: socialHeading,
+        content: content ? { text: content } : { text: null },
         category_id: parseInt(category[0]),
         subcategory_id: subcategory.length > 0 ? parseInt(subcategory[0]) : null,
         atoll_ids: selectedAtolls || [],
@@ -788,46 +776,21 @@ const NewArticle: React.FC = () => {
               placeholder={language === 'dv' ? 'އަތޮޅުތައް އިޚްތިޔާރު ކުރައްވާ' : 'Select atolls'}
             />
           </div>          {selectedAtolls && selectedAtolls.length > 0 && (
-            <>              <div className="md:col-span-2">
-                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                  {language === 'dv' ? 'ރަށުގެ ބަި ފިލްޓަރ' : 'Island Category Filter'}
-                </label>
-                <MultiSelect
-                  options={[
-                    { id: 'residential', name: language === 'dv' ? 'އާބާދީ' : 'Residential', name_en: 'Residential' },
-                    { id: 'resort', name: language === 'dv' ? 'ރިސޯޓް' : 'Resort', name_en: 'Resort' },
-                    { id: 'industrial', name: language === 'dv' ? 'ސިނާޢީ' : 'Industrial', name_en: 'Industrial' },
-                    { id: 'agricultural', name: language === 'dv' ? 'ދަނޑުވެރިކަން' : 'Agricultural', name_en: 'Agricultural' },
-                    { id: 'uninhabited', name: language === 'dv' ? 'އާބާދީ ނެތް' : 'Uninhabited', name_en: 'Uninhabited' }
-                  ]}
-                  value={selectedIslandCategory || []}
-                  onChange={(values) => {
-                    console.log('Selected island category filter changed:', values);
-                    setSelectedIslandCategory((values || []).filter(id => typeof id === 'string') as string[]);
-                    setSelectedIslands([]);
-                  }}
-                  language={language}
-                  placeholder={language === 'dv' ? 'ރަށުގެ ބައި ފިލްޓަރ' : 'Filter by island category'}
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                  {language === 'dv' ? 'ރަށްތައް' : 'Islands'}
-                </label>
-                <IslandsSelect
-                  atollIds={selectedAtolls}
-                  islandCategory={selectedIslandCategory}
-                  value={selectedIslands || []}
-                  onChange={(values) => {
-                    console.log('Selected islands changed:', values);
-                    setSelectedIslands((values || []).filter(id => typeof id === 'number') as number[]);
-                  }}
-                  language={language}
-                />
-              </div>
-            </>
-          )}          {selectedIslands && selectedIslands.length > 0 && (
+            <div className="md:col-span-2">
+              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                {language === 'dv' ? 'ރަށްތައް' : 'Islands'}
+              </label>
+              <IslandsSelect
+                atollIds={selectedAtolls}
+                value={selectedIslands || []}
+                onChange={(values) => {
+                  console.log('Selected islands changed:', values);
+                  setSelectedIslands((values || []).filter(id => typeof id === 'number') as number[]);
+                }}
+                language={language}
+              />
+            </div>
+          )}{selectedIslands && selectedIslands.length > 0 && (
             <div className="md:col-span-2">
               <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
                 {language === 'dv' ? 'ރަށުގެ ބައި' : 'Island Category'}
@@ -1237,12 +1200,20 @@ const NewArticle: React.FC = () => {
                 rows={3}
               />
             </div>
+          </div>        </div>        {/* Article Content */}
+        <div className="space-y-2">
+          <label className={`block text-sm font-medium ${language === 'dv' ? 'text-right thaana-waheed' : 'text-left'} text-gray-700`}>
+            {language === 'dv' ? 'ލިޔުން' : 'Article Content'} *
+          </label>          <div className="border border-gray-300 rounded-lg overflow-hidden">
+            <EditorJSComponent
+              placeholder={language === 'dv' ? 'އާޓިކަލުގެ ތުންތައް ލިޔުއްވާ...' : 'Write your article content...'}
+              data={content || undefined}
+              onChange={setContent}
+              className="min-h-96"
+              collaborative={collaborative}
+            />
           </div>
-        </div>        {/* Editor Content */}        <EditorJSComponent
-          data={editorData || undefined}
-          onChange={setEditorData}
-          placeholder="Start writing your article..."
-        />
+        </div>
       </div><div className="flex justify-end gap-4 mt-6">
         <button
           onClick={handleSaveDraft}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useEditor } from '@tiptap/react';
+import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
@@ -1208,11 +1208,34 @@ const EditArticle: React.FC = () => {
                 placeholder={language === 'dv' ? 'ތަރުޖަމާ ނޯޓް' : 'Translation notes'}
                 className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 dir={language === 'dv' ? 'rtl' : 'ltr'}
-              />
-            </div>
+              />            </div>
           </div>
         </div>
-      </div>      <div className="flex justify-end gap-4 mt-6">
+      </div>
+
+      {/* Editor Content */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
+        <h3 className={`text-lg font-medium mb-3 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+          {language === 'dv' ? 'މަޟްމޫން' : 'Content'}
+        </h3>
+        <div className="relative">
+          {collaborative.isFieldLocked('content') && (
+            <div className="absolute inset-0 bg-gray-100/80 z-10 flex items-center justify-center rounded-lg">
+              <div className="bg-white p-4 rounded-lg shadow-lg">
+                <p className="text-sm text-gray-600">
+                  Content is being edited by {collaborative.getFieldLocker('content')}
+                </p>
+              </div>
+            </div>
+          )}
+          <EditorContent
+            editor={editor}
+            className="prose prose-lg max-w-none min-h-96 focus:outline-none"
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-4 mt-6">
         <button
           onClick={handleSaveDraft}
           disabled={saving}
