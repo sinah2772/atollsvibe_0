@@ -179,10 +179,13 @@ const BusinessDashboard: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            <label htmlFor="ad-filter" className="sr-only">Filter ads</label>
             <select
+              id="ad-filter"
               value={filter}
               onChange={(e) => setFilter(e.target.value as typeof filter)}
               className="rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              aria-label="Filter advertisements"
             >
               <option value="all">All Ads</option>
               <option value="active">Active</option>
@@ -266,12 +269,16 @@ const BusinessDashboard: React.FC = () => {
                       <button
                         onClick={() => {/* Handle edit */}}
                         className="p-1 hover:bg-gray-100 rounded-full text-gray-500 hover:text-blue-600"
+                        aria-label="Edit advertisement"
+                        title="Edit advertisement"
                       >
                         <Edit size={18} />
                       </button>
                       <button
                         onClick={() => handleDelete(ad.id)}
                         className="p-1 hover:bg-gray-100 rounded-full text-gray-500 hover:text-red-600"
+                        aria-label="Delete advertisement"
+                        title="Delete advertisement"
                       >
                         <Trash2 size={18} />
                       </button>

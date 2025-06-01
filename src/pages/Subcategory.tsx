@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useCategories } from '../hooks/useCategories';
 import { useArticles } from '../hooks/useArticles';
 import { Clock, Eye, ThumbsUp } from 'lucide-react';
+import { getCategoryColor, getSubcategoryColor } from '../utils/categoryColors';
 
 const Subcategory = () => {
   const { categorySlug, subcategorySlug } = useParams();
@@ -58,14 +59,25 @@ const Subcategory = () => {
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <Link 
-          to={`/category/${category.slug}`}
-          className="text-blue-600 hover:text-blue-800 text-sm"
-        >
-          {category.name}
-        </Link>
-        <h1 className="text-3xl font-bold text-gray-900 mt-2">{subcategory.name}</h1>
-        <p className="text-gray-600 mt-2">{subcategory.name_en}</p>
+        {(() => {
+          const categoryColors = getCategoryColor(category.id);
+          const subcategoryColors = getSubcategoryColor(category.id);
+          return (
+            <>
+              <Link 
+                to={`/category/${category.slug}`}
+                className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-2 ${categoryColors.bg} ${categoryColors.text} hover:opacity-80`}
+              >
+                🏷️ {category.name}
+              </Link>
+              <div className={`inline-block px-4 py-2 rounded-full text-sm font-medium mb-4 ml-2 ${subcategoryColors.bg} ${subcategoryColors.text}`}>
+                → Subcategory
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900 mt-2">{subcategory.name}</h1>
+              <p className="text-gray-600 mt-2">{subcategory.name_en}</p>
+            </>
+          );
+        })()}
       </div>
 
       {subcategoryArticles && subcategoryArticles.length > 0 ? (

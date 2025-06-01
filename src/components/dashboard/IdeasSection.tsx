@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lightbulb, Plus, Edit, Trash2, Check, X, ListFilter } from 'lucide-react';
+import { Lightbulb, Plus, Edit, Trash2, X } from 'lucide-react';
 
 interface Idea {
   id: string;
@@ -199,6 +199,7 @@ const IdeasSection: React.FC<IdeasSectionProps> = ({ language = 'en' }) => {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
+                aria-label={language === 'dv' ? 'ސުރުޚީ' : 'Title'}
                 className={`w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
                   language === 'dv' ? 'text-right thaana-waheed' : ''
                 }`}
@@ -212,6 +213,7 @@ const IdeasSection: React.FC<IdeasSectionProps> = ({ language = 'en' }) => {
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as Idea['category'])}
+                aria-label={language === 'dv' ? 'ބާވަތް' : 'Category'}
                 className={`w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
                   language === 'dv' ? 'text-right thaana-waheed' : ''
                 }`}
@@ -232,6 +234,7 @@ const IdeasSection: React.FC<IdeasSectionProps> = ({ language = 'en' }) => {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
+                aria-label={language === 'dv' ? 'ތަފްޞީލު' : 'Description'}
                 className={`w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
                   language === 'dv' ? 'text-right thaana-waheed' : ''
                 }`}
@@ -325,12 +328,16 @@ const IdeasSection: React.FC<IdeasSectionProps> = ({ language = 'en' }) => {
                   <button
                     onClick={() => handleEdit(idea)}
                     className="p-1 hover:bg-gray-100 rounded-full text-gray-500 hover:text-blue-600 transition-colors"
+                    aria-label="Edit idea"
+                    title="Edit idea"
                   >
                     <Edit size={16} />
                   </button>
                   <button
                     onClick={() => handleDelete(idea.id)}
                     className="p-1 hover:bg-gray-100 rounded-full text-gray-500 hover:text-red-600 transition-colors"
+                    aria-label="Delete idea"
+                    title="Delete idea"
                   >
                     <Trash2 size={16} />
                   </button>

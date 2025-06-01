@@ -11,6 +11,30 @@
 @tailwind components;
 @tailwind utilities;
 
+/* EditorJS RTL/LTR Support */
+.editor-rtl {
+  direction: rtl;
+}
+
+.editor-ltr {
+  direction: ltr;
+}
+
+/* EditorJS Block Styling for Thaana */
+.editor-rtl .ce-block__content,
+.editor-rtl .ce-toolbar,
+.editor-rtl .ce-inline-toolbar {
+  direction: rtl;
+  text-align: right;
+}
+
+.editor-ltr .ce-block__content,
+.editor-ltr .ce-toolbar,
+.editor-ltr .ce-inline-toolbar {
+  direction: ltr;
+  text-align: left;
+}
+
 @font-face {
   font-family: 'MV Waheed';
   /* Fallback to Noto Sans Thaana if MV Waheed is not available */

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useArticles } from '../hooks/useArticles';
 import { useCategories } from '../hooks/useCategories';
+import { getCategoryColor, getSubcategoryColor } from '../utils/categoryColors';
 import { Clock, Eye, MessageSquare, ThumbsUp } from 'lucide-react';
 
 function Home() {
@@ -152,8 +153,8 @@ function Home() {
                     </span>
                   )}
                   {article.subcategory && (
-                    <span className="absolute bottom-2 left-2 bg-blue-600 bg-opacity-80 text-white px-2 py-1 rounded text-xs thaana-waheed">
-                      {article.subcategory.name}
+                    <span className={`absolute bottom-2 left-2 px-2 py-1 rounded text-xs thaana-waheed ${getSubcategoryColor(article.category_id).bg} ${getSubcategoryColor(article.category_id).text} bg-opacity-90`}>
+                      → {article.subcategory.name}
                     </span>
                   )}
                 </div>
@@ -196,7 +197,9 @@ function Home() {
         return (
           <section key={category.id} className="border-t border-gray-200 pt-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 thaana-waheed">{category.name}</h2>
+              <h2 className={`text-2xl font-bold thaana-waheed flex items-center gap-2 ${getCategoryColor(category.id).text}`}>
+                🏷️ {category.name}
+              </h2>
               <Link
                 to={`/category/${category.slug}`}
                 className="text-blue-600 hover:text-blue-800 font-medium thaana-waheed"
@@ -208,15 +211,18 @@ function Home() {
             {/* Subcategory Pills */}
             {category.subcategories && category.subcategories.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-6 overflow-x-auto pb-2">
-                {category.subcategories.slice(0, 5).map(subcategory => (
-                  <Link
-                    key={subcategory.id}
-                    to={`/category/${category.slug}/${subcategory.slug}`}
-                    className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm hover:bg-gray-200 whitespace-nowrap thaana-waheed"
-                  >
-                    {subcategory.name}
-                  </Link>
-                ))}
+                {category.subcategories.slice(0, 5).map(subcategory => {
+                  const colors = getSubcategoryColor(category.id);
+                  return (
+                    <Link
+                      key={subcategory.id}
+                      to={`/category/${category.slug}/${subcategory.slug}`}
+                      className={`px-3 py-1 rounded-full text-sm whitespace-nowrap thaana-waheed transition-colors ${colors.bg} ${colors.text} ${colors.hover} ${colors.border} border`}
+                    >
+                      → {subcategory.name}
+                    </Link>
+                  );
+                })}
               </div>
             )}
             

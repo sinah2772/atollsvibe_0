@@ -10,7 +10,7 @@ export type Article = {
   featured_image?: string;
   author_id: string;
   category_id?: number;
-  status: 'draft' | 'published' | 'archived';
+  status: 'draft' | 'published' | 'scheduled';
   published_at?: string;
   created_at: string;
   updated_at: string;
@@ -78,6 +78,15 @@ export type Like = {
 export const dbService = {
   // User operations
   users: {
+    async getAll(): Promise<{ data: User[] | null; error: PostgrestError | null }> {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('email', { ascending: true });
+      
+      return { data, error };
+    },
+
     async getById(userId: string): Promise<{ data: User | null; error: PostgrestError | null }> {
       const { data, error } = await supabase
         .from('users')

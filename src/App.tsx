@@ -39,6 +39,11 @@ const StorageImages = lazy(() => import('./pages/StorageImages'));
 const ChangePassword = lazy(() => import('./pages/ChangePassword'));
 const SupabaseDemo = lazy(() => import('./pages/SupabaseDemo'));
 
+// Enhanced article management pages
+const AdvancedAnalytics = lazy(() => import('./pages/AdvancedAnalytics'));
+const WorkflowPage = lazy(() => import('./pages/WorkflowPage'));
+const DataAnalysisPage = lazy(() => import('./pages/DataAnalysisPage'));
+
 // Loading component with reduced motion option
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -165,6 +170,21 @@ function App() {
             <Route path="supabase-demo" element={
               <Suspense fallback={<LoadingSpinner />}>
                 <SupabaseDemo />
+              </Suspense>
+            } />
+            <Route path="advanced-analytics" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <AdvancedAnalytics />
+              </Suspense>
+            } />
+            <Route path="workflow" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <WorkflowPage />
+              </Suspense>
+            } />
+            <Route path="data-analysis" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <DataAnalysisPage />
               </Suspense>
             } />
           </Route>

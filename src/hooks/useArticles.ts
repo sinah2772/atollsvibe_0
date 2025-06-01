@@ -32,6 +32,14 @@ export interface Article {
   is_sponsored: boolean;
   sponsored_by: string | null;
   sponsored_url: string | null;
+  // New database fields from CSV schema
+  island_category: string | null;
+  developing_until: string | null;
+  ideas: string | null;
+  sponsored_image: string | null;
+  next_event_date: string | null;
+  collaborators: string | null;
+  collaboration_notes: string | null;
   // Additional fields migrated from news_articles
   news_type: string | null;
   news_priority: number | null;
@@ -146,10 +154,10 @@ export function useArticles(articleTable: ArticleTable = 'articles', id?: string
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
       
-      // Build query for getting count
-      const countQuery = supabase.from(articleTable).select('id', { count: 'exact' });
+      // Build query for getting count (excluding archived articles)
+      const countQuery = supabase.from(articleTable).select('id', { count: 'exact' }).neq('status', 'archived');
       
-      // Get the count of all articles including all statuses
+      // Get the count of all articles excluding archived articles
       const { count: totalArticles, error: countError } = await countQuery;
         
       if (countError) throw countError;
@@ -159,14 +167,11 @@ export function useArticles(articleTable: ArticleTable = 'articles', id?: string
         setTotalCount(totalArticles);
       }
 
-      // Fetch articles with their category and subcategory data
+      // Fetch articles (excluding archived articles) - without foreign key joins
       const query = supabase
         .from(articleTable)
-        .select(`
-          *,
-          category:category_id(id, name, name_en, slug),
-          subcategory:subcategory_id(id, name, name_en, slug)
-        `)
+        .select('*')
+        .neq('status', 'archived')
         .order('created_at', { ascending: false })
         .range(from, to);
         
@@ -177,6 +182,41 @@ export function useArticles(articleTable: ArticleTable = 'articles', id?: string
       clearTimeout(timeoutId);
       
       if (error) throw error;
+
+      // Get all unique category and subcategory IDs from all articles
+      const allCategoryIds = Array.from(
+        new Set(
+          data?.flatMap(article => article.category_id || []) || []
+        )
+      );
+      
+      const allSubcategoryIds = Array.from(
+        new Set(
+          data?.map(article => article.subcategory_id).filter(Boolean) || []
+        )
+      );
+
+      // Fetch categories and subcategories
+      let categoriesData: { id: number; name: string; name_en: string; slug: string; }[] = [];
+      let subcategoriesData: { id: number; name: string; name_en: string; slug: string; }[] = [];
+
+      if (allCategoryIds.length > 0) {
+        const { data: categoriesResult } = await supabase
+          .from('categories')
+          .select('id, name, name_en, slug')
+          .in('id', allCategoryIds);
+        
+        categoriesData = categoriesResult || [];
+      }
+
+      if (allSubcategoryIds.length > 0) {
+        const { data: subcategoriesResult } = await supabase
+          .from('subcategories')
+          .select('id, name, name_en, slug')
+          .in('id', allSubcategoryIds);
+        
+        subcategoriesData = subcategoriesResult || [];
+      }
 
       // Get all the unique atoll IDs from all articles
       const allAtollIds = Array.from(
@@ -248,6 +288,15 @@ export function useArticles(articleTable: ArticleTable = 'articles', id?: string
 
       // Process each article to include its related data
       const articlesWithDefaults = (data || []).map(item => {
+        // Map category IDs to full category objects
+        const articleCategories = item.category_id?.map((categoryId: number) => 
+          categoriesData.find(category => category.id === categoryId)
+        ).filter(Boolean) || [];
+
+        // Map subcategory ID to full subcategory object
+        const articleSubcategory = item.subcategory_id ? 
+          subcategoriesData.find(subcategory => subcategory.id === item.subcategory_id) : null;
+
         // Map atoll IDs to full atoll objects
         const articleAtolls = item.atoll_ids?.map((atollId: number) => 
           atollsData.find(atoll => atoll.id === atollId)
@@ -266,6 +315,9 @@ export function useArticles(articleTable: ArticleTable = 'articles', id?: string
         // Return article with all related data
         return {
           ...item,
+          categories: articleCategories,
+          category: articleCategories[0] || null, // For backward compatibility
+          subcategory: articleSubcategory,
           atolls: articleAtolls,
           islands: articleIslands,
           government: articleGovernment
@@ -288,11 +340,7 @@ export function useArticles(articleTable: ArticleTable = 'articles', id?: string
 
       const { data, error } = await supabase
         .from(articleTable)
-        .select(`
-          *,
-          category:category_id(id, name, name_en, slug),
-          subcategory:subcategory_id(id, name, name_en, slug)
-        `)
+        .select('*')
         .eq('id', articleId)
         .single();
 
@@ -310,6 +358,31 @@ export function useArticles(articleTable: ArticleTable = 'articles', id?: string
         name: string;
         name_en: string;
         slug: string;
+      }
+
+      // Fetch related categories if there are category_ids
+      let categories: { id: number; name: string; name_en: string; slug: string; }[] = [];
+      let category: { id: number; name: string; name_en: string; slug: string; } | null = null;
+      if (data.category_id && data.category_id.length > 0) {
+        const { data: categoriesData } = await supabase
+          .from('categories')
+          .select('id, name, name_en, slug')
+          .in('id', data.category_id);
+          
+        categories = categoriesData || [];
+        category = categories[0] || null; // For backward compatibility
+      }
+
+      // Fetch related subcategory if there is a subcategory_id
+      let subcategory: { id: number; name: string; name_en: string; slug: string; } | null = null;
+      if (data.subcategory_id) {
+        const { data: subcategoryData } = await supabase
+          .from('subcategories')
+          .select('id, name, name_en, slug')
+          .eq('id', data.subcategory_id)
+          .single();
+          
+        subcategory = subcategoryData || null;
       }
 
       // Fetch related atolls if there are atoll_ids
@@ -366,9 +439,10 @@ export function useArticles(articleTable: ArticleTable = 'articles', id?: string
         is_sponsored: data.is_sponsored || false,
         sponsored_by: data.sponsored_by || null,
         sponsored_url: data.sponsored_url || null,
-        // Ensure category and subcategory are properly formatted
-        category: Array.isArray(data.category) ? data.category[0] : data.category,
-        subcategory: Array.isArray(data.subcategory) ? data.subcategory[0] : data.subcategory,
+        // Add the fetched category and subcategory data
+        categories: categories,
+        category: category,
+        subcategory: subcategory,
         // Add related entities
         atolls,
         islands,

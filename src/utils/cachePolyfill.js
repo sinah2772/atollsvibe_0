@@ -9,8 +9,16 @@
  * - CacheStore.js:18 Cache set failed: ReferenceError: caches is not defined
  */
 
+// Determine the global context (window, self, or globalThis)
+const globalContext = (function() {
+  if (typeof window !== 'undefined') return window;
+  if (typeof self !== 'undefined') return self;
+  if (typeof globalThis !== 'undefined') return globalThis;
+  return {};
+})();
+
 // Only polyfill if caches is not available (browser context without Cache API support)
-if (typeof caches === 'undefined') {
+if (typeof globalContext.caches === 'undefined') {
   console.log('Cache API not available, implementing polyfill');
 
   // Simple Map-based cache implementation
@@ -70,12 +78,15 @@ if (typeof caches === 'undefined') {
 
     async keys() {
       return Array.from(this.caches.keys());
-    }
-  }
-
-  // Create global caches object - attach to either window or self depending on context
-  const globalContext = typeof window !== 'undefined' ? window : typeof self !== 'undefined' ? self : globalThis;
+    }  }
+  
+  // Create global caches object - attach to the determined global context
   globalContext.caches = new CacheStorage();
+  
+  // Also create a backup reference in case the context changes
+  if (typeof window !== 'undefined' && window !== globalContext) {
+    window.caches = globalContext.caches;
+  }
   
   console.log('Cache API polyfill successfully installed');
 }

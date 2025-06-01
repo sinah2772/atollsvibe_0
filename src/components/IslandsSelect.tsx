@@ -2,6 +2,32 @@ import React, { useEffect, useState } from 'react';
 import { MultiSelect } from './MultiSelect';
 import { useIslands } from '../hooks/useIslands';
 
+type IslandData = {
+  id: number;
+  name: string;
+  name_en: string;
+  slug: string;
+  island_code: string | null;
+  island_category: string | null;
+  island_category_en: string | null;
+  island_details: string | null;
+  longitude: string | null;
+  latitude: string | null;
+  election_commission_code: string | null;
+  postal_code: string | null;
+  other_name_en: string | null;
+  other_name_dv: string | null;
+  list_order: number | null;
+  atoll_id: number | null;
+  created_at: string;
+  atoll?: {
+    id: number;
+    name: string;
+    name_en: string;
+    slug: string;
+  };
+};
+
 interface IslandsSelectProps {
   atollIds?: number[];
   value: number[];
@@ -9,6 +35,7 @@ interface IslandsSelectProps {
   language?: 'en' | 'dv';
   placeholder?: string;
   className?: string;
+  islandCategory?: string | string[];
 }
 
 export const IslandsSelect: React.FC<IslandsSelectProps> = ({
@@ -17,34 +44,57 @@ export const IslandsSelect: React.FC<IslandsSelectProps> = ({
   onChange,
   language = 'dv',
   placeholder,
-  className
+  className,
+  islandCategory
 }) => {
   // Make sure we only call useIslands with a valid array of atoll IDs
   const validAtollIds = atollIds && atollIds.length > 0 ? atollIds : undefined;
   console.log('IslandsSelect with atollIds:', validAtollIds);
   
   const { islands, loading, error } = useIslands(validAtollIds);
-  const [filteredIslands, setFilteredIslands] = useState<any[]>([]);
+  const [filteredIslands, setFilteredIslands] = useState<IslandData[]>([]);
 
-  // Update filtered islands when atoll selection changes or islands data loads
+  // Update filtered islands when atoll selection changes, islands data loads, or island category changes
   useEffect(() => {
-    console.log('Islands or value changed:', islands?.length, value);
+    console.log('Islands, value, or islandCategory changed:', islands?.length, value, islandCategory);
     
     if (islands) {
-      // Keep any selected islands that are still valid after atoll selection changes
+      let filtered = islands;
+      
+      // Filter by island category if specified
+      if (islandCategory && 
+          ((typeof islandCategory === 'string' && islandCategory.trim() !== '') ||
+           (Array.isArray(islandCategory) && islandCategory.length > 0))) {
+        console.log('Filtering islands by category:', islandCategory);
+        
+        const categories = Array.isArray(islandCategory) ? islandCategory : [islandCategory];
+        
+        filtered = islands.filter(island => {
+          // Check if the island matches any of the selected categories
+          return categories.some(category => 
+            island.island_category === category || 
+            island.island_category_en === category ||
+            (island.island_category && island.island_category.toLowerCase() === category.toLowerCase()) ||
+            (island.island_category_en && island.island_category_en.toLowerCase() === category.toLowerCase())
+          );
+        });
+        console.log('Filtered islands count:', filtered.length);
+      }
+      
+      // Keep any selected islands that are still valid after filtering
       const validSelectedIslands = value.filter(id => 
-        islands.some(island => island.id === id)
+        filtered.some(island => island.id === id)
       );
       
       // If some selected islands are no longer valid, update the selection
       if (validSelectedIslands.length !== value.length) {
-        console.log('Updating selected islands:', validSelectedIslands);
+        console.log('Updating selected islands after filtering:', validSelectedIslands);
         onChange(validSelectedIslands);
       }
       
-      setFilteredIslands(islands);
+      setFilteredIslands(filtered);
     }
-  }, [islands, value, onChange]);
+  }, [islands, value, onChange, islandCategory]);
 
   if (loading) {
     return (
@@ -75,7 +125,11 @@ export const IslandsSelect: React.FC<IslandsSelectProps> = ({
       <MultiSelect
         options={options}
         value={value}
-        onChange={onChange}
+        onChange={(values) => {
+          // Convert back to number[] since we know islands always have number IDs
+          const numberValues = values.filter(id => typeof id === 'number') as number[];
+          onChange(numberValues);
+        }}
         language={language}
         placeholder={placeholder || (language === 'dv' ? 'ރަށްތައް އިޚްތިޔާރު ކުރައްވާ' : 'Select islands')}
       />

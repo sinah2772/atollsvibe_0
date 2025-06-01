@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useUser } from '../hooks/useUser';
 import { useArticles } from '../hooks/useArticles';
 import { useCategories } from '../hooks/useCategories';
+import { getCategoryColor, getSubcategoryColor } from '../utils/categoryColors';
 import { 
   BarChart, 
   Newspaper, 
@@ -15,9 +17,9 @@ import {
   Trash2, 
   Plus,
   Filter,
-  Search,  Calendar
+  Search,  
+  Calendar
 } from 'lucide-react';
-import { useUser } from '../hooks/useUser';
 import Header from '../components/layout/Header';
 import MobileSidebar from '../components/layout/MobileSidebar';
 
@@ -242,6 +244,73 @@ const Dashboard = () => {
               </div>
             </div>
 
+            {/* Enhanced Features Section */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">Enhanced Article Management</h2>
+                <p className="text-sm text-gray-600">Powerful tools for content analysis and workflow</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Link 
+                  to="/dashboard/advanced-analytics"
+                  className="group block p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 hover:border-blue-300 transition-all duration-200"
+                >
+                  <div className="flex items-center mb-4">
+                    <div className="p-3 rounded-lg bg-blue-600 text-white group-hover:bg-blue-700 transition-colors">
+                      <BarChart size={24} />
+                    </div>
+                    <h3 className="ml-3 text-lg font-semibold text-gray-900">Advanced Analytics</h3>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Comprehensive analytics dashboard with engagement metrics, editorial workflow statistics, and content performance insights.
+                  </p>
+                  <div className="flex items-center text-blue-600 text-sm font-medium">
+                    <span>View Analytics</span>
+                    <TrendingUp size={16} className="ml-2" />
+                  </div>
+                </Link>
+
+                <Link 
+                  to="/dashboard/workflow"
+                  className="group block p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200 hover:border-green-300 transition-all duration-200"
+                >
+                  <div className="flex items-center mb-4">
+                    <div className="p-3 rounded-lg bg-green-600 text-white group-hover:bg-green-700 transition-colors">
+                      <Users size={24} />
+                    </div>
+                    <h3 className="ml-3 text-lg font-semibold text-gray-900">Editorial Workflow</h3>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Manage editorial workflow with fact-checking, approval processes, and article status tracking for streamlined content management.
+                  </p>
+                  <div className="flex items-center text-green-600 text-sm font-medium">
+                    <span>Manage Workflow</span>
+                    <Edit size={16} className="ml-2" />
+                  </div>
+                </Link>
+
+                <Link 
+                  to="/dashboard/data-analysis"
+                  className="group block p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200 hover:border-purple-300 transition-all duration-200"
+                >
+                  <div className="flex items-center mb-4">
+                    <div className="p-3 rounded-lg bg-purple-600 text-white group-hover:bg-purple-700 transition-colors">
+                      <BarChart size={24} />
+                    </div>
+                    <h3 className="ml-3 text-lg font-semibold text-gray-900">Data Analysis</h3>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Deep dive into article data with CSV analysis tools, content quality metrics, and comprehensive reporting features.
+                  </p>
+                  <div className="flex items-center text-purple-600 text-sm font-medium">
+                    <span>Analyze Data</span>
+                    <BarChart size={16} className="ml-2" />
+                  </div>
+                </Link>
+              </div>
+            </div>
+
             {/* Recent Articles Section */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
               <div className="flex items-center justify-between mb-6">
@@ -324,9 +393,15 @@ const Dashboard = () => {
                               {article.status === 'published' ? 'Published' : 'Draft'}
                             </span>
                             {article.category && (
-                              <span className="ml-2 text-xs text-gray-500 thaana-waheed">
-                                {article.category.name}
-                                {article.subcategory && ` • ${article.subcategory.name}`}
+                              <span className="flex items-center gap-2 mt-1">
+                                <span className={`px-2 py-0.5 rounded-full text-xs ${getCategoryColor(article.category_id).bg} ${getCategoryColor(article.category_id).text} border ${getCategoryColor(article.category_id).border}`}>
+                                  🏷️ {article.category.name}
+                                </span>
+                                {article.subcategory && (
+                                  <span className={`px-2 py-0.5 rounded-full text-xs ${getSubcategoryColor(article.category_id).bg} ${getSubcategoryColor(article.category_id).text} border ${getSubcategoryColor(article.category_id).border}`}>
+                                    → {article.subcategory.name}
+                                  </span>
+                                )}
                               </span>
                             )}
                           </div>
@@ -478,14 +553,20 @@ const Dashboard = () => {
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Categories</h3>
                 <div className="space-y-2">
-                  {categories?.slice(0, 5).map(category => (
-                    <div key={category.id} className="flex items-center justify-between">
-                      <span className="text-gray-700 thaana-waheed">{category.name}</span>
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                        {articles?.filter(a => a.category_id === category.id && a.user_id === user.id).length || 0} articles
-                      </span>
-                    </div>
-                  ))}
+                  {categories?.slice(0, 5).map(category => {
+                    const colors = getCategoryColor(category.id);
+                    const articleCount = articles?.filter(a => a.category_id === category.id && a.user_id === user.id).length || 0;
+                    return (
+                      <div key={category.id} className="flex items-center justify-between">
+                        <span className={`thaana-waheed flex items-center gap-2 ${colors.text} font-medium`}>
+                          🏷️ {category.name}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${colors.bg} ${colors.text}`}>
+                          {articleCount} articles
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
                 {categories && categories.length > 5 && (
                   <div className="mt-4 text-center">

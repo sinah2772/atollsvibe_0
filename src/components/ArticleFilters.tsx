@@ -3,6 +3,7 @@ import { useAtolls } from '../hooks/useAtolls';
 import { useIslands } from '../hooks/useIslands';
 import { useCategories } from '../hooks/useCategories';
 import { useSubcategories } from '../hooks/useSubcategories';
+import { getCategoryColor, getSubcategoryColor, getSubcategoryDisplayName } from '../utils/categoryColors';
 
 // Interface for subcategory data
 interface Subcategory {
@@ -217,11 +218,18 @@ export function ArticleFilters({ onFilterChange, initialFilters }: ArticleFilter
             onChange={handleCategoryChange}
           >
             <option value="">All Categories</option>
-            {categories.map(category => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
+            {categories.map(category => {
+              const colors = getCategoryColor(category.id);
+              return (
+                <option 
+                  key={category.id} 
+                  value={category.id}
+                  className={`font-medium ${colors.text}`}
+                >
+                  🏷️ {category.name}
+                </option>
+              );
+            })}
           </select>
         </div>
 
@@ -238,11 +246,20 @@ export function ArticleFilters({ onFilterChange, initialFilters }: ArticleFilter
             disabled={!filters.categoryId}
           >
             <option value="">All Subcategories</option>
-            {availableSubcategories.map(subcategory => (
-              <option key={subcategory.id} value={subcategory.id}>
-                {subcategory.name}
-              </option>
-            ))}
+            {availableSubcategories.map(subcategory => {
+              const colors = getSubcategoryColor(subcategory.category_id);
+              const parentCategory = categories.find(cat => cat.id === subcategory.category_id);
+              const displayName = getSubcategoryDisplayName(subcategory, parentCategory);
+              return (
+                <option 
+                  key={subcategory.id} 
+                  value={subcategory.id}
+                  className={`pl-4 ${colors.text}`}
+                >
+                  → {displayName}
+                </option>
+              );
+            })}
           </select>
         </div>
 
@@ -346,7 +363,6 @@ export function ArticleFilters({ onFilterChange, initialFilters }: ArticleFilter
             <option value="">All Statuses</option>
             <option value="draft">Draft</option>
             <option value="published">Published</option>
-            <option value="archived">Archived</option>
             <option value="scheduled">Scheduled</option>
           </select>
         </div>

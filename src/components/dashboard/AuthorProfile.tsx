@@ -80,7 +80,11 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author }) => {
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Author Profile</h3>
-        <button className="text-gray-500 hover:text-blue-600 p-1 rounded-full hover:bg-blue-50 transition-colors">
+        <button 
+          className="text-gray-500 hover:text-blue-600 p-1 rounded-full hover:bg-blue-50 transition-colors"
+          aria-label="Edit profile"
+          title="Edit profile"
+        >
           <Edit size={16} />
         </button>
       </div>
@@ -100,6 +104,8 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author }) => {
               onChange={handleFileChange}
               className="hidden"
               id="avatar-upload"
+              aria-label="Upload profile image"
+              title="Upload profile image"
             />
             <label
               htmlFor="avatar-upload"
@@ -126,6 +132,8 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author }) => {
               <button 
                 onClick={() => setError(null)}
                 className="p-1 hover:bg-red-50 rounded-full"
+                aria-label="Dismiss error"
+                title="Dismiss error"
               >
                 <X size={12} />
               </button>

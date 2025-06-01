@@ -30,8 +30,7 @@ const supabase = createClient(
 async function testArticlesTable() {
   console.log('Testing connection to articles table...');
   
-  try {
-    // Test fetching articles
+  try {    // Test fetching articles - updated to not use foreign key syntax
     const { data, error } = await supabase
       .from('articles')
       .select(`
@@ -53,9 +52,7 @@ async function testArticlesTable() {
         created_at,
         updated_at,
         category_id,
-        subcategory_id,
-        category:category_id(id, name, name_en, slug),
-        subcategory:subcategory_id(id, name, name_en, slug)
+        subcategory_id
       `)
       .limit(2);
     
@@ -80,23 +77,18 @@ async function testArticlesTable() {
     if (data?.length) {
       const articleId = data[0].id;
       console.log(`\nFetching single article with ID: ${articleId}`);
-      
-      const { data: singleArticle, error: singleError } = await supabase
+        const { data: singleArticle, error: singleError } = await supabase
         .from('articles')
-        .select(`
-          *,
-          category:category_id(id, name, name_en, slug),
-          subcategory:subcategory_id(id, name, name_en, slug)
-        `)
+        .select('*')
         .eq('id', articleId)
         .single();
       
       if (singleError) {
-        console.error('❌ Error fetching single article:', singleError);
-      } else {
+        console.error('❌ Error fetching single article:', singleError);      } else {
         console.log('✅ Successfully fetched single article');
         console.log(`Title: ${singleArticle.title}`);
-        console.log(`Category: ${singleArticle.category?.name || 'N/A'}`);
+        console.log(`Category IDs: ${JSON.stringify(singleArticle.category_id)}`);
+        console.log(`Subcategory ID: ${singleArticle.subcategory_id}`);
       }
     }
     

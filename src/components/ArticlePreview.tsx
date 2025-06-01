@@ -1,5 +1,6 @@
 // filepath: e:\Atolls_mv\atolslvibe\New\atollsvibe_02-main\atollsvibe_02-main\src\components\ArticlePreview.tsx
 import React from 'react';
+import { getCategoryColor, getSubcategoryColor } from '../utils/categoryColors';
 
 // Define types for TipTap document structure
 interface MarkType {
@@ -37,6 +38,10 @@ interface ArticlePreviewProps {
   tags: string[];
   language: 'en' | 'dv';
   onClose: () => void;
+  categoryId?: number;
+  categoryName?: string;
+  subcategoryId?: number;
+  subcategoryName?: string;
 }
 
 const ArticlePreview: React.FC<ArticlePreviewProps> = ({
@@ -55,7 +60,11 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({
   newsSource,
   tags,
   language,
-  onClose
+  onClose,
+  categoryId,
+  categoryName,
+  subcategoryId,
+  subcategoryName
 }) => {  // Enhanced function to render the content with proper formatting
   const renderContent = () => {
     if (!content) return null;
@@ -280,6 +289,24 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({
                   </span>
                 ))}
               </div>
+            </div>
+          )}
+            {/* Category and Subcategory Badges */}
+          {(categoryId || subcategoryId) && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              {categoryId && categoryName && (
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(categoryId).bg} ${getCategoryColor(categoryId).text}`}
+                >
+                  🏷️ {categoryName}
+                </span>
+              )}              {subcategoryId && subcategoryName && categoryId && (
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium ${getSubcategoryColor(categoryId).bg} ${getSubcategoryColor(categoryId).text}`}
+                >
+                  → {subcategoryName}
+                </span>
+              )}
             </div>
           )}
         </div>

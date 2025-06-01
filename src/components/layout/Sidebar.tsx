@@ -11,7 +11,10 @@ import {
   PenSquare,
   Briefcase,
   Image,
-  Database
+  Database,
+  TrendingUp,
+  GitBranch,
+  BarChart3
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -29,6 +32,9 @@ const Sidebar: React.FC = () => {
     { name: 'Articles', icon: <FileText size={20} />, path: 'articles' },
     { name: 'New Article', icon: <PenSquare size={20} />, path: 'new-article' },
     { name: 'Analytics', icon: <BarChart2 size={20} />, path: 'analytics' },
+    { name: 'Advanced Analytics', icon: <TrendingUp size={20} />, path: 'advanced-analytics' },
+    { name: 'Workflow', icon: <GitBranch size={20} />, path: 'workflow' },
+    { name: 'Data Analysis', icon: <BarChart3 size={20} />, path: 'data-analysis' },
     { name: 'Comments', icon: <MessageSquare size={20} />, path: 'comments' },
     { name: 'Audience', icon: <Users size={20} />, path: 'audience' },
     { name: 'Business', icon: <Briefcase size={20} />, path: 'business' },

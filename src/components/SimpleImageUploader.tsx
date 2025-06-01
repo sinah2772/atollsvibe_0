@@ -149,6 +149,8 @@ const SimpleImageUploader: React.FC<SimpleImageUploaderProps> = ({
           onChange={handleFileChange}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           disabled={uploading}
+          aria-label="Upload image file"
+          title="Upload image file"
         />
       </div>
       

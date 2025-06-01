@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Subcategory } from '../types';
+import { getSubcategoryColor } from '../utils/categoryColors';
 
 interface SubcategoryListProps {
   subcategories: Subcategory[];
@@ -21,17 +22,20 @@ const SubcategoryList: React.FC<SubcategoryListProps> = ({
 
   return (
     <div className={`flex flex-wrap gap-2 ${className}`}>
-      {subcategories.map(subcategory => (
-        <Link
-          key={subcategory.id}
-          to={`/category/${categorySlug}/${subcategory.slug}`}
-          className={`px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm hover:bg-gray-200 transition-colors ${
-            language === 'dv' ? 'thaana-waheed' : ''
-          }`}
-        >
-          {language === 'dv' ? subcategory.name : subcategory.name_en}
-        </Link>
-      ))}
+      {subcategories.map(subcategory => {
+        const colors = getSubcategoryColor(subcategory.category_id);
+        return (
+          <Link
+            key={subcategory.id}
+            to={`/category/${categorySlug}/${subcategory.slug}`}
+            className={`px-3 py-1 rounded-full text-sm transition-colors ${colors.bg} ${colors.text} ${colors.hover} ${
+              language === 'dv' ? 'thaana-waheed' : ''
+            }`}
+          >
+            → {language === 'dv' ? subcategory.name : subcategory.name_en}
+          </Link>
+        );
+      })}
     </div>
   );
 };

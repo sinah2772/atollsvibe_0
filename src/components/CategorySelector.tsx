@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Category, Subcategory } from '../hooks/useCategories';
+import { getCategoryColor, getSubcategoryColor } from '../utils/categoryColors';
 
 interface CategorySelectorProps {
   categories: Category[];
@@ -58,11 +59,18 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
           aria-label={language === 'dv' ? 'ބައި އިޚްތިޔާރު ކުރައްވާ' : 'Select category'}
         >
           <option value="">{language === 'dv' ? 'ބައެއް އިޚްތިޔާރު ކުރައްވާ' : 'Select a category'}</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {language === 'dv' ? cat.name : cat.name_en}
-            </option>
-          ))}
+          {categories.map((cat) => {
+            const colors = getCategoryColor(cat.id);
+            return (
+              <option 
+                key={cat.id} 
+                value={cat.id}
+                className={`font-medium ${colors.text}`}
+              >
+                🏷️ {language === 'dv' ? cat.name : cat.name_en}
+              </option>
+            );
+          })}
         </select>
       </div>
 
@@ -81,11 +89,20 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
             aria-label={language === 'dv' ? 'ކުދިބައި އިޚްތިޔާރު ކުރައްވާ' : 'Select subcategory'}
           >
             <option value="">{language === 'dv' ? 'ކުދިބައި އިޚްތިޔާރު ކުރައްވާ (ނުވަތަ ހުސްކޮށް ދޫކޮށްލާ)' : 'Select a subcategory (or leave empty)'}</option>
-            {subcategories.map((sub) => (
-              <option key={sub.id} value={sub.id}>
-                {language === 'dv' ? sub.name : sub.name_en}
-              </option>
-            ))}
+            {subcategories.map((sub) => {
+              const colors = getSubcategoryColor(parseInt(selectedCategoryId));
+              const parentCategory = categories.find(cat => cat.id.toString() === selectedCategoryId);
+              const parentName = parentCategory ? (language === 'dv' ? parentCategory.name : parentCategory.name_en) : '';
+              return (
+                <option 
+                  key={sub.id} 
+                  value={sub.id}
+                  className={`pl-4 ${colors.text}`}
+                >
+                  → {language === 'dv' ? sub.name : sub.name_en} ({parentName})
+                </option>
+              );
+            })}
           </select>
         </div>
       )}

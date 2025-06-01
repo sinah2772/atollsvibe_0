@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useCategories } from '../hooks/useCategories';
 import { useArticles } from '../hooks/useArticles';
-import { Clock, Eye, MessageSquare, ThumbsUp } from 'lucide-react';
+import { Clock, Eye, ThumbsUp } from 'lucide-react';
+import { getCategoryColor, getSubcategoryColor } from '../utils/categoryColors';
 
 const Category = () => {
   const { slug } = useParams();
@@ -62,8 +63,18 @@ const Category = () => {
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900">{category.name}</h1>
-        <p className="text-gray-600 mt-2">{category.name_en}</p>
+        {(() => {
+          const colors = getCategoryColor(category.id);
+          return (
+            <>
+              <div className={`inline-block px-4 py-2 rounded-full text-sm font-medium mb-4 ${colors.bg} ${colors.text}`}>
+                🏷️ Category
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">{category.name}</h1>
+              <p className="text-gray-600 mt-2">{category.name_en}</p>
+            </>
+          );
+        })()}
       </div>
 
       {/* Subcategories Navigation */}
@@ -80,19 +91,22 @@ const Category = () => {
             >
               All
             </button>
-            {category.subcategories.map((subcategory) => (
-              <button
-                key={subcategory.id}
-                onClick={() => setActiveSubcategory(subcategory.slug)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  activeSubcategory === subcategory.slug
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {subcategory.name}
-              </button>
-            ))}
+            {category.subcategories.map((subcategory) => {
+              const colors = getSubcategoryColor(category.id);
+              return (
+                <button
+                  key={subcategory.id}
+                  onClick={() => setActiveSubcategory(subcategory.slug)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeSubcategory === subcategory.slug
+                      ? `${colors.selected} ${colors.text}`
+                      : `${colors.bg} ${colors.text} ${colors.hover}`
+                  }`}
+                >
+                  → {subcategory.name}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -117,9 +131,14 @@ const Category = () => {
                   </span>
                 )}
                 {article.subcategory && (
-                  <span className="absolute bottom-2 left-2 bg-blue-600 bg-opacity-80 text-white px-2 py-1 rounded text-xs thaana-waheed">
-                    {article.subcategory.name}
-                  </span>
+                  (() => {
+                    const colors = getSubcategoryColor(article.category_id);
+                    return (
+                      <span className={`absolute bottom-2 left-2 px-2 py-1 rounded text-xs thaana-waheed ${colors.bg} ${colors.text}`}>
+                        → {article.subcategory.name}
+                      </span>
+                    );
+                  })()
                 )}
               </div>
               <div className="p-4">

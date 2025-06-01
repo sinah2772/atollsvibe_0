@@ -16,8 +16,7 @@ export const useGovernment = () => {
     const fetchGovernment = async () => {
       try {
         setLoading(true);
-        
-        const { data, error } = await supabase
+          const { data, error } = await supabase
           .from('government')
           .select('*')
           .order('name', { ascending: true });
@@ -30,7 +29,13 @@ export const useGovernment = () => {
           setGovernment(FALLBACK_GOVERNMENT_DATA);
           setUseFallbackData(true);
         } else if (data) {
-          setGovernment(data);
+          // Convert numeric IDs to strings to match the interface
+          const formattedData = data.map(item => ({
+            ...item,
+            id: String(item.id)
+          }));
+          console.log('useGovernment: Formatted government data:', formattedData);
+          setGovernment(formattedData);
           setUseFallbackData(false);
         }
       } catch (err) {

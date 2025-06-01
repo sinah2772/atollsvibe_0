@@ -5,6 +5,9 @@
  * with the application, particularly around cache APIs.
  */
 
+// Import our cache polyfill to ensure it's available globally
+import './cachePolyfill';
+
 // List of browser extensions we know may cause issues
 const KNOWN_PROBLEMATIC_EXTENSIONS = [
   'GenAIWebpageEligibilityService',
@@ -12,20 +15,42 @@ const KNOWN_PROBLEMATIC_EXTENSIONS = [
   'CacheStore'
 ];
 
-// Apply patches after the window/document is fully loaded
+// Apply patches immediately when this module loads
+applyExtensionPatches();
+
+// Also apply patches after the window/document is fully loaded in case extensions load later
 window.addEventListener('DOMContentLoaded', () => {
+  applyExtensionPatches();
+});
+
+// Apply patches when the window loads completely
+window.addEventListener('load', () => {
   applyExtensionPatches();
 });
 
 // Detect and apply patches for known problematic extensions
 function applyExtensionPatches() {
-  // Detect if any problematic extensions are present
-  KNOWN_PROBLEMATIC_EXTENSIONS.forEach(extensionName => {
-    if (window[extensionName]) {
-      console.log(`Detected potentially conflicting extension: ${extensionName}`);
+  console.log('Applying browser extension compatibility patches...');
+  
+  // First, ensure our cache polyfill is in place
+  if (typeof window.caches === 'undefined') {
+    console.warn('Cache API still not available, extensions may cause errors');
+  }
+  
+  // Detect if any problematic extensions are present by checking for their methods
+  const extensionMethods = [
+    'GenAIWebpageEligibilityService',
+    'ActionableCoachmark',
+    'CacheStore'
+  ];
+  
+  extensionMethods.forEach(methodName => {
+    // Check if the method exists on window or any global scope
+    if (window[methodName] || (typeof globalThis !== 'undefined' && globalThis[methodName])) {
+      console.log(`Detected potentially conflicting extension method: ${methodName}`);
       
-      // Apply specific patches based on the extension
-      switch (extensionName) {
+      // Apply specific patches based on the method
+      switch (methodName) {
         case 'CacheStore':
           patchCacheStore();
           break;
@@ -39,8 +64,11 @@ function applyExtensionPatches() {
     }
   });
   
-  // Check for undetected extensions but known error patterns
+  // Monitor for extension errors and apply runtime patches
   monitorForExtensionErrors();
+  
+  // Try to patch any existing extension CacheStore instances
+  patchExistingCacheStores();
 }
 
 // Patch the CacheStore implementation
@@ -303,10 +331,83 @@ function monitorForExtensionErrors() {
     if (typeof originalOnError === 'function') {
       return originalOnError.call(this, message, source, lineno, colno, error);
     }
-    
-    // Return false to let the error propagate
+      // Return false to let the error propagate
     return false;
   };
+  
+  // Set up unhandled promise rejection handling
+  const originalPromiseRejection = window.onunhandledrejection;
+  
+  window.addEventListener('unhandledrejection', function(event) {
+    const reason = event.reason;
+    if (reason && typeof reason.message === 'string' && (
+        reason.message.includes('caches is not defined') ||
+        reason.message.includes('CacheStore') ||
+        (reason.stack && (
+          reason.stack.includes('GenAIWebpageEligibilityService') ||
+          reason.stack.includes('ActionableCoachmark')
+        ))
+      )) {
+      
+      console.warn('Detected and suppressed browser extension promise rejection:', reason.message);
+      event.preventDefault(); // Prevent the error from showing up in console
+    }  });
+}
+
+// Function to patch existing CacheStore instances that might be created by extensions
+function patchExistingCacheStores() {
+  try {
+    // Look for CacheStore instances in common extension namespaces
+    const possibleNamespaces = [window, globalThis];
+    
+    possibleNamespaces.forEach(namespace => {
+      if (namespace && typeof namespace === 'object') {
+        Object.keys(namespace).forEach(key => {
+          try {
+            const obj = namespace[key];
+            if (obj && typeof obj === 'object' && obj.constructor && obj.constructor.name === 'CacheStore') {
+              console.log(`Found CacheStore instance at ${key}, applying compatibility patch`);
+              
+              // Wrap the get and set methods with error handling
+              if (typeof obj.get === 'function') {
+                const originalGet = obj.get;
+                obj.get = async function(...args) {
+                  try {
+                    return await originalGet.apply(this, args);
+                  } catch (error) {
+                    if (error.message.includes('caches is not defined')) {
+                      console.warn('CacheStore.get failed due to missing caches API, returning null');
+                      return null;
+                    }
+                    throw error;
+                  }
+                };
+              }
+              
+              if (typeof obj.set === 'function') {
+                const originalSet = obj.set;
+                obj.set = async function(...args) {
+                  try {
+                    return await originalSet.apply(this, args);
+                  } catch (error) {
+                    if (error.message.includes('caches is not defined')) {
+                      console.warn('CacheStore.set failed due to missing caches API, ignoring');
+                      return false;
+                    }
+                    throw error;
+                  }
+                };
+              }
+            }
+          } catch (error) {
+            // Ignore errors when checking objects
+          }
+        });
+      }
+    });
+  } catch (error) {
+    console.warn('Error while patching existing CacheStore instances:', error);
+  }
 }
 
 export default {

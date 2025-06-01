@@ -2,10 +2,11 @@ import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useArticles } from '../hooks/useArticles';
 import { Clock, Eye, ThumbsUp, MessageSquare, Share2 } from 'lucide-react';
+import { getCategoryColor, getSubcategoryColor } from '../utils/categoryColors';
 
 const Article = () => {
   const { id } = useParams();
-  const { article, isLoading, error } = useArticles(id);
+  const { article, isLoading, error } = useArticles('articles', id);
 
   useEffect(() => {
     // Scroll to top when article loads
@@ -63,10 +64,10 @@ const Article = () => {
         {article.category && (
           <>
             <Link 
-              to={`/category/${article.category.slug}`} 
-              className="hover:text-blue-600 thaana-waheed"
+              to={`/category/${article.category.slug}`}
+              className={`px-2 py-1 rounded-full text-xs thaana-waheed ${getCategoryColor(article.category.id).bg} ${getCategoryColor(article.category.id).text} hover:opacity-90`}
             >
-              {article.category.name}
+              🏷️ {article.category.name}
             </Link>
             <span className="mx-2">›</span>
           </>
@@ -75,9 +76,9 @@ const Article = () => {
           <>
             <Link 
               to={`/category/${article.category?.slug}/${article.subcategory.slug}`} 
-              className="hover:text-blue-600 thaana-waheed"
+              className={`px-2 py-1 rounded-full text-xs thaana-waheed ${getSubcategoryColor(article.category_id).bg} ${getSubcategoryColor(article.category_id).text} hover:opacity-90`}
             >
-              {article.subcategory.name}
+              → {article.subcategory.name}
             </Link>
             <span className="mx-2">›</span>
           </>

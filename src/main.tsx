@@ -1,6 +1,18 @@
+// Import content script safety first to prevent cache errors
+import './utils/contentScriptSafety';
+// Import global cache polyfill first to prevent browser extension conflicts
+import './utils/globalCachePolyfill';
 // Import cache and compatibility modules first to ensure they're available
 import './utils/setupCache';
 import './utils/extensionCompat'; // For browser extension compatibility
+import './utils/extensionErrorSuppressor'; // Advanced error suppression
+
+// Import cache polyfill test in development mode
+if (import.meta.env.DEV) {
+  import('./utils/cachePolyfillTest');
+  // @ts-expect-error - Test file doesn't need strict typing
+  import('./utils/cacheStorageTest');
+}
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

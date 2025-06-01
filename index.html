@@ -8,6 +8,483 @@
     <meta name="description" content="Habaru News Dashboard - News management and publishing platform" />
     <title>Habaru Author Dashboard</title>
     
+    <!-- IMMEDIATE Cache Safety Injection - Runs before ANY other scripts -->
+    <script>
+      // Ultra-early content script protection
+      (function() {
+        'use strict';
+        
+        // If caches is already defined, don't interfere
+        if (typeof caches !== 'undefined') {
+          return;
+        }
+        
+        // Create minimal safe cache for content scripts
+        const safeCache = {
+          async match() { return undefined; },
+          async put() { return; },
+          async delete() { return false; },
+          async keys() { return []; }
+        };
+        
+        const safeCacheStorage = {
+          async open() { return safeCache; },
+          async has() { return false; },
+          async delete() { return false; },
+          async keys() { return []; },
+          async match() { return undefined; }
+        };
+        
+        // Install on all possible contexts immediately
+        [window, self, globalThis, global].forEach(ctx => {
+          if (ctx && typeof ctx.caches === 'undefined') {
+            try {
+              Object.defineProperty(ctx, 'caches', {
+                value: safeCacheStorage,
+                writable: false,
+                configurable: false,
+                enumerable: false
+              });
+            } catch (e) {
+              ctx.caches = safeCacheStorage;
+            }
+          }
+        });
+        
+        console.debug('[Ultra-Early] Cache safety installed');
+      })();
+    </script>
+    
+    <!-- Aggressive Cache API Polyfill - Must load before any extension scripts -->
+    <script>
+      (function() {
+        'use strict';
+        
+        // Create a robust cache polyfill that works in all contexts
+        function createCachePolyfill() {
+          // Simple Cache implementation with better error handling
+          class Cache {
+            constructor() {
+              this.store = new Map();
+            }
+
+            async match(request) {
+              try {
+                const key = request instanceof Request ? request.url : String(request);
+                if (this.store.has(key)) {
+                  const data = this.store.get(key);
+                  return new Response(data);
+                }
+                return undefined;
+              } catch (error) {
+                console.warn('Cache match error:', error);
+                return undefined;
+              }
+            }
+
+            async put(request, response) {
+              try {
+                const key = request instanceof Request ? request.url : String(request);
+                if (response && typeof response.clone === 'function') {
+                  const clone = response.clone();
+                  const text = await clone.text();
+                  this.store.set(key, text);
+                } else {
+                  this.store.set(key, String(response));
+                }
+              } catch (error) {
+                console.warn('Cache put error:', error);
+              }
+            }
+
+            async delete(request) {
+              try {
+                const key = request instanceof Request ? request.url : String(request);
+                return this.store.delete(key);
+              } catch (error) {
+                console.warn('Cache delete error:', error);
+                return false;
+              }
+            }
+            
+            async keys() {
+              try {
+                return Array.from(this.store.keys()).map(key => new Request(key));
+              } catch (error) {
+                console.warn('Cache keys error:', error);
+                return [];
+              }
+            }
+          }
+
+          // CacheStorage implementation
+          class CacheStorage {
+            constructor() {
+              this.caches = new Map();
+            }
+
+            async open(cacheName) {
+              try {
+                if (!this.caches.has(cacheName)) {
+                  this.caches.set(cacheName, new Cache());
+                }
+                return this.caches.get(cacheName);
+              } catch (error) {
+                console.warn('CacheStorage open error:', error);
+                return new Cache();
+              }
+            }
+
+            async has(cacheName) {
+              try {
+                return this.caches.has(cacheName);
+              } catch (error) {
+                console.warn('CacheStorage has error:', error);
+                return false;
+              }
+            }
+
+            async delete(cacheName) {
+              try {
+                return this.caches.delete(cacheName);
+              } catch (error) {
+                console.warn('CacheStorage delete error:', error);
+                return false;
+              }
+            }
+
+            async keys() {
+              try {
+                return Array.from(this.caches.keys());
+              } catch (error) {
+                console.warn('CacheStorage keys error:', error);
+                return [];
+              }
+            }
+            
+            async match(request, options) {
+              try {
+                for (const cache of this.caches.values()) {
+                  const response = await cache.match(request);
+                  if (response) return response;
+                }
+                return undefined;
+              } catch (error) {
+                console.warn('CacheStorage match error:', error);
+                return undefined;
+              }
+            }
+          }
+          
+          return new CacheStorage();
+        }
+        
+        // Function to install the polyfill on a specific context
+        function installPolyfillOnContext(context, contextName) {
+          if (!context || typeof context.caches !== 'undefined') {
+            return false; // Already exists
+          }
+          
+          try {
+            const cacheStorage = createCachePolyfill();
+            
+            // Try to use Object.defineProperty first
+            try {
+              Object.defineProperty(context, 'caches', {
+                value: cacheStorage,
+                writable: false,
+                configurable: true,
+                enumerable: false
+              });
+              console.log(`Cache API polyfill installed on ${contextName} (defineProperty)`);
+              return true;
+            } catch (defineError) {
+              // Fallback to direct assignment
+              context.caches = cacheStorage;
+              console.log(`Cache API polyfill installed on ${contextName} (direct assignment)`);
+              return true;
+            }
+          } catch (error) {
+            console.warn(`Failed to install polyfill on ${contextName}:`, error);
+            return false;
+          }
+        }
+        
+        // Install on all available contexts
+        let installed = false;
+        
+        if (typeof window !== 'undefined') {
+          installed = installPolyfillOnContext(window, 'window') || installed;
+        }
+        
+        if (typeof self !== 'undefined' && self !== window) {
+          installed = installPolyfillOnContext(self, 'self') || installed;
+        }
+        
+        if (typeof globalThis !== 'undefined') {
+          installed = installPolyfillOnContext(globalThis, 'globalThis') || installed;
+        }
+        
+        if (typeof global !== 'undefined') {
+          installed = installPolyfillOnContext(global, 'global') || installed;
+        }
+        
+        // For extension compatibility, also try to install on common extension globals
+        try {
+          if (typeof chrome !== 'undefined' && chrome.runtime) {
+            installPolyfillOnContext(chrome.runtime, 'chrome.runtime');
+          }
+        } catch (e) { /* ignore */ }
+        
+        if (installed) {
+          console.log('Aggressive Cache API polyfill installation complete');
+        } else {
+          console.log('Cache API already available, polyfill not needed');
+        }
+        
+        // Set up global error suppression for browser extension cache errors
+        if (typeof window !== 'undefined') {
+          const originalOnError = window.onerror;
+          const reportedErrors = new Set();
+          
+          window.onerror = function(message, source, lineno, colno, error) {
+            // Check if this is a cache-related error from browser extensions
+            if (message && (
+                message.includes('caches is not defined') || 
+                message.includes('CacheStore') ||
+                (error && error.stack && (
+                  error.stack.includes('CacheStore') || 
+                  error.stack.includes('GenAIWebpageEligibilityService') ||
+                  error.stack.includes('ActionableCoachmark') ||
+                  error.stack.includes('ch-content-script') ||
+                  error.stack.includes('content-script-utils') ||
+                  error.stack.includes('content-script-idle')
+                ))
+              )
+            ) {
+              // Create a unique ID for this error
+              const errorId = `${message}:${source}:${lineno}`;
+              
+              // Only log once per unique error
+              if (!reportedErrors.has(errorId)) {
+                console.warn('Suppressed browser extension cache error:', message.substring(0, 100) + '...');
+                reportedErrors.add(errorId);
+              }
+              
+              // Prevent the error from propagating
+              return true;
+            }
+            
+            // Call the original handler for other errors
+            if (typeof originalOnError === 'function') {
+              return originalOnError.call(this, message, source, lineno, colno, error);
+            }
+            
+            return false;
+          };
+          
+          // Also handle unhandled promise rejections
+          window.addEventListener('unhandledrejection', function(event) {
+            const reason = event.reason;
+            if (reason && typeof reason.message === 'string' && (
+                reason.message.includes('caches is not defined') ||
+                reason.message.includes('CacheStore')
+              )) {
+              console.warn('Suppressed browser extension promise rejection:', reason.message.substring(0, 100) + '...');
+              event.preventDefault();
+            }
+          });
+        }
+        
+      })();
+    </script>
+    
+    <!-- Early Cache API Polyfill to prevent browser extension errors -->
+    <script>
+      (function() {
+        'use strict';
+        
+        // Only polyfill if caches is not available
+        if (typeof caches === 'undefined') {
+          console.log('Installing early Cache API polyfill for extension compatibility');
+          
+          // Simple Cache implementation for extension compatibility
+          class ExtensionCompatCache {
+            constructor() {
+              this.store = new Map();
+            }
+
+            async match(request) {
+              try {
+                const key = request instanceof Request ? request.url : String(request);
+                if (this.store.has(key)) {
+                  const data = this.store.get(key);
+                  return new Response(data);
+                }
+                return undefined;
+              } catch (error) {
+                console.warn('Cache match error:', error);
+                return undefined;
+              }
+            }
+
+            async put(request, response) {
+              try {
+                const key = request instanceof Request ? request.url : String(request);
+                if (response && typeof response.clone === 'function') {
+                  const clone = response.clone();
+                  const text = await clone.text();
+                  this.store.set(key, text);
+                } else {
+                  this.store.set(key, String(response));
+                }
+              } catch (error) {
+                console.warn('Cache put error:', error);
+              }
+            }
+
+            async delete(request) {
+              try {
+                const key = request instanceof Request ? request.url : String(request);
+                return this.store.delete(key);
+              } catch (error) {
+                console.warn('Cache delete error:', error);
+                return false;
+              }
+            }
+            
+            async keys() {
+              try {
+                return Array.from(this.store.keys()).map(key => new Request(key));
+              } catch (error) {
+                console.warn('Cache keys error:', error);
+                return [];
+              }
+            }
+          }
+
+          // CacheStorage implementation for extension compatibility
+          class ExtensionCompatCacheStorage {
+            constructor() {
+              this.caches = new Map();
+            }
+
+            async open(cacheName) {
+              try {
+                if (!this.caches.has(cacheName)) {
+                  this.caches.set(cacheName, new ExtensionCompatCache());
+                }
+                return this.caches.get(cacheName);
+              } catch (error) {
+                console.warn('CacheStorage open error:', error);
+                return new ExtensionCompatCache();
+              }
+            }
+
+            async has(cacheName) {
+              try {
+                return this.caches.has(cacheName);
+              } catch (error) {
+                console.warn('CacheStorage has error:', error);
+                return false;
+              }
+            }
+
+            async delete(cacheName) {
+              try {
+                return this.caches.delete(cacheName);
+              } catch (error) {
+                console.warn('CacheStorage delete error:', error);
+                return false;
+              }
+            }
+
+            async keys() {
+              try {
+                return Array.from(this.caches.keys());
+              } catch (error) {
+                console.warn('CacheStorage keys error:', error);
+                return [];
+              }
+            }
+            
+            async match(request, options) {
+              try {
+                for (const cache of this.caches.values()) {
+                  const response = await cache.match(request);
+                  if (response) return response;
+                }
+                return undefined;
+              } catch (error) {
+                console.warn('CacheStorage match error:', error);
+                return undefined;
+              }
+            }
+          }
+          
+          // Install the polyfill globally
+          const cacheStorage = new ExtensionCompatCacheStorage();
+          
+          // Define on window with non-configurable property to prevent overwrites
+          try {
+            Object.defineProperty(window, 'caches', {
+              value: cacheStorage,
+              writable: false,
+              configurable: false,
+              enumerable: false
+            });
+            console.log('Early Cache API polyfill installed successfully');
+          } catch (error) {
+            // Fallback if defineProperty fails
+            window.caches = cacheStorage;
+            console.log('Cache API polyfill installed as fallback');
+          }
+        }
+      })();
+    </script>
+    
+    <!-- Global error handler for browser extension compatibility -->
+    <script>
+      // Suppress known browser extension errors that don't affect our application
+      window.addEventListener('error', function(event) {
+        const errorMessage = event.message;
+        const errorSource = event.filename;
+        
+        // List of known extension files that cause cache errors
+        const extensionFiles = [
+          'CacheStore.js',
+          'GenAIWebpageEligibilityService.js',
+          'ActionableCoachmark.js',
+          'content-script-utils.js',
+          'ch-content-script-dend.js',
+          'content-script-idle.js'
+        ];
+        
+        // Check if this is a cache-related error from a browser extension
+        const isCacheError = errorMessage.includes('caches is not defined');
+        const isExtensionError = extensionFiles.some(file => errorSource && errorSource.includes(file));
+        
+        if (isCacheError && isExtensionError) {
+          console.warn('[Extension Compat] Suppressed browser extension cache error:', {
+            message: errorMessage,
+            source: errorSource,
+            line: event.lineno
+          });
+          event.preventDefault();
+          return false;
+        }
+      });
+      
+      // Also suppress unhandled promise rejections from extensions
+      window.addEventListener('unhandledrejection', function(event) {
+        const reason = event.reason;
+        if (reason && reason.message && reason.message.includes('caches is not defined')) {
+          console.warn('[Extension Compat] Suppressed browser extension promise rejection:', reason);
+          event.preventDefault();
+        }
+      });
+    </script>
+    
     <!-- Preload critical resources -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -16,6 +493,71 @@
     
     <!-- Add cache control headers -->
     <meta http-equiv="Cache-Control" content="max-age=3600" />
+    
+    <!-- Early Cache API polyfill to prevent browser extension conflicts -->
+    <script>
+      // Immediate Cache API polyfill injection
+      (function() {
+        'use strict';
+        
+        // Check if caches API is already available
+        if (typeof caches !== 'undefined') {
+          return;
+        }
+        
+        console.log('Injecting early Cache API polyfill...');
+        
+        // Simple Cache implementation
+        class Cache {
+          constructor() {
+            this.store = new Map();
+          }
+          async match(request) {
+            try {
+              const key = request instanceof Request ? request.url : String(request);
+              return this.store.has(key) ? new Response(this.store.get(key)) : undefined;
+            } catch (e) { return undefined; }
+          }
+          async put(request, response) {
+            try {
+              const key = request instanceof Request ? request.url : String(request);
+              const data = response && typeof response.clone === 'function' ? 
+                await response.clone().text() : String(response);
+              this.store.set(key, data);
+            } catch (e) { /* ignore */ }
+          }
+          async delete(request) {
+            try {
+              const key = request instanceof Request ? request.url : String(request);
+              return this.store.delete(key);
+            } catch (e) { return false; }
+          }
+        }
+        
+        // CacheStorage implementation
+        class CacheStorage {
+          constructor() {
+            this.caches = new Map();
+          }
+          async open(cacheName) {
+            if (!this.caches.has(cacheName)) {
+              this.caches.set(cacheName, new Cache());
+            }
+            return this.caches.get(cacheName);
+          }
+          async has(cacheName) { return this.caches.has(cacheName); }
+          async delete(cacheName) { return this.caches.delete(cacheName); }
+          async keys() { return Array.from(this.caches.keys()); }
+        }
+        
+        // Install globally
+        window.caches = new CacheStorage();
+        if (typeof self !== 'undefined') self.caches = window.caches;
+        if (typeof globalThis !== 'undefined') globalThis.caches = window.caches;
+        
+        console.log('Early Cache API polyfill installed');
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

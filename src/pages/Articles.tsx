@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import ArticleFilters, { ArticleFilters as ArticleFiltersType } from '../components/ArticleFilters';
 import { supabase } from '../lib/supabase';
 import KanbanBoard from '../components/KanbanBoard';
+import { getCategoryColor, getSubcategoryColor } from '../utils/categoryColors';
 
 // Define types that were previously imported from useArticles
 interface Article {
@@ -12,7 +13,7 @@ interface Article {
   heading: string;
   social_heading: string | null;
   content: Record<string, unknown>;
-  category_id: number;
+  category_id: number[]; // This is an array in the database
   subcategory_id: number | null;
   atoll_ids: number[];
   island_ids: number[];
@@ -75,6 +76,12 @@ interface Article {
     name_en: string;
     slug: string;
   };
+  categories?: {
+    id: number;
+    name: string;
+    name_en: string;
+    slug: string;
+  }[];
   subcategory?: {
     id: number;
     name: string;
@@ -112,7 +119,7 @@ const Articles = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
-  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban');
   const [sortBy, setSortBy] = useState<string>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     // Function to fetch articles from Supabase - wrapped with useCallback
@@ -126,17 +133,45 @@ const Articles = () => {
       const end = start + pageSize - 1;
         // Debugging the Supabase query
       console.log('Fetching articles with range:', { start, end });
-        // Updated query to match the actual database structure - using only correct relationships
+        // Updated query - category_id is an array, so we can't use foreign key syntax
+      // We'll fetch articles first, then manually fetch related categories and subcategories
       const { data, error, count } = await supabase
         .from('articles')
-        .select(`
-          *,
-          category:category_id(*),
-          subcategory:subcategory_id(*)
-        `, { count: 'exact' })
+        .select('*', { count: 'exact' })
         .range(start, end);
-        
       if (error) throw error;
+      
+      // If we have articles, fetch related categories and subcategories
+      if (data && data.length > 0) {
+        // Get unique category IDs from all articles
+        const categoryIds = [...new Set(data.flatMap(article => article.category_id || []))];
+        const subcategoryIds = [...new Set(data.map(article => article.subcategory_id).filter(Boolean))];
+        
+        // Fetch categories and subcategories
+        const [categoriesResult, subcategoriesResult] = await Promise.all([
+          categoryIds.length > 0 ? supabase.from('categories').select('*').in('id', categoryIds) : { data: [], error: null },
+          subcategoryIds.length > 0 ? supabase.from('subcategories').select('*').in('id', subcategoryIds) : { data: [], error: null }
+        ]);
+        
+        // Create lookup maps
+        const categoriesMap = new Map((categoriesResult.data || []).map((cat: { id: number; name: string; name_en: string; slug: string }) => [cat.id, cat]));
+        const subcategoriesMap = new Map((subcategoriesResult.data || []).map((sub: { id: number; name: string; name_en: string; slug: string }) => [sub.id, sub]));
+        
+        // Attach related data to articles
+        data.forEach((article: Record<string, unknown>) => {
+          // Attach categories (multiple)
+          if (article.category_id && Array.isArray(article.category_id)) {
+            article.categories = article.category_id.map((id: number) => categoriesMap.get(id)).filter(Boolean);
+            // For backward compatibility, set category to the first one
+            article.category = (article.categories as unknown[])[0] || null;
+          }
+          
+          // Attach subcategory (single)
+          if (article.subcategory_id) {
+            article.subcategory = subcategoriesMap.get(article.subcategory_id as number) || null;
+          }
+        });
+      }
       
       // Transform the data to match CombinedArticle format
       const transformedData = data.map(item => ({
@@ -232,10 +267,10 @@ const Articles = () => {
   const filteredArticles = useMemo(() => {
     if (!articles || articles.length === 0) return [];
 
-    // First filter out any articles that are being deleted
+    // First filter out any articles that are being deleted or are archived
     const availableArticles = articles.filter(article => {
       const articleData = getArticleData(article);
-      return !deletingArticles.includes(articleData.id);
+      return !deletingArticles.includes(articleData.id) && articleData.status !== 'archived';
     });
     
     return availableArticles.filter(article => {
@@ -260,8 +295,8 @@ const Articles = () => {
         }
       }
       
-      // Filter by category
-      if (activeFilters.categoryId && articleData.category_id !== activeFilters.categoryId) {
+      // Filter by category - check if the filter category is in the article's category array
+      if (activeFilters.categoryId && (!articleData.category_id || !articleData.category_id.includes(activeFilters.categoryId))) {
         return false;
       }
 
@@ -636,7 +671,7 @@ const Articles = () => {
             return (
               <div key={`${source}-${article.id}`} className="bg-white rounded-lg shadow p-6">
                 <div className="flex justify-between items-start mb-4">
-                  <div>                    {/* Source Indicator - removed condition that was causing type errors */}
+                  <div className="flex-1 mr-4">                    {/* Source Indicator - removed condition that was causing type errors */}
                     {/* Indicator removed as it's not needed with single article source */}<h2 className="text-xl font-semibold text-gray-900 mb-2">
                       <Link 
                         to={`/dashboard/edit-article/${article.id}`} 
@@ -646,6 +681,26 @@ const Articles = () => {
                       </Link>
                     </h2>
                     <p className="text-gray-600 thaana-waheed text-right">{article.heading}</p>
+                  </div>
+                  
+                  {/* Article Image */}
+                  <div className="flex-shrink-0 mr-4">
+                    {article.cover_image ? (
+                      <div className="w-32 h-24 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                           onClick={() => article.cover_image && window.open(article.cover_image, '_blank')}
+                           title="Click to view full image">
+                        <img
+                          src={article.cover_image}
+                          alt={article.image_caption || article.title}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-32 h-24 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <span className="text-gray-400 text-xs">No image</span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex space-x-2">                    <Link
                       to={`/dashboard/edit-article/${article.id}`}
@@ -731,7 +786,6 @@ const Articles = () => {
                     <span className={`text-xs px-2 py-1 rounded-full font-medium ${
                       article.status === 'published' ? 'bg-green-100 text-green-800' :
                       article.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-                      article.status === 'archived' ? 'bg-gray-100 text-gray-800' :
                       article.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
@@ -822,16 +876,30 @@ const Articles = () => {
                   <div className="flex flex-wrap gap-2">
                     {/* Category and subcategory */}
                     {article.category && (
-                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm thaana-waheed">
-                        {article.category.name}
-                      </span>
+                      (() => {
+                        const colors = getCategoryColor(article.category.id);
+                        return (
+                          <span className={`px-3 py-1 rounded-full text-sm thaana-waheed ${colors.bg} ${colors.text}`}>
+                            🏷️ {article.category.name}
+                          </span>
+                        );
+                      })()
                     )}
                     
                     {/* Subcategory - only for regular articles */}
                     {source === 'articles' && 'subcategory' in article && article.subcategory && (
-                      <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm thaana-waheed">
-                        {article.subcategory.name}
-                      </span>
+                      (() => {
+                        // Use the first category ID since category_id is now an array
+                        const firstCategoryId = Array.isArray(article.category_id) && article.category_id.length > 0 
+                          ? article.category_id[0] 
+                          : 1; // fallback to category 1
+                        const colors = getSubcategoryColor(firstCategoryId);
+                        return (
+                          <span className={`px-3 py-1 rounded-full text-sm thaana-waheed ${colors.bg} ${colors.text}`}>
+                            → {article.subcategory.name}
+                          </span>
+                        );
+                      })()
                     )}
                       {/* Atolls - only for regular articles - using atoll_ids array */}
                     {source === 'articles' && article.atoll_ids && article.atoll_ids.length > 0 && (

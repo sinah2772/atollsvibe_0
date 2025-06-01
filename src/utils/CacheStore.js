@@ -1,140 +1,201 @@
 /**
- * CacheStore - A wrapper for cache API that works in both browser and service worker contexts
+ * CacheStore - A storage system that avoids Cache API completely
  * 
- * This class provides a fallback to localStorage when the Cache API is not available,
- * ensuring cache operations don't fail regardless of execution context.
+ * This class uses chrome.storage.local as primary storage with localStorage
+ * and memory storage as fallbacks, completely avoiding the problematic Cache API
+ * that causes issues in browser extension contexts.
  */
 
 class CacheStore {
   constructor(cacheName = 'default-cache') {
     this.cacheName = cacheName;
-    this.isServiceWorker = typeof self !== 'undefined' && typeof self.clients !== 'undefined';
-    // Check if Cache API is available
-    this.cacheAvailable = typeof caches !== 'undefined';
-    // Use memory cache as fallback when Cache API is not available
+    this.isExtensionContext = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
     this.memoryCache = new Map();
-  }
-
-  /**
-   * Get an item from cache
-   * @param {string} key - Cache key
-   * @returns {Promise<any>} - Cached value or null if not found
-   */
-  async get(key) {
-    try {
-      if (this.cacheAvailable) {
-        const cache = await caches.open(this.cacheName);
-        const response = await cache.match(new Request(key));
-        if (response) {
-          return await response.json();
-        }
-        return null;
-      } else {
-        // Fallback to localStorage or memory cache
-        try {
-          const item = localStorage.getItem(`cache:${this.cacheName}:${key}`);
-          return item ? JSON.parse(item) : this.memoryCache.get(key) || null;
-        } catch (e) {
-          // If localStorage fails (e.g., in private browsing), use memory cache
-          return this.memoryCache.get(key) || null;
-        }
-      }
-    } catch (err) {
-      console.warn(`Cache get failed for key ${key}:`, err);
-      // Try memory cache as last resort
-      return this.memoryCache.get(key) || null;
+    
+    // Initialize chrome storage availability check
+    this.chromeStorageAvailable = this.isExtensionContext;
+    
+    // Test chrome.storage.local availability on first use
+    if (this.isExtensionContext) {
+      this._testChromeStorage();
     }
   }
 
   /**
-   * Set an item in cache
+   * Test if chrome.storage.local is actually working
+   */
+  async _testChromeStorage() {
+    try {
+      await chrome.storage.local.set({ [`${this.cacheName}_test`]: 'test' });
+      await chrome.storage.local.remove(`${this.cacheName}_test`);
+      this.chromeStorageAvailable = true;
+    } catch (error) {
+      console.debug('Chrome storage test failed, will use localStorage fallback');
+      this.chromeStorageAvailable = false;
+    }
+  }
+  /**
+   * Get an item from cache using chrome.storage.local or localStorage
+   * @param {string} key - Cache key
+   * @returns {Promise<any>} - Cached value or null if not found
+   */
+  async get(key) {
+    const storageKey = `${this.cacheName}:${key}`;
+    
+    try {
+      // Try chrome.storage.local first (if available)
+      if (this.chromeStorageAvailable) {
+        try {
+          const result = await chrome.storage.local.get(storageKey);
+          if (result[storageKey] !== undefined) {
+            return result[storageKey];
+          }
+        } catch (chromeError) {
+          console.debug(`Chrome storage get failed for key ${key}, falling back to localStorage:`, chromeError);
+          this.chromeStorageAvailable = false;
+        }
+      }
+      
+      // Fallback to localStorage
+      try {
+        const item = localStorage.getItem(storageKey);
+        if (item !== null) {
+          return JSON.parse(item);
+        }
+      } catch (localStorageError) {
+        console.debug(`localStorage get failed for key ${key}, using memory cache:`, localStorageError);
+      }
+      
+      // Final fallback to memory cache
+      return this.memoryCache.get(key) || null;
+      
+    } catch (err) {
+      console.debug(`Cache get failed for key ${key}, using memory cache:`, err);
+      return this.memoryCache.get(key) || null;
+    }
+  }
+  /**
+   * Set an item in cache using chrome.storage.local or localStorage
    * @param {string} key - Cache key
    * @param {any} value - Value to cache
    * @returns {Promise<boolean>} - Success status
    */
   async set(key, value) {
+    const storageKey = `${this.cacheName}:${key}`;
+    
     try {
-      if (this.cacheAvailable) {
-        const cache = await caches.open(this.cacheName);
-        const response = new Response(JSON.stringify(value), {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        await cache.put(new Request(key), response);
-      } else {
-        // Fallback to localStorage or memory cache
+      // Always store in memory cache for immediate access
+      this.memoryCache.set(key, value);
+      
+      // Try chrome.storage.local first (if available)
+      if (this.chromeStorageAvailable) {
         try {
-          localStorage.setItem(`cache:${this.cacheName}:${key}`, JSON.stringify(value));
-        } catch (e) {
-          // If localStorage fails, use memory cache
-          this.memoryCache.set(key, value);
+          await chrome.storage.local.set({ [storageKey]: value });
+          return true;
+        } catch (chromeError) {
+          console.debug(`Chrome storage set failed for key ${key}, falling back to localStorage:`, chromeError);
+          this.chromeStorageAvailable = false;
         }
       }
-      return true;
+      
+      // Fallback to localStorage
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(value));
+        return true;
+      } catch (localStorageError) {
+        console.debug(`localStorage set failed for key ${key}, using memory cache only:`, localStorageError);
+        // Memory cache was already set above, so this is still considered a success
+        return true;
+      }
+      
     } catch (err) {
-      console.warn(`Cache set failed for key ${key}:`, err);
-      // Use memory cache as last resort
-      this.memoryCache.set(key, value);
+      console.debug(`Cache set failed for key ${key}, using memory cache only:`, err);
+      // Memory cache fallback was already set above
       return false;
     }
   }
-
   /**
    * Delete an item from cache
    * @param {string} key - Cache key
    * @returns {Promise<boolean>} - Success status
    */
   async delete(key) {
+    const storageKey = `${this.cacheName}:${key}`;
+    
     try {
-      if (this.cacheAvailable) {
-        const cache = await caches.open(this.cacheName);
-        await cache.delete(new Request(key));
+      // Remove from memory cache
+      this.memoryCache.delete(key);
+      
+      // Try chrome.storage.local first (if available)
+      if (this.chromeStorageAvailable) {
+        try {
+          await chrome.storage.local.remove(storageKey);
+        } catch (chromeError) {
+          console.debug(`Chrome storage delete failed for key ${key}:`, chromeError);
+          this.chromeStorageAvailable = false;
+        }
       }
       
-      // Always clear from fallback stores too
+      // Also remove from localStorage
       try {
-        localStorage.removeItem(`cache:${this.cacheName}:${key}`);
-      } catch (e) {
-        // Ignore localStorage errors
+        localStorage.removeItem(storageKey);
+      } catch (localStorageError) {
+        console.debug(`localStorage delete failed for key ${key}:`, localStorageError);
       }
-      this.memoryCache.delete(key);
       
       return true;
     } catch (err) {
-      console.warn(`Cache delete failed for key ${key}:`, err);
+      console.debug(`Cache delete failed for key ${key}:`, err);
       return false;
     }
   }
-
   /**
    * Clear all cache entries
    * @returns {Promise<boolean>} - Success status
    */
   async clear() {
     try {
-      if (this.cacheAvailable) {
-        await caches.delete(this.cacheName);
-      }
-      
-      // Clear fallback stores too
+      // Clear memory cache
       this.memoryCache.clear();
       
+      // Clear chrome.storage.local entries (if available)
+      if (this.chromeStorageAvailable) {
+        try {
+          // Get all keys and filter for our cache
+          const allKeys = await chrome.storage.local.get(null);
+          const keysToRemove = Object.keys(allKeys).filter(key => 
+            key.startsWith(`${this.cacheName}:`)
+          );
+          
+          if (keysToRemove.length > 0) {
+            await chrome.storage.local.remove(keysToRemove);
+          }
+        } catch (chromeError) {
+          console.debug(`Chrome storage clear failed:`, chromeError);
+          this.chromeStorageAvailable = false;
+        }
+      }
+      
+      // Clear localStorage entries
       try {
-        // Clear localStorage entries for this cache
+        const keysToRemove = [];
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
-          if (key.startsWith(`cache:${this.cacheName}:`)) {
-            localStorage.removeItem(key);
+          if (key && key.startsWith(`${this.cacheName}:`)) {
+            keysToRemove.push(key);
           }
         }
-      } catch (e) {
-        // Ignore localStorage errors
+        
+        keysToRemove.forEach(key => {
+          localStorage.removeItem(key);
+        });
+      } catch (localStorageError) {
+        console.debug(`localStorage clear failed:`, localStorageError);
       }
       
       return true;
     } catch (err) {
-      console.warn('Cache clear failed:', err);
+      console.debug('Cache clear failed:', err);
       return false;
     }
   }

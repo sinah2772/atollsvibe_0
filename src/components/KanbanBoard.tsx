@@ -36,7 +36,7 @@ interface KanbanBoardProps {
   onRefresh: () => Promise<void>;
 }
 
-const statuses = ['draft', 'in-review', 'scheduled', 'published', 'archived'];
+const statuses = ['draft', 'in-review', 'scheduled', 'published'];
 
 const KanbanBoard: React.FC<KanbanBoardProps> = ({ articles, onDelete, onRefresh }) => {
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -44,14 +44,19 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ articles, onDelete, onRefresh
     draft: [],
     'in-review': [],
     scheduled: [],
-    published: [],
-    archived: []
+    published: []
   });
 
-  // Group articles by status for the Kanban board
+  // Group articles by status for the Kanban board (excluding archived articles)
   useEffect(() => {
     const grouped = articles.reduce((acc, article) => {
       const status = article.data.status.toLowerCase();
+      
+      // Skip archived articles entirely
+      if (status === 'archived') {
+        return acc;
+      }
+      
       // Map the status to one of our defined statuses or use the first as default
       const mappedStatus = statuses.find(s => status.includes(s)) || statuses[0];
       
