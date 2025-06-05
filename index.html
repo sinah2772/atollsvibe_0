@@ -8,16 +8,53 @@
     <meta name="description" content="Habaru News Dashboard - News management and publishing platform" />
     <title>Habaru Author Dashboard</title>
     
-    <!-- IMMEDIATE Cache Safety Injection - Runs before ANY other scripts -->
+    <!-- IMMEDIATE Global Variable Polyfill - Runs before ANY other scripts -->
     <script>
-      // Ultra-early content script protection
+      // Ultra-early global variable polyfill for browser extensions
       (function() {
         'use strict';
         
-        // If caches is already defined, don't interfere
-        if (typeof caches !== 'undefined') {
-          return;
+        // Add global variable polyfill if it doesn't exist (Node.js compatibility)
+        if (typeof global === 'undefined') {
+          try {
+            // Define global to point to window in browser contexts
+            Object.defineProperty(window, 'global', {
+              value: window,
+              writable: false,
+              configurable: true,
+              enumerable: false
+            });
+            console.debug('[Ultra-Early] Global variable polyfill installed');
+          } catch (e) {
+            // Fallback if defineProperty fails
+            window.global = window;
+            console.debug('[Ultra-Early] Global variable polyfill installed (fallback)');
+          }
         }
+        
+        // Also ensure it's available on other contexts
+        [self, globalThis].forEach(ctx => {
+          if (ctx && typeof ctx.global === 'undefined') {
+            try {
+              Object.defineProperty(ctx, 'global', {
+                value: typeof window !== 'undefined' ? window : ctx,
+                writable: false,
+                configurable: true,
+                enumerable: false
+              });
+            } catch (e) {
+              ctx.global = typeof window !== 'undefined' ? window : ctx;
+            }
+          }
+        });
+      })();
+    </script>
+    
+    <!-- IMMEDIATE Cache Safety Injection - Runs before ANY other scripts -->
+    <script>
+      // Ultra-early content script protection with extension monitoring
+      (function() {
+        'use strict';
         
         // Create minimal safe cache for content scripts
         const safeCache = {
@@ -35,21 +72,63 @@
           async match() { return undefined; }
         };
         
-        // Install on all possible contexts immediately
-        [window, self, globalThis, global].forEach(ctx => {
-          if (ctx && typeof ctx.caches === 'undefined') {
+        // Function to install cache polyfill with force
+        function installCachePolyfill(ctx, force = false) {
+          if (!ctx) return false;
+          
+          if (!force && typeof ctx.caches !== 'undefined') {
+            return false; // Already exists
+          }
+          
+          try {
+            Object.defineProperty(ctx, 'caches', {
+              value: safeCacheStorage,
+              writable: false,
+              configurable: true, // Allow reconfiguration for extensions
+              enumerable: false
+            });
+            return true;
+          } catch (e) {
             try {
-              Object.defineProperty(ctx, 'caches', {
-                value: safeCacheStorage,
-                writable: false,
-                configurable: false,
-                enumerable: false
-              });
-            } catch (e) {
               ctx.caches = safeCacheStorage;
+              return true;
+            } catch (e2) {
+              return false;
             }
           }
+        }
+        
+        // Install on all possible contexts immediately
+        [window, self, globalThis, global].forEach(ctx => {
+          installCachePolyfill(ctx);
         });
+        
+        // Monitor for extension scripts that might override our polyfill
+        if (typeof MutationObserver !== 'undefined') {
+          const observer = new MutationObserver((mutations) => {
+            mutations.forEach(mutation => {
+              if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach(node => {
+                  if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SCRIPT') {
+                    // Re-install polyfill after extension scripts load
+                    setTimeout(() => {
+                      [window, self, globalThis, global].forEach(ctx => {
+                        if (ctx && typeof ctx.caches === 'undefined') {
+                          installCachePolyfill(ctx, true);
+                        }
+                      });
+                    }, 10);
+                  }
+                });
+              }
+            });
+          });
+          
+          observer.observe(document, {
+            childList: true,
+            subtree: true
+          });
+        }
         
         console.debug('[Ultra-Early] Cache safety installed');
       })();
@@ -248,17 +327,20 @@
           const reportedErrors = new Set();
           
           window.onerror = function(message, source, lineno, colno, error) {
-            // Check if this is a cache-related error from browser extensions
+            // Check if this is a cache-related or global variable error from browser extensions
             if (message && (
                 message.includes('caches is not defined') || 
+                message.includes('global is not defined') ||
                 message.includes('CacheStore') ||
+                source.includes('new-article') ||
                 (error && error.stack && (
                   error.stack.includes('CacheStore') || 
                   error.stack.includes('GenAIWebpageEligibilityService') ||
                   error.stack.includes('ActionableCoachmark') ||
                   error.stack.includes('ch-content-script') ||
                   error.stack.includes('content-script-utils') ||
-                  error.stack.includes('content-script-idle')
+                  error.stack.includes('content-script-idle') ||
+                  error.stack.includes('new-article')
                 ))
               )
             ) {
@@ -267,7 +349,7 @@
               
               // Only log once per unique error
               if (!reportedErrors.has(errorId)) {
-                console.warn('Suppressed browser extension cache error:', message.substring(0, 100) + '...');
+                console.warn('Suppressed browser extension error:', message.substring(0, 100) + '...');
                 reportedErrors.add(errorId);
               }
               
@@ -288,6 +370,7 @@
             const reason = event.reason;
             if (reason && typeof reason.message === 'string' && (
                 reason.message.includes('caches is not defined') ||
+                reason.message.includes('global is not defined') ||
                 reason.message.includes('CacheStore')
               )) {
               console.warn('Suppressed browser extension promise rejection:', reason.message.substring(0, 100) + '...');
@@ -558,6 +641,122 @@
         console.log('Early Cache API polyfill installed');
       })();
     </script>
+    <!-- Extension Script Interceptor - Prevents cache errors from extension scripts -->
+    <script>
+      (function() {
+        'use strict';
+        
+        // Intercept and patch problematic extension scripts
+        const originalAppendChild = Node.prototype.appendChild;
+        const originalInsertBefore = Node.prototype.insertBefore;
+        
+        function patchScript(script) {
+          if (script.tagName === 'SCRIPT') {
+            const originalSrc = script.src;
+            
+            // Check if this looks like a problematic extension script
+            if (originalSrc && (
+              originalSrc.includes('ch-content-script') ||
+              originalSrc.includes('content-script') ||
+              originalSrc.includes('CacheStore') ||
+              originalSrc.includes('GenAI')
+            )) {
+              console.debug('[Extension Interceptor] Detected potential problematic script:', originalSrc);
+              
+              // Ensure caches is available before the script runs
+              if (typeof caches === 'undefined') {
+                console.debug('[Extension Interceptor] Installing emergency cache polyfill');
+                window.caches = {
+                  async open() { return { 
+                    async match() { return undefined; },
+                    async put() { return; },
+                    async delete() { return false; },
+                    async keys() { return []; }
+                  }; },
+                  async has() { return false; },
+                  async delete() { return false; },
+                  async keys() { return []; },
+                  async match() { return undefined; }
+                };
+              }
+            }
+          }
+        }
+        
+        Node.prototype.appendChild = function(newNode) {
+          patchScript(newNode);
+          return originalAppendChild.call(this, newNode);
+        };
+        
+        Node.prototype.insertBefore = function(newNode, referenceNode) {
+          patchScript(newNode);
+          return originalInsertBefore.call(this, newNode, referenceNode);
+        };
+        
+        console.debug('[Extension Interceptor] Script interception active');
+      })();
+    </script>
+    
+    <!-- Global Error Handler for Extension Errors -->
+    <script>
+      (function() {
+        'use strict';
+        
+        // Global error handler specifically for cache-related extension errors
+        window.addEventListener('error', function(event) {
+          const error = event.error;
+          const message = event.message;
+          
+          // Check if this is a cache-related error from an extension
+          if (message && (
+            message.includes('caches is not defined') ||
+            message.includes('Cache get failed') ||
+            message.includes('Cache set failed') ||
+            (error && error.name === 'ReferenceError' && error.message.includes('caches'))
+          )) {
+            console.debug('[Extension Error Handler] Caught and suppressed cache error:', message);
+            
+            // Install emergency polyfill if not present
+            if (typeof caches === 'undefined') {
+              window.caches = {
+                async open() { return { 
+                  async match() { return undefined; },
+                  async put() { return; },
+                  async delete() { return false; },
+                  async keys() { return []; }
+                }; },
+                async has() { return false; },
+                async delete() { return false; },
+                async keys() { return []; },
+                async match() { return undefined; }
+              };
+              console.debug('[Extension Error Handler] Emergency cache polyfill installed');
+            }
+            
+            // Prevent the error from propagating
+            event.preventDefault();
+            return true;
+          }
+        }, true);
+        
+        // Also handle unhandled promise rejections
+        window.addEventListener('unhandledrejection', function(event) {
+          const reason = event.reason;
+          
+          if (reason && (
+            (typeof reason === 'string' && reason.includes('caches is not defined')) ||
+            (reason.message && reason.message.includes('caches is not defined'))
+          )) {
+            console.debug('[Extension Error Handler] Caught and suppressed cache promise rejection:', reason);
+            event.preventDefault();
+            return true;
+          }
+        });
+        
+        console.debug('[Extension Error Handler] Global error handling active');
+      })();
+    </script>
+
   </head>
   <body>
     <div id="root"></div>

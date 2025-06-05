@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Save, User, Bell, Shield, Globe, Palette, Loader2 } from 'lucide-react';
+import { Save, User, Bell, Shield, Globe, Palette } from 'lucide-react';
 import { useUser } from '../hooks/useUser';
 import { supabase } from '../lib/supabase';
 
@@ -175,7 +175,12 @@ const Settings: React.FC = () => {
                         alt="Profile"
                         className="w-16 h-16 rounded-full object-cover"
                       />
-                      <button type="button" className="text-sm text-blue-600 hover:text-blue-500">
+                      <button 
+                        type="button" 
+                        className="text-sm text-blue-600 hover:text-blue-500"
+                        aria-label="Change profile picture"
+                        title="Change profile picture"
+                      >
                         Change
                       </button>
                     </div>
@@ -200,11 +205,7 @@ const Settings: React.FC = () => {
                       disabled={loading}
                       className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                     >
-                      {loading ? (
-                        <Loader2 size={18} className="animate-spin mr-2" />
-                      ) : (
-                        <Save size={18} className="mr-2" />
-                      )}
+                      <Save size={18} className="mr-2" />
                       Save Changes
                     </button>
                   </div>
@@ -244,11 +245,7 @@ const Settings: React.FC = () => {
                       disabled={loading}
                       className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                     >
-                      {loading ? (
-                        <Loader2 size={18} className="animate-spin mr-2" />
-                      ) : (
-                        <Save size={18} className="mr-2" />
-                      )}
+                      <Save size={18} className="mr-2" />
                       Update Password
                     </button>
                   </div>

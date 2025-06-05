@@ -67,7 +67,7 @@ const Search = () => {
             >
               <div className="md:flex">
                 {(article.cover_image || defaultCoverImage) && (
-                  <div className="md:w-1/4 h-48 md:h-auto">
+                  <div className="md:w-1/4 relative group aspect-video rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500">
                     <img 
                       src={article.cover_image || defaultCoverImage} 
                       alt={article.title}

@@ -1,40 +1,51 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { Session } from '@supabase/supabase-js';
+import { useEffect, useState, ReactNode, useCallback } from 'react';
+import { Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-
-interface User {
-  id: string;
-  email: string;
-  is_admin: boolean;
-  created_at: string;
-  updated_at: string;
-  name?: string;
-  avatar_url?: string;
-  onboarding_completed?: boolean;
-  preferred_language?: string;
-  user_type?: string;
-  role_id?: number;
-}
-
-interface AuthContextProps {
-  session: Session | null;
-  user: User | null;
-  loading: boolean;
-  error: string | null;
-  signIn: (email: string, password: string) => Promise<{ error: any | null }>;
-  signUp: (email: string, password: string, userData?: object) => Promise<{ error: any | null }>;
-  signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error: any | null }>;
-  updateUserProfile: (data: Partial<User>) => Promise<{ error: any | null }>;
-}
-
-export const AuthContext = createContext<AuthContextProps | undefined>(undefined);
+import { User, AuthContextProps } from './AuthTypes';
+import { AuthContext } from './AuthContextProvider';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const fetchUserProfile = useCallback(async (userId: string) => {
+    try {
+      const { data, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (userError) throw userError;
+      
+      if (data) {
+        setUser(data as User);
+      } else {
+        // Create user record if it doesn't exist
+        if (session?.user?.email) {
+          const { data: newUser, error: createError } = await supabase
+            .from('users')
+            .insert({
+              id: userId,
+              email: session.user.email,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              is_admin: false
+            })
+            .select()
+            .single();
+          
+          if (createError) throw createError;
+          setUser(newUser as User);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      setError(error instanceof Error ? error.message : 'Profile fetch error occurred');
+    }
+  }, [session?.user?.email]);
 
   useEffect(() => {
     // Get initial session
@@ -75,44 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
-
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const { data, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
-      
-      if (userError) throw userError;
-      
-      if (data) {
-        setUser(data as User);
-      } else {
-        // Create user record if it doesn't exist
-        if (session?.user?.email) {
-          const { data: newUser, error: createError } = await supabase
-            .from('users')
-            .insert({
-              id: userId,
-              email: session.user.email,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              is_admin: false
-            })
-            .select()
-            .single();
-          
-          if (createError) throw createError;
-          setUser(newUser as User);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      setError(error instanceof Error ? error.message : 'User profile error');
-    }
-  };
+  }, [fetchUserProfile]);
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -120,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error };
     } catch (error) {
       console.error('Error signing in:', error);
-      return { error };
+      return { error: error as AuthError };
     }
   };
 
@@ -139,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error };
     } catch (error) {
       console.error('Error signing up:', error);
-      return { error };
+      return { error: error as AuthError };
     }
   };
 
@@ -156,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error };
     } catch (error) {
       console.error('Error resetting password:', error);
-      return { error };
+      return { error: error as AuthError };
     }
   };
 
@@ -181,7 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error };
     } catch (error) {
       console.error('Error updating user profile:', error);
-      return { error };
+      return { error: error as Error };
     }
   };
 
@@ -199,11 +173,3 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};

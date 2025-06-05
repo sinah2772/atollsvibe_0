@@ -27,6 +27,8 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         <button
           onClick={onLanguageChange}
           className="inline-flex items-center justify-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          aria-label={language === 'dv' ? 'Switch to English' : 'ދިވެހިބަހަށް ބަދަލުކުރައްވާ'}
+          title={language === 'dv' ? 'Switch to English' : 'ދިވެހިބަހަށް ބަދަލުކުރައްވާ'}
         >
           <Languages size={18} className={language === 'dv' ? 'ml-2' : 'mr-2'} />
           <span className={language === 'dv' ? 'thaana-waheed' : ''}>
@@ -44,6 +46,8 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             hover:bg-blue-700 transition-colors
             ${language === 'dv' ? 'thaana-waheed' : ''}
           `}
+          aria-label={language === 'dv' ? `${addLabel} އިތުރުކުރައްވާ` : `Add ${addLabel}`}
+          title={language === 'dv' ? `${addLabel} އިތުރުކުރައްވާ` : `Add ${addLabel}`}
         >
           {language === 'dv' ? (
             <>

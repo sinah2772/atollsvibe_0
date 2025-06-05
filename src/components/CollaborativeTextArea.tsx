@@ -182,16 +182,19 @@ export const CollaborativeTextArea: React.FC<CollaborativeTextAreaProps> = ({
             </div>
           </div>
           
-          <div className="flex gap-2">
-            <button
+          <div className="flex gap-2">            <button
               onClick={handleKeepLocal}
               className="flex-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+              aria-label="Keep your version of the text"
+              title="Keep your version of the text"
             >
               Keep Mine
             </button>
             <button
               onClick={handleAcceptRemote}
               className="flex-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+              aria-label="Accept other user's version of the text"
+              title="Accept other user's version of the text"
             >
               Accept Theirs
             </button>

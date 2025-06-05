@@ -1,0 +1,4 @@
+id,name,name_en,slug,island_code,island_category,island_category_en,island_details,longitude,latitude,election_commission_code,postal_code,other_name_en,other_name_dv,list_order,atoll_id
+20,ތުލުސްދޫ,Thulhusdhoo,thulhusdhoo,K001,މީހުން ދިރިއުޅޭ,inhabited,"Known for surfing and as the main island of Kaafu Atoll","73° 31' 0.000"" E","4° 17' 0.000"" N",K001,08020,Thulhusdhoo Island,ތުލުސްދޫ ރަށް,1,15
+21,ގުރައިދޫ,Guraidhoo,guraidhoo,K002,މީހުން ދިރިއުޅޭ,inhabited,"Popular tourist destination with beautiful beaches","73° 29' 0.000"" E","4° 10' 0.000"" N",K002,08030,Guraidhoo Island,ގުރައިދޫ ރަށް,2,15
+22,ދިފުށި,Dhiffushi,dhiffushi,K003,މީހުން ދިރިއުޅޭ,inhabited,"Local island with growing tourism","73° 30' 0.000"" E","4° 12' 0.000"" N",K003,08040,Dhiffushi Island,ދިފުށި ރަށް,3,15

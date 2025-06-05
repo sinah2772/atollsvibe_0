@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Check, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, Check, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface SimpleImageUploaderProps {
@@ -173,17 +173,10 @@ const SimpleImageUploader: React.FC<SimpleImageUploaderProps> = ({
               : 'bg-blue-600 text-white hover:bg-blue-700'
           }`}
         >
-          {uploading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Uploading...
-            </>
-          ) : (
-            <>
-              <Upload className="w-4 h-4 mr-2" />
-              Upload
-            </>
-          )}
+          <>
+            <Upload className="w-4 h-4 mr-2" />
+            Upload
+          </>
         </button>
       </div>
     </div>

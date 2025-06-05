@@ -10,8 +10,6 @@ import {
   LogOut,
   PenSquare,
   Briefcase,
-  Image,
-  Database,
   TrendingUp,
   GitBranch,
   BarChart3
@@ -38,8 +36,6 @@ const Sidebar: React.FC = () => {
     { name: 'Comments', icon: <MessageSquare size={20} />, path: 'comments' },
     { name: 'Audience', icon: <Users size={20} />, path: 'audience' },
     { name: 'Business', icon: <Briefcase size={20} />, path: 'business' },
-    { name: 'Storage Images', icon: <Image size={20} />, path: 'storage-images' },
-    { name: 'Supabase Demo', icon: <Database size={20} />, path: 'supabase-demo' },
     { name: 'Settings', icon: <Settings size={20} />, path: 'settings' },
   ];
 

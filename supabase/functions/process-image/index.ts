@@ -1,9 +1,9 @@
 // This is a Supabase Edge Function that handles an image processing request
 // Learn more about Edge Functions: https://supabase.com/docs/guides/functions
 
-// @ts-ignore - These imports are handled by Deno runtime
+// @ts-expect-error - These imports are handled by Deno runtime
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-// @ts-ignore - These imports are handled by Deno runtime
+// @ts-expect-error - These imports are handled by Deno runtime
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // Sharp is a high-performance image processing library
@@ -50,11 +50,10 @@ serve(async (req) => {
     }
 
     // Create a Supabase client to verify the JWT token
-    // @ts-ignore - Deno is available in edge function environment
     const supabaseClient = createClient(
-      // @ts-ignore - Deno.env is available in edge function environment  
+      // @ts-expect-error - Deno.env is available in edge function environment  
       Deno.env.get("SUPABASE_URL") || "",
-      // @ts-ignore - Deno.env is available in edge function environment
+      // @ts-expect-error - Deno.env is available in edge function environment
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
       { auth: { persistSession: false } }
     );

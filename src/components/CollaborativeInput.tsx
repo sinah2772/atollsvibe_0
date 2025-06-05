@@ -140,12 +140,12 @@ export const CollaborativeInput: React.FC<CollaborativeInputProps> = ({
             <Lock size={16} />
           </div>
         )}
-        
-        {hasUnseenUpdate && (
+          {hasUnseenUpdate && (
           <button
             onClick={acceptUpdate}
             className="flex items-center text-blue-500 hover:text-blue-700"
             title="Accept update"
+            aria-label="Accept update"
           >
             <AlertCircle size={16} />
           </button>

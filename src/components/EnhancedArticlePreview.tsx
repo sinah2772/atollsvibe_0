@@ -271,20 +271,21 @@ const ArticlePreview: React.FC<ArticlePreviewProps> = ({
             <h1 className={`text-3xl font-bold mb-3 ${language === 'dv' ? 'thaana-waheed text-right' : ''}`}>
               {language === 'dv' ? heading : title}
             </h1>
-            
-            {/* Cover Image */}
+              {/* Cover Image */}
             {coverImage && (
               <div className="mb-6">
-                <img
-                  src={coverImage}
-                  alt={imageCaption}
-                  className="w-full h-auto object-cover rounded-lg cursor-zoom-in hover:opacity-90 transition-opacity"
-                  onClick={() => {
-                    setEnlargedImage(coverImage);
-                    setImageAlt(imageCaption || '');
-                    setImageTitle('');
-                  }}
-                />
+                <div className="relative group aspect-video rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500 cursor-zoom-in">
+                  <img
+                    src={coverImage}
+                    alt={imageCaption}
+                    className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                    onClick={() => {
+                      setEnlargedImage(coverImage);
+                      setImageAlt(imageCaption || '');
+                      setImageTitle('');
+                    }}
+                  />
+                </div>
                 {imageCaption && (
                   <p className={`text-sm text-gray-500 mt-2 ${language === 'dv' ? 'thaana-waheed text-right' : ''}`}>
                     {imageCaption}

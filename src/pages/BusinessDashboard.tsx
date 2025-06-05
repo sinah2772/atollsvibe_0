@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useUser } from '../hooks/useUser';
 import { supabase } from '../lib/supabase';
 import { Upload, Trash2, Edit, Search, Filter, BarChart2 } from 'lucide-react';
@@ -17,10 +16,8 @@ interface Ad {
 }
 
 const BusinessDashboard: React.FC = () => {
-  const navigate = useNavigate();
   const { user } = useUser();
   const [ads, setAds] = useState<Ad[]>([]);
-  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'paused'>('all');
 

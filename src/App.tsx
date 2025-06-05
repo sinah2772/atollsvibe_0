@@ -35,21 +35,15 @@ const Article = lazy(() => import('./pages/Article'));
 const Category = lazy(() => import('./pages/Category'));
 const Subcategory = lazy(() => import('./pages/Subcategory'));
 const Search = lazy(() => import('./pages/Search'));
-const StorageImages = lazy(() => import('./pages/StorageImages'));
+
 const ChangePassword = lazy(() => import('./pages/ChangePassword'));
-const SupabaseDemo = lazy(() => import('./pages/SupabaseDemo'));
 
 // Enhanced article management pages
 const AdvancedAnalytics = lazy(() => import('./pages/AdvancedAnalytics'));
 const WorkflowPage = lazy(() => import('./pages/WorkflowPage'));
 const DataAnalysisPage = lazy(() => import('./pages/DataAnalysisPage'));
 
-// Loading component with reduced motion option
-const LoadingSpinner = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-spin h-10 w-10 border-4 border-blue-600 rounded-full border-t-transparent"></div>
-  </div>
-);
+// Loading component removed - no longer showing loaders
 
 function App() {
   // Measure app startup time
@@ -70,22 +64,22 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="article/:id" element={
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<div></div>}>
                 <Article />
               </Suspense>
             } />
             <Route path="category/:slug" element={
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<div></div>}>
                 <Category />
               </Suspense>
             } />
             <Route path="category/:categorySlug/:subcategorySlug" element={
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<div></div>}>
                 <Subcategory />
               </Suspense>
             } />
             <Route path="search" element={
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<div></div>}>
                 <Search />
               </Suspense>
             } />
@@ -94,12 +88,12 @@ function App() {
           {/* Auth routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={
-            <Suspense fallback={<LoadingSpinner />}>
+            <Suspense fallback={<div></div>}>
               <SignUp />
             </Suspense>
           } />
           <Route path="/update-password" element={
-            <Suspense fallback={<LoadingSpinner />}>
+            <Suspense fallback={<div></div>}>
               <ChangePassword />
             </Suspense>
           } />
@@ -111,79 +105,69 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<div></div>}>
                 <Dashboard />
               </Suspense>
             } />
             <Route path="articles" element={
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<div></div>}>
                 <Articles />
               </Suspense>
             } />
             <Route path="analytics" element={
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<div></div>}>
                 <Analytics />
               </Suspense>
             } />
             <Route path="new-article" element={
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<div></div>}>
                 <NewArticle />
               </Suspense>
             } />
             <Route path="edit-article/:id" element={
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<div></div>}>
                 <EditArticle />
               </Suspense>
             } />
             <Route path="comments" element={
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<div></div>}>
                 <Comments />
               </Suspense>
             } />
             <Route path="audience" element={
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<div></div>}>
                 <Audience />
               </Suspense>
             } />
             <Route path="settings" element={
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<div></div>}>
                 <Settings />
               </Suspense>
             } />
             <Route path="profile" element={
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<div></div>}>
                 <Profile />
               </Suspense>
             } />
             <Route path="business" element={
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<div></div>}>
                 <ProtectedRoute requiredRole="admin">
                   <BusinessDashboard />
                 </ProtectedRoute>
               </Suspense>
             } />
-            <Route path="storage-images" element={
-              <Suspense fallback={<LoadingSpinner />}>
-                <StorageImages />
-              </Suspense>
-            } />
-            <Route path="supabase-demo" element={
-              <Suspense fallback={<LoadingSpinner />}>
-                <SupabaseDemo />
-              </Suspense>
-            } />
             <Route path="advanced-analytics" element={
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<div></div>}>
                 <AdvancedAnalytics />
               </Suspense>
             } />
             <Route path="workflow" element={
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<div></div>}>
                 <WorkflowPage />
               </Suspense>
             } />
             <Route path="data-analysis" element={
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<div></div>}>
                 <DataAnalysisPage />
               </Suspense>
             } />

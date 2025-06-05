@@ -119,7 +119,7 @@ const Category = () => {
               to={`/article/${article.id}`}
               className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow"
             >
-              <div className="aspect-video relative">
+              <div className="relative group aspect-video rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500">
                 <img
                   src={article.cover_image || defaultCoverImage}
                   alt={article.title}

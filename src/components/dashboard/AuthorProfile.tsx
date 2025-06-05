@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Author } from '../../types';
 import { formatNumber } from '../../utils/formatters';
-import { Edit, Camera, Loader2, X } from 'lucide-react';
+import { Edit, Camera, X } from 'lucide-react';
 import ImageBrowser from '../ImageBrowser';
 import { supabase } from '../../lib/supabase';
 
@@ -117,7 +117,7 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author }) => {
           {uploading && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="absolute inset-0 bg-white bg-opacity-75 rounded-full"></div>
-              <Loader2 className="w-6 h-6 animate-spin text-blue-600 relative z-10" />
+              <div className="w-6 h-6 relative z-10">Uploading...</div>
             </div>
           )}
         </div>

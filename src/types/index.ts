@@ -107,6 +107,14 @@ export interface Island {
   };
 }
 
+export interface IslandCategory {
+  id: number;
+  name: string;
+  name_en: string;
+  slug: string;
+  created_at: string;
+}
+
 export interface Ad {
   id: string;
   title: string;

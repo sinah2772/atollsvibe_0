@@ -5,15 +5,6 @@
  * and can handle browser extension compatibility issues.
  */
 
-interface TestResults {
-  cacheAvailable: boolean;
-  cacheOpen: boolean;
-  cacheMatch: boolean;
-  cachePut: boolean;
-  cacheDelete: boolean;
-  extensionSafe: boolean;
-}
-
 // Test the cache API polyfill
 export async function testCachePolyfill() {
   console.log('🧪 Testing Cache API polyfill...');
@@ -60,10 +51,9 @@ export async function testCachePolyfill() {
           } catch (matchError) {
             console.warn('⚠️ Cache.match() failed:', matchError);
           }
-          
-          // Test 5: Try to delete from cache
+            // Test 5: Try to delete from cache
           try {
-            const deleted = await cache.delete(testRequest);
+            await cache.delete(testRequest);
             results.cacheDelete = true;
             console.log('✅ Cache.delete() works');
           } catch (deleteError) {

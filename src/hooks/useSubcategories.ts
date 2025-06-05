@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { Subcategory } from '../types';
 
@@ -7,11 +7,7 @@ export function useSubcategories(categoryId?: number) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchSubcategories();
-  }, [categoryId]);
-
-  async function fetchSubcategories() {
+  const fetchSubcategories = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -35,7 +31,11 @@ export function useSubcategories(categoryId?: number) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [categoryId]);
+
+  useEffect(() => {
+    fetchSubcategories();
+  }, [fetchSubcategories]);
 
   return {
     subcategories,

@@ -20,15 +20,15 @@ import { CollaborativeInput } from '../components/CollaborativeInput';
 import { CollaborativeTextArea } from '../components/CollaborativeTextArea';
 import { CollaborativePresence } from '../components/CollaborativePresence';
 import { AutoSaveStatus } from '../components/AutoSaveStatus';
+import AuthorCollab from '../components/AuthorCollab';
+import { CollaboratorSelector } from '../components/CollaboratorSelector';
 import ImageBrowser from '../components/ImageBrowser';
 import { supabase } from '../lib/supabase';
 import { 
   Image as ImageIcon,
   Save,
-  Send,
-  Eye,
+  Send,  Eye,
   Languages,
-  Loader2,
   ArrowLeft,
   X
 } from 'lucide-react';
@@ -39,7 +39,7 @@ const EditArticle: React.FC = () => {
   const { articles, updateArticle } = useArticles();
   const { categories } = useCategories();
   const { atolls } = useAtolls();
-  const { user, loading: userLoading } = useUser();
+  const { user } = useUser();
   const { government, error: governmentError, useFallbackData: useGovernmentFallbackData } = useGovernment();
   
   // Generate session ID for collaborative editing
@@ -63,11 +63,9 @@ const EditArticle: React.FC = () => {
   const [selectedGovernmentIds, setSelectedGovernmentIds] = useState<string[]>([]);
   const [coverImage, setCoverImage] = useState('');
   const [imageCaption, setImageCaption] = useState('');
-  const [language, setLanguage] = useState<'en'|'dv'>('dv');
-  const [saving, setSaving] = useState(false);
+  const [language, setLanguage] = useState<'en'|'dv'>('dv');  const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [sendingToReview, setSendingToReview] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showImageBrowser, setShowImageBrowser] = useState(false);
   const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
@@ -245,11 +243,9 @@ const EditArticle: React.FC = () => {
       setNewsSource(article.news_source || '');
       setOriginalSourceUrl(article.original_source_url || '');
       setTranslationSourceUrl(article.translation_source_url || '');
-      setTranslationSourceLang(article.translation_source_lang || '');
-      setTranslationNotes(article.translation_notes || '');
+      setTranslationSourceLang(article.translation_source_lang || '');      setTranslationNotes(article.translation_notes || '');
       
       editor.commands.setContent(article.content);
-      setLoading(false);
     }
   }, [id, articles, editor]);
   const validateForm = () => {
@@ -455,15 +451,6 @@ const EditArticle: React.FC = () => {
       editor.setEditable(true);
     }
   };
-
-  if (loading || userLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="max-w-5xl mx-auto mt-8">
@@ -760,10 +747,8 @@ const EditArticle: React.FC = () => {
               dir={language === 'dv' ? 'rtl' : 'ltr'}
             />
           </div>
-        </div>
-
-        {coverImage && (
-          <div className="mb-6 relative h-[200px] rounded-lg overflow-hidden group">
+        </div>        {coverImage && (
+          <div className="mb-6 relative group aspect-video rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500">
             <img
               src={coverImage}
               alt={imageCaption}
@@ -1114,13 +1099,31 @@ const EditArticle: React.FC = () => {
               />
             </div>
           </div>
-        </div>
-
-        {/* Collaboration Section */}
+        </div>        {/* Collaboration Section */}
         <div className="mb-6 bg-indigo-50 p-4 rounded-lg border border-indigo-200">
           <h3 className={`text-lg font-medium mb-3 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
             {language === 'dv' ? 'އެއްބަސްވުން' : 'Collaboration'}
           </h3>
+            {/* Article Collaborators */}
+          <div className="mb-4">            <label className={`block text-sm font-medium text-gray-700 mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+              {language === 'dv' ? 'އެއްބަސްވުމުގެ ބައިވެރިން' : 'Collaborators'}
+            </label>
+            <div className="mb-3">
+              <CollaboratorSelector
+                collaborators={collaboratorHook.selectedUserIds}
+                onChange={collaboratorHook.handleCollaboratorsChange}
+                language={language}
+                placeholder={language === 'dv' ? 'އީމެއިލް އިތުރުކުރައްވާ' : 'Add collaborator email'}
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                {language === 'dv' ? 'އެއްބަސްވުމުގެ ބައިވެރިންގެ އީމެއިލް އެޑްރެސް އިތުރުކުރައްވާ' : 'Enter email addresses of collaborators'}
+              </p>
+            </div>
+            <AuthorCollab 
+              activeUsers={collaborative.activeUsers}
+              collaboratorEmails={collaboratorHook.selectedUserIds}
+            />
+          </div>
           
           <div>
             <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
@@ -1240,12 +1243,7 @@ const EditArticle: React.FC = () => {
           onClick={handleSaveDraft}
           disabled={saving}
           className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {saving ? (
-            <Loader2 size={18} className="animate-spin" />
-          ) : (
-            <Save size={18} />
-          )}
+        >          <Save size={18} />
           <span className={language === 'dv' ? 'thaana-waheed' : ''}>
             {language === 'dv' ? 'ޑްރާފްޓް ކުރައްވާ' : 'Save as Draft'}
           </span>
@@ -1254,12 +1252,7 @@ const EditArticle: React.FC = () => {
           onClick={handleSendToReview}
           disabled={sendingToReview}
           className="px-6 py-2 rounded-lg border border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {sendingToReview ? (
-            <Loader2 size={18} className="animate-spin" />
-          ) : (
-            <Eye size={18} />
-          )}
+        >          <Eye size={18} />
           <span className={language === 'dv' ? 'thaana-waheed' : ''}>
             {language === 'dv' ? 'ރިވިއުއަށް ފޮނުވާ' : 'Send to Review'}
           </span>
@@ -1268,12 +1261,7 @@ const EditArticle: React.FC = () => {
           onClick={handlePublish}
           disabled={publishing}
           className="px-6 py-2 rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {publishing ? (
-            <Loader2 size={18} className="animate-spin" />
-          ) : (
-            <Send size={18} />
-          )}
+        >          <Send size={18} />
           <span className={language === 'dv' ? 'thaana-waheed' : ''}>
             {language === 'dv' ? 'ޝާއިޢު ކުރައްވާ' : 'Publish'}
           </span>

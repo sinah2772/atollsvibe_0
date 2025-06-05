@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Loader2, Check, X, Image } from 'lucide-react';
+import { Upload, Check, X, Image } from 'lucide-react';
 import { storageService } from '../services/storageService';
 
 interface ImageUploaderProps {
@@ -163,9 +163,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       )}
 
       <div className="text-center p-4">
-        {uploading ? (
-          <Loader2 size={40} className="mx-auto text-blue-500 animate-spin" />
-        ) : uploadStatus === 'success' ? (
+        {uploadStatus === 'success' ? (
           <Check size={40} className="mx-auto text-green-500" />
         ) : uploadStatus === 'error' ? (
           <X size={40} className="mx-auto text-red-500" />
@@ -184,11 +182,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           disabled={uploading}
           className="mt-2 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {uploading ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            <Upload className="w-5 h-5" />
-          )}
+          <Upload className="w-5 h-5" />
           <span className={language === 'dv' ? 'thaana-waheed' : ''}>
             {language === 'dv' ? 'ފޮޓޯ އަޕްލޯޑް ކުރައްވާ' : 'Browse Files'}
           </span>

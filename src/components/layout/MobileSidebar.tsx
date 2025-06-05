@@ -10,9 +10,7 @@ import {
   LogOut,
   X,
   PenSquare,
-  Briefcase,
-  Image,
-  Database
+  Briefcase
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -31,8 +29,6 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({ isOpen, toggleSidebar }) 
     { name: 'Comments', icon: <MessageSquare size={20} />, path: 'comments' },
     { name: 'Audience', icon: <Users size={20} />, path: 'audience' },
     { name: 'Business', icon: <Briefcase size={20} />, path: 'business' },
-    { name: 'Storage Images', icon: <Image size={20} />, path: 'storage-images' },
-    { name: 'Supabase Demo', icon: <Database size={20} />, path: 'supabase-demo' },
     { name: 'Settings', icon: <Settings size={20} />, path: 'settings' },
   ];
 
@@ -111,6 +107,8 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({ isOpen, toggleSidebar }) 
           <button 
             onClick={handleLogout}
             className="flex items-center w-full px-3 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors duration-150 ease-in-out"
+            aria-label="Log out of your account"
+            title="Log out of your account"
           >
             <LogOut size={20} className="mr-3" />
             Log Out

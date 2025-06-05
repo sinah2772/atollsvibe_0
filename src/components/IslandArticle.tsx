@@ -1,6 +1,6 @@
 import React from 'react';
 import { useIslandData } from '../hooks/useIslandData';
-import { Compass, MapPin, ThermometerSun, Users, Building, Plane, Ship } from 'lucide-react';
+import { Compass, MapPin, Users, Building, Plane, Ship } from 'lucide-react';
 
 interface IslandArticleProps {
   id: number;

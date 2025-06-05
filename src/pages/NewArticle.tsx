@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { OutputData } from '@editorjs/editorjs';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
+import Highlight from '@tiptap/extension-highlight';
 import { useArticles } from '../hooks/useArticles';
 import { useCategories } from '../hooks/useCategories';
 import { useAtolls } from '../hooks/useAtolls';
@@ -11,36 +15,44 @@ import { useCollaborators } from '../hooks/useCollaborators';
 import useAutoSave from '../hooks/useAutoSave';
 import { MultiSelect } from '../components/MultiSelect';
 import { ColoredMultiSelect } from '../components/ColoredMultiSelect';
-import { UserSelector } from '../components/UserSelector';
 import { IslandsSelect } from '../components/IslandsSelect';
 import { CollaborativeInput } from '../components/CollaborativeInput';
 import { CollaborativeTextArea } from '../components/CollaborativeTextArea';
 import { CollaborativePresence } from '../components/CollaborativePresence';
+import AuthorCollab from '../components/AuthorCollab';
+import { CollaboratorSelector } from '../components/CollaboratorSelector';
 import { AutoSaveStatus } from '../components/AutoSaveStatus';
-import { EditorJSComponent } from '../components/EditorJSComponent';
 import ImageBrowser from '../components/ImageBrowser';
 import { supabase } from '../lib/supabase';
 import { 
+  Image as ImageIcon,
   Save,
   Send,
   Eye,
   Languages,
-  Loader2,
-  Image as ImageIcon
+  ArrowLeft,
+  X
 } from 'lucide-react';
 
 const NewArticle: React.FC = () => {
   const navigate = useNavigate();
   const { createArticle } = useArticles();
   const { categories } = useCategories();
-  const { atolls, error: atollsError, useFallbackData } = useAtolls();
-  const { user, loading: userLoading } = useUser();
+  const { atolls } = useAtolls();
+  const { user } = useUser();
   const { government, error: governmentError, useFallbackData: useGovernmentFallbackData } = useGovernment();
-
-  // Generate session ID first before using it
-  const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
-
-  // Form state
+  
+  // Generate session ID for collaborative editing
+  const [sessionId] = useState(() => `new_session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  
+  // Collaboration hooks
+  const collaboratorHook = useCollaborators(sessionId);
+  const collaborative = useCollaborativeArticle({
+    sessionId,
+    articleId: undefined, // No article ID for new articles
+  });
+  
+  // Basic article fields
   const [title, setTitle] = useState('');
   const [heading, setHeading] = useState('');
   const [socialHeading, setSocialHeading] = useState('');
@@ -55,8 +67,8 @@ const NewArticle: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [sendingToReview, setSendingToReview] = useState(false);
-  const [showImageBrowser, setShowImageBrowser] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showImageBrowser, setShowImageBrowser] = useState(false);
   const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   
@@ -67,65 +79,43 @@ const NewArticle: React.FC = () => {
   const [isExclusive, setIsExclusive] = useState(false);
   const [isSponsored, setIsSponsored] = useState(false);
   const [sponsoredBy, setSponsoredBy] = useState('');
+  const [sponsoredUrl, setSponsoredUrl] = useState('');
   
-  // New database fields
+  // Enhanced features from NewArticle
   const [islandCategory, setIslandCategory] = useState<string[]>([]);
   const [developingUntil, setDevelopingUntil] = useState<string>('');
   const [sponsoredImage, setSponsoredImage] = useState<string>('');
-  
-  // Collaboration fields - Now sessionId is available
-  const collaboratorHook = useCollaborators(sessionId);
-  
-  // News priority field (exists in DB)
+  const [selectedIslandCategory, setSelectedIslandCategory] = useState<string[]>([]);
   const [newsPriority, setNewsPriority] = useState<number>(3);
-  
-  // Additional fields
   const [relatedArticles, setRelatedArticles] = useState<string>('');
   const [tags, setTags] = useState<string>('');
-  const [authorNotes, setAuthorNotes] = useState<string>('');  const [editorNotes, setEditorNotes] = useState<string>('');
-  
-  // Translation fields (keeping original ones from database)
-  const [originalSourceUrl] = useState<string>('');
-  
-  // Missing state variables for Article type compliance
-  const [sponsoredUrl, setSponsoredUrl] = useState<string>('');
-  const [newsSource, setNewsSource] = useState<string>('');  const [translationSourceUrl] = useState<string>('');
-  const [translationSourceLang] = useState<string>('');
-  const [translationNotes] = useState<string>('');
+  const [authorNotes, setAuthorNotes] = useState<string>('');
+  const [editorNotes, setEditorNotes] = useState<string>('');
   const [collaborationNotes, setCollaborationNotes] = useState<string>('');
   const [newsType, setNewsType] = useState<string>('');
-
-  // Enhanced collaborative features with proper typing
-  const collaborative = useCollaborativeArticle({
-    sessionId,
-    articleId: undefined, // This is for new articles
+  const [newsSource, setNewsSource] = useState<string>('');
+  const [originalSourceUrl, setOriginalSourceUrl] = useState<string>('');
+  const [translationSourceUrl, setTranslationSourceUrl] = useState<string>('');
+  const [translationSourceLang, setTranslationSourceLang] = useState<string>('');
+  const [translationNotes, setTranslationNotes] = useState<string>('');
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Image,
+      Link.configure({
+        openOnClick: false,
+      }),
+      Highlight,
+    ],
+    content: {},
+    editorProps: {
+      attributes: {
+        class: `prose prose-lg max-w-none focus:outline-none min-h-[300px] ${language === 'dv' ? 'thaana-waheed' : ''}`,
+      },
+    },
   });
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/login', { replace: true });
-      }
-    };
-    
-    checkAuth();
-  }, [navigate]);
-
-  useEffect(() => {
-    if (!userLoading && !user) {
-      navigate('/login', { replace: true });
-    }
-  }, [user, userLoading, navigate]);
-
-  // Clear island selections when atoll selection changes  useEffect(() => {
-    setSelectedIslands([]);
-  }, [selectedAtolls]);
-
-  // Article content state - Updated to use EditorJS OutputData format
-  const [content, setContent] = useState<OutputData | null>(null);
-
-  // Prepare data for auto-save (defined after editor)
+  // Prepare data for auto-save
   const formData = {
     title,
     heading,
@@ -144,21 +134,24 @@ const NewArticle: React.FC = () => {
     isExclusive,
     isSponsored,
     sponsoredBy,
+    sponsoredUrl,
     islandCategory,
     developingUntil,
     sponsoredImage,
-    collaborators: collaboratorHook.getCollaboratorsString(),
+    selectedIslandCategory,
     newsPriority,
-    relatedArticles,    tags,
+    relatedArticles,
+    tags,
     authorNotes,
     editorNotes,
-    originalSourceUrl,
-    sponsoredUrl,
-    newsSource,
-    translationSourceUrl,    translationSourceLang,
-    translationNotes,
     collaborationNotes,
-    content: content ? { text: content } : { text: null },
+    newsType,
+    newsSource,
+    originalSourceUrl,
+    translationSourceUrl,
+    translationSourceLang,
+    translationNotes,
+    content: editor?.getHTML() || '',
   };
 
   // Enhanced auto-save with collaboration awareness
@@ -194,14 +187,25 @@ const NewArticle: React.FC = () => {
     interval: 30000, // Auto-save every 30 seconds
     enabled: true,
   });
-  // Enhanced form validation with collaboration awareness using existing properties
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/login', { replace: true });
+      }
+    };
+    
+    checkAuth();
+  }, [navigate]);
+
   const validateForm = () => {
     if (!user) {
       alert(language === 'dv' ? 'އެކައުންޓަށް ވަދެވަޑައިގަންނަވާ' : 'Please log in to continue');
       return false;
     }
     
-    // Check field locks instead of non-existent properties
+    // Check field locks for collaboration
     const fieldLocks = collaborative.fieldLocks;
     if (fieldLocks && Object.keys(fieldLocks).length > 0) {
       const criticalFields = ['title', 'heading', 'category'];
@@ -228,15 +232,12 @@ const NewArticle: React.FC = () => {
       alert(language === 'dv' ? 'ހެޑިންގ ލިޔުއްވާ' : 'Please enter a heading');
       return false;
     }
-    if (!selectedAtolls || selectedAtolls.length === 0) {
+    if (selectedAtolls.length === 0) {
       alert(language === 'dv' ? 'އަތޮޅެއް އިޚްތިޔާރު ކުރައްވާ' : 'Please select at least one atoll');
       return false;
-    }    if (!category || category.length === 0) {
+    }    
+    if (!category || category.length === 0) {
       alert(language === 'dv' ? 'ބައެއް އިޚްތިޔާރު ކުރައްވާ' : 'Please select a category');
-      return false;
-    }
-    if (!content || !content.blocks || content.blocks.length === 0) {
-      alert(language === 'dv' ? 'ލިޔުމުގެ ތުންތަކެއް ލިޔުއްވާ' : 'Please write some content');
       return false;
     }
     if (isSponsored && !sponsoredBy.trim()) {
@@ -254,63 +255,34 @@ const NewArticle: React.FC = () => {
     return true;
   };
 
-  // Enhanced auto-save with collaboration awareness
-  useAutoSave({
-    data: {
-      ...formData,
-      sessionId,
-      collaborators: collaboratorHook.getCollaboratorsString(),
-      lastEditedBy: user?.email || '',
-      lastEditedAt: new Date().toISOString()
-    },
-    onSave: async () => {
-      setIsAutoSaving(true);
-      try {
-        // Save draft to localStorage with collaboration metadata
-        const key = `article_draft_${sessionId}`;
-        const collaborativeData = {
-          ...formData,
-          sessionId,
-          collaborators: collaboratorHook.getCollaboratorsString(),
-          lastEditedBy: user?.email || '',
-          lastEditedAt: new Date().toISOString(),
-          version: Date.now() // Simple versioning
-        };
-        localStorage.setItem(key, JSON.stringify(collaborativeData));
-        setLastAutoSave(new Date());
-        
-        console.log('Auto-saved at:', new Date().toLocaleTimeString());
-      } finally {
-        setIsAutoSaving(false);
-      }
-    },
-    interval: 30000, // Auto-save every 30 seconds
-    enabled: true,
-  });
   const handleSaveDraft = async () => {
+    if (!editor) return;
     if (!validateForm()) return;
     
     try {
       setSaving(true);
-      setError(null);
-        if (!user) {
+      
+      if (!user) {
         navigate('/login', { replace: true });
         return;
-      }      await createArticle({
+      }
+
+      const newArticle = {
         title,
         heading,
         social_heading: socialHeading,
-        content: content ? { text: content } : { text: null },
+        content: editor.getJSON(),
         category_id: parseInt(category[0]),
         subcategory_id: subcategory.length > 0 ? parseInt(subcategory[0]) : null,
-        atoll_ids: selectedAtolls || [],
-        island_ids: selectedIslands || [],
-        government_ids: selectedGovernmentIds || [],
+        atoll_ids: selectedAtolls,
+        island_ids: selectedIslands,
+        government_ids: selectedGovernmentIds,
         cover_image: coverImage,
         image_caption: imageCaption,
         status: 'draft',
         publish_date: null,
         user_id: user.id,
+        // Include article flag fields
         is_breaking: isBreaking,
         is_featured: isFeatured,
         is_developing: isDeveloping,
@@ -318,76 +290,84 @@ const NewArticle: React.FC = () => {
         is_sponsored: isSponsored,
         sponsored_by: isSponsored ? sponsoredBy : null,
         sponsored_url: isSponsored ? sponsoredUrl : null,
-        island_category: islandCategory.length > 0 ? islandCategory.join(',') : null,
-        developing_until: developingUntil ? new Date(developingUntil).toISOString() : null,
+        // Enhanced features from NewArticle
+        island_category: selectedIslandCategory.length > 0 ? selectedIslandCategory.join(',') : null,
+        developing_until: isDeveloping && developingUntil ? new Date(developingUntil).toISOString() : null,
         ideas: null,
-        sponsored_image: sponsoredImage || null,
+        sponsored_image: isSponsored ? sponsoredImage : null,
         next_event_date: null,
-        // Enhanced collaboration fields
         collaborators: collaboratorHook.getCollaboratorsString() || null,
-        collaboration_notes: `Created in collaboration session: ${sessionId}. Contributors: ${collaboratorHook.getCollaboratorsString()}`,
-        news_type: newsType,
+        collaboration_notes: collaborationNotes || null,
+        // Additional fields migrated from news_articles
+        news_type: newsType || null,
         news_priority: newsPriority,
-        news_source: newsSource,
-        meta_title: title,
-        meta_description: heading.substring(0, 160),
-        meta_keywords: [],
-        related_articles: relatedArticles ? relatedArticles.split(',').map((a: string) => a.trim()).filter((a: string) => a) : [],
-        tags: tags ? tags.split(',').map((t: string) => t.trim()).filter((t: string) => t) : [],
-        author_notes: authorNotes,
-        editor_notes: editorNotes,
-        fact_checked: false,
+        news_source: newsSource || null,
+        meta_title: null, // Auto-generated from title
+        meta_description: null, // Auto-generated from heading
+        meta_keywords: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : null,
+        related_articles: relatedArticles ? relatedArticles.split(',').map(t => t.trim()).filter(Boolean) : null,
+        tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : null,
+        // Editorial workflow fields
+        author_notes: authorNotes || null,
+        editor_notes: editorNotes || null,
+        fact_checked: null,
         fact_checker_id: null,
         fact_checked_at: null,
         approved_by_id: null,
         approved_at: null,
         published_by_id: null,
         last_updated_by_id: user.id,
-        original_source_url: originalSourceUrl,
-        translation_source_url: translationSourceUrl,
-        translation_source_lang: translationSourceLang,
-        translation_notes: translationNotes,
+        // Translation-related fields
+        original_source_url: originalSourceUrl || null,
+        translation_source_url: translationSourceUrl || null,
+        translation_source_lang: translationSourceLang || null,
+        translation_notes: translationNotes || null,
+        // System fields
         revision_history: null,
         scheduled_notifications: null,
         notification_sent: false,
-        notification_sent_at: null
-      });
+        notification_sent_at: null,
+      };
 
-      // Clean up collaboration session data
-      localStorage.removeItem(`article_draft_${sessionId}`);
-      
+      await createArticle(newArticle);
       navigate('/articles');
     } catch (error) {
       console.error('Failed to save draft:', error);
-      setError(language === 'dv' ? 'ޑްރާފްޓް ކުރުމުގައި މަްސަލައެއް ދިމާވެއްޖެ' : 'Failed to save draft. Please try again.');
+      setError('Failed to save draft. Please try again.');
+      alert('Failed to save draft. Please try again.');
     } finally {
       setSaving(false);
     }
-  };  const handlePublish = async () => {
+  };
+
+  const handlePublish = async () => {
+    if (!editor) return;
     if (!validateForm()) return;
-      try {
+    
+    try {
       setPublishing(true);
-      setError(null);
       
       if (!user) {
         navigate('/login', { replace: true });
         return;
       }
 
-      await createArticle({        title,
+      const newArticle = {
+        title,
         heading,
         social_heading: socialHeading,
-        content: content ? { text: content } : { text: null },
+        content: editor.getJSON(),
         category_id: parseInt(category[0]),
         subcategory_id: subcategory.length > 0 ? parseInt(subcategory[0]) : null,
-        atoll_ids: selectedAtolls || [],
-        island_ids: selectedIslands || [],
-        government_ids: selectedGovernmentIds || [],
+        atoll_ids: selectedAtolls,
+        island_ids: selectedIslands,
+        government_ids: selectedGovernmentIds,
         cover_image: coverImage,
-        image_caption: imageCaption,        status: 'published',
+        image_caption: imageCaption,
+        status: 'published',
         publish_date: new Date().toISOString(),
         user_id: user.id,
-        // Article flags
+        // Include article flag fields
         is_breaking: isBreaking,
         is_featured: isFeatured,
         is_developing: isDeveloping,
@@ -395,144 +375,162 @@ const NewArticle: React.FC = () => {
         is_sponsored: isSponsored,
         sponsored_by: isSponsored ? sponsoredBy : null,
         sponsored_url: isSponsored ? sponsoredUrl : null,
-        // New database fields
-        island_category: islandCategory.length > 0 ? islandCategory.join(',') : null,
-        developing_until: developingUntil ? new Date(developingUntil).toISOString() : null,
+        // Enhanced features from NewArticle
+        island_category: selectedIslandCategory.length > 0 ? selectedIslandCategory.join(',') : null,
+        developing_until: isDeveloping && developingUntil ? new Date(developingUntil).toISOString() : null,
         ideas: null,
-        sponsored_image: sponsoredImage || null,
+        sponsored_image: isSponsored ? sponsoredImage : null,
         next_event_date: null,
         collaborators: collaboratorHook.getCollaboratorsString() || null,
         collaboration_notes: collaborationNotes || null,
-        // Metadata fields
-        news_type: newsType,
+        // Additional fields migrated from news_articles
+        news_type: newsType || null,
         news_priority: newsPriority,
-        news_source: newsSource,
-        // SEO fields
-        meta_title: title,
-        meta_description: heading.substring(0, 160),
-        meta_keywords: [],
-        // Additional fields
-        related_articles: relatedArticles ? relatedArticles.split(',').map((a: string) => a.trim()).filter((a: string) => a) : [],
-        tags: tags ? tags.split(',').map((t: string) => t.trim()).filter((t: string) => t) : [],
+        news_source: newsSource || null,
+        meta_title: null, // Auto-generated from title
+        meta_description: null, // Auto-generated from heading
+        meta_keywords: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : null,
+        related_articles: relatedArticles ? relatedArticles.split(',').map(t => t.trim()).filter(Boolean) : null,
+        tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : null,
         // Editorial workflow fields
-        author_notes: authorNotes,
-        editor_notes: editorNotes,
-        fact_checked: false,
+        author_notes: authorNotes || null,
+        editor_notes: editorNotes || null,
+        fact_checked: null,
         fact_checker_id: null,
         fact_checked_at: null,
         approved_by_id: null,
         approved_at: null,
-        published_by_id: null,
-        last_updated_by_id: user.id,        // Translation fields
-        original_source_url: originalSourceUrl,
-        translation_source_url: translationSourceUrl,
-        translation_source_lang: translationSourceLang,
-        translation_notes: translationNotes,
+        published_by_id: user.id,
+        last_updated_by_id: user.id,
+        // Translation-related fields
+        original_source_url: originalSourceUrl || null,
+        translation_source_url: translationSourceUrl || null,
+        translation_source_lang: translationSourceLang || null,
+        translation_notes: translationNotes || null,
         // System fields
         revision_history: null,
         scheduled_notifications: null,
         notification_sent: false,
-        notification_sent_at: null
-      });
+        notification_sent_at: null,
+      };
 
+      await createArticle(newArticle);
       navigate('/articles');
     } catch (error) {
       console.error('Failed to publish:', error);
-      setError(language === 'dv' ? 'ޝާއިޢު ކުރުމުގައި މަްސަލައެއް ދިމާވެއްޖެ' : 'Failed to publish. Please try again.');    } finally {
+      setError('Failed to publish. Please try again.');
+      alert('Failed to publish. Please try again.');
+    } finally {
       setPublishing(false);
     }
-  };  const handleSendToReview = async () => {
+  };
+
+  const handleSendToReview = async () => {
+    if (!editor) return;
     if (!validateForm()) return;
-      try {
+    
+    try {
       setSendingToReview(true);
-      setError(null);
       
       if (!user) {
         navigate('/login', { replace: true });
         return;
-      }      await createArticle({
+      }
+
+      const newArticle = {
         title,
         heading,
         social_heading: socialHeading,
-        content: content ? { text: content } : { text: null },
+        content: editor.getJSON(),
         category_id: parseInt(category[0]),
         subcategory_id: subcategory.length > 0 ? parseInt(subcategory[0]) : null,
-        atoll_ids: selectedAtolls || [],
-        island_ids: selectedIslands || [],
-        government_ids: selectedGovernmentIds || [],
+        atoll_ids: selectedAtolls,
+        island_ids: selectedIslands,
+        government_ids: selectedGovernmentIds,
         cover_image: coverImage,
-        image_caption: imageCaption,        status: 'review',
+        image_caption: imageCaption,
+        status: 'review',
         publish_date: null,
         user_id: user.id,
-        // Article flags
+        // Include article flag fields
         is_breaking: isBreaking,
         is_featured: isFeatured,
         is_developing: isDeveloping,
-        is_exclusive: isExclusive,        is_sponsored: isSponsored,
+        is_exclusive: isExclusive,
+        is_sponsored: isSponsored,
         sponsored_by: isSponsored ? sponsoredBy : null,
         sponsored_url: isSponsored ? sponsoredUrl : null,
-        // New database fields
-        island_category: islandCategory.length > 0 ? islandCategory.join(',') : null,
-        developing_until: developingUntil ? new Date(developingUntil).toISOString() : null,
+        // Enhanced features from NewArticle
+        island_category: selectedIslandCategory.length > 0 ? selectedIslandCategory.join(',') : null,
+        developing_until: isDeveloping && developingUntil ? new Date(developingUntil).toISOString() : null,
         ideas: null,
-        sponsored_image: sponsoredImage || null,
+        sponsored_image: isSponsored ? sponsoredImage : null,
         next_event_date: null,
         collaborators: collaboratorHook.getCollaboratorsString() || null,
         collaboration_notes: collaborationNotes || null,
-        // Metadata fields
-        news_type: newsType,
+        // Additional fields migrated from news_articles
+        news_type: newsType || null,
         news_priority: newsPriority,
-        news_source: newsSource,
-        // SEO fields
-        meta_title: title,
-        meta_description: heading.substring(0, 160),
-        meta_keywords: [],
-        // Additional fields
-        related_articles: relatedArticles ? relatedArticles.split(',').map((a: string) => a.trim()).filter((a: string) => a) : [],
-        tags: tags ? tags.split(',').map((t: string) => t.trim()).filter((t: string) => t) : [],
+        news_source: newsSource || null,
+        meta_title: null, // Auto-generated from title
+        meta_description: null, // Auto-generated from heading
+        meta_keywords: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : null,
+        related_articles: relatedArticles ? relatedArticles.split(',').map(t => t.trim()).filter(Boolean) : null,
+        tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : null,
         // Editorial workflow fields
-        author_notes: authorNotes,
-        editor_notes: editorNotes,
-        fact_checked: false,
+        author_notes: authorNotes || null,
+        editor_notes: editorNotes || null,
+        fact_checked: null,
         fact_checker_id: null,
         fact_checked_at: null,
         approved_by_id: null,
         approved_at: null,
         published_by_id: null,
         last_updated_by_id: user.id,
-        // Translation fields
-        original_source_url: originalSourceUrl,
-        translation_source_url: translationSourceUrl,
-        translation_source_lang: translationSourceLang,
-        translation_notes: translationNotes,
+        // Translation-related fields
+        original_source_url: originalSourceUrl || null,
+        translation_source_url: translationSourceUrl || null,
+        translation_source_lang: translationSourceLang || null,
+        translation_notes: translationNotes || null,
         // System fields
         revision_history: null,
         scheduled_notifications: null,
         notification_sent: false,
-        notification_sent_at: null
-      });
+        notification_sent_at: null,
+      };
 
+      await createArticle(newArticle);
       navigate('/articles');
     } catch (error) {
       console.error('Failed to send to review:', error);
       setError(language === 'dv' ? 'ރިވިއުއަށް ފޮނުވުމުގައި މަްސަލައެއް ދިމާވެއްޖެ' : 'Failed to send to review. Please try again.');
+      alert(language === 'dv' ? 'ރިވިއުއަށް ފޮނުވުމުގައި މަްސަލައެއް ދިމާވެއްޖެ' : 'Failed to send to review. Please try again.');
     } finally {
       setSendingToReview(false);
     }
   };
+
   const handleImageSelect = (url: string) => {
-    setCoverImage(url);
+    if (editor) {
+      editor.chain().focus().setImage({ src: url }).run();
+    }
     setShowImageBrowser(false);
   };
+
   const toggleLanguage = () => {
     setLanguage(prev => prev === 'dv' ? 'en' : 'dv');
-    // Editor.js doesn't need to be re-enabled like TipTap
+    if (editor) {
+      editor.setEditable(false);
+      editor.setEditable(true);
+    }
   };
 
-  if (userLoading) {
+  if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      <div className="max-w-5xl mx-auto mt-8">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+        </div>
       </div>
     );
   }
@@ -542,155 +540,91 @@ const NewArticle: React.FC = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto">      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h1 className={`text-2xl font-bold text-gray-900 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-            {language === 'dv' ? 'އައު ލިޔުމެއް' : 'Create New Article'}
-          </h1>
-          <p className={`text-gray-600 mt-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-            {language === 'dv' ? 'ނައު ލިޔުމެއް ލިޔެ ޝާއިޢު ކުރައްވާ' : 'Write and publish your next story'}
-          </p>
-        </div>
+    <div className="max-w-5xl mx-auto">
+      <div className="mb-6 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <AutoSaveStatus
-            lastSaveTime={lastAutoSave}
-            isSaving={isAutoSaving}
-            hasUnsavedChanges={false}
-            language={language}
-          />
-          
-          {/* Enhanced collaboration indicator */}
-          <div className="flex items-center gap-2">
-            {collaborative.activeUsers.length > 1 && (
-              <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 rounded-md border border-blue-200">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-xs text-blue-700">
-                  {language === 'dv' 
-                    ? `${collaborative.activeUsers.length} ބޭފުޅުންއޮންލައިން` 
-                    : `${collaborative.activeUsers.length} users online`}
-                </span>
-              </div>
-            )}
-          </div>
-          
           <button
-            onClick={toggleLanguage}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            dir={language === 'dv' ? 'rtl' : 'ltr'}
+            onClick={() => navigate('/articles')}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
           >
-            <Languages size={20} className={language === 'dv' ? 'ml-2' : 'mr-2'} />
-            <span className={`text-sm font-medium ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-              {language === 'dv' ? 'Switch to English' : 'ދިވެހި އަށް ބަދަލުކުރައްވާ'}
+            <ArrowLeft size={20} />
+            <span className={language === 'dv' ? 'thaana-waheed' : ''}>
+              {language === 'dv' ? 'އަނބުރާ' : 'Back'}
             </span>
           </button>
-        </div>
-      </div>
-
-      {/* Enhanced Collaborative Presence Indicator */}
-      <div className="mb-6">
-        <CollaborativePresence
-          activeUsers={collaborative.activeUsers}
-          isConnected={collaborative.isConnected}
-        />
-        
-        {/* Add collaborator management */}
-        {collaborative.activeUsers.length > 0 && (
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <h4 className={`text-sm font-medium text-blue-900 mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-              {language === 'dv' ? 'ހަމުޖެހޭ ލިޔުންތެރިން' : 'Collaborators'}
-            </h4>
-            <div className="flex flex-wrap gap-2">
-              {collaborative.activeUsers.map((collaborator, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 px-3 py-1 bg-white rounded-full border border-blue-300"
-                >
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm text-blue-800">
-                    {collaborator.user_id || `User ${index + 1}`}
-                  </span>
-                </div>
-              ))}
-            </div>
-            
-            {/* Session info */}
-            <div className="mt-2 text-xs text-blue-700">
-              <span className={language === 'dv' ? 'thaana-waheed' : ''}>
-                {language === 'dv' ? 'ސެޝަން އައިޑީ: ' : 'Session ID: '}
-              </span>
-              <code className="bg-blue-100 px-1 rounded">{sessionId}</code>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Rest of the form remains the same with enhanced collaborative components */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg">
-            {error}
-          </div>
-        )}
-
-        {/* Show field locks instead of conflicts */}
-        {collaborative.fieldLocks && Object.keys(collaborative.fieldLocks).length > 0 && (
-          <div className="mb-4 p-3 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded-lg">
-            <p className={`font-medium ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-              {language === 'dv' ? 'ލޮކް ކުރެވިފައިވާ ފީލްޑްތައް:' : 'Locked fields:'}
+          <div>
+            <h1 className={`text-2xl font-bold text-gray-900 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+              {language === 'dv' ? 'އާޗުތް ތަކެއް ލިޔާ' : 'Create New Article'}
+            </h1>
+            <p className={`text-gray-600 mt-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+              {language === 'dv' ? 'އާދެމީ ލިޔުން ތަކެއް އެޑި ކުރީ' : 'Create and publish your article'}
             </p>
-            <ul className="mt-1 text-sm">
-              {Object.keys(collaborative.fieldLocks).map(field => (
-                <li key={field} className={language === 'dv' ? 'thaana-waheed' : ''}>
-                  {field}: {language === 'dv' ? 'އަނެކް ބޭފުޅެއް އެޑިޓް ކުރަނީ' : `Being edited by ${collaborative.fieldLocks[field].user_id}`}
-                </li>
-              ))}
-            </ul>
           </div>
-        )}
+        </div>
+        <button
+          onClick={toggleLanguage}
+          className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          dir={language === 'dv' ? 'rtl' : 'ltr'}
+        >
+          <Languages size={20} className={language === 'dv' ? 'ml-2' : 'mr-2'} />
+          <span className={`text-sm font-medium ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+            {language === 'dv' ? 'Switch to English' : 'ދިވެހި އަށް ބަދަލުކުރައްވާ'}
+          </span>
+        </button>
+      </div>      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">        {/* Collaborative Presence Indicator */}
+        <div className="mb-4">          <CollaborativePresence 
+            activeUsers={collaborative.activeUsers}
+            isConnected={collaborative.isConnected}
+          />
+          <AutoSaveStatus 
+            lastSaveTime={lastAutoSave}
+            isSaving={isAutoSaving}
+            language={language}
+          />
+        </div>
 
-        {/* All form fields remain the same with enhanced collaborative components */}
-        {/* ...existing form code... */}
-        {/* Basic Article Information */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">          <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
             <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
               {language === 'dv' ? 'ސުރުޚީ (ލެޓިން)' : 'Title (Latin)'}
-            </label>
-            <CollaborativeInput
+            </label>            <CollaborativeInput
               fieldId="title"
               value={title}
               onChange={setTitle}
               collaborative={collaborative}
               currentUser={user?.email || ''}
-              placeholder={language === 'dv' ? 'ލެޓިން އަކުރުން ސުރުޚީ ލިޔުއްވާ' : 'Enter title in Latin'}
               className={`w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${language === 'dv' ? 'placeholder:thaana-waheed' : ''}`}
+              placeholder={language === 'dv' ? 'ލެޓިން އަކުރުން ސުރުޚީ ލިޔުއްވާ' : 'Enter title in Latin'}
               dir={language === 'dv' ? 'rtl' : 'ltr'}
             />
-          </div>          <div>
+          </div>
+
+          <div>
             <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
               {language === 'dv' ? 'ސުރުޚީ (ދިވެހި)' : 'Heading (Thaana)'}
-            </label>
-            <CollaborativeInput
+            </label>            <CollaborativeInput
               fieldId="heading"
               value={heading}
               onChange={setHeading}
               collaborative={collaborative}
               currentUser={user?.email || ''}
-              placeholder={language === 'dv' ? 'ދިވެހިން ސުރުޚީ ލިޔުއްވާ' : 'Enter heading in Thaana'}
               className={`w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${language === 'dv' ? 'thaana-waheed placeholder:thaana-waheed' : ''}`}
+              placeholder={language === 'dv' ? 'ދިވެހިން ސުރުޚީ ލިޔުއްވާ' : 'Enter heading in Thaana'}
               dir={language === 'dv' ? 'rtl' : 'ltr'}
             />
-          </div>          <div>
+          </div>
+
+          <div>
             <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
               {language === 'dv' ? 'ސޯޝަލް މީޑިއާ ސުރުޚީ' : 'Social Heading'}
-            </label>
-            <CollaborativeInput
+            </label>            <CollaborativeInput
               fieldId="socialHeading"
               value={socialHeading}
               onChange={setSocialHeading}
               collaborative={collaborative}
               currentUser={user?.email || ''}
-              placeholder={language === 'dv' ? 'ސޯޝަލް މީޑިއާ ސުރުޚީ ލިޔުއްވާ' : 'Enter social media heading'}
               className={`w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${language === 'dv' ? 'thaana-waheed placeholder:thaana-waheed' : ''}`}
+              placeholder={language === 'dv' ? 'ސޯޝަލް މީޑިއާ ސުރުޚީ ލިޔުއްވާ' : 'Enter social media heading'}
               dir={language === 'dv' ? 'rtl' : 'ltr'}
             />
           </div><div>
@@ -745,60 +679,69 @@ const NewArticle: React.FC = () => {
           </div>
 
           <div className="md:col-span-2">
-            <div className="flex justify-between items-center mb-1">
-              <label className={`block text-sm font-medium text-gray-700 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                {language === 'dv' ? 'އަތޮޅުތައް' : 'Atolls'}
-              </label>
-              {useFallbackData && (
-                <div className="text-xs px-2 py-1 bg-amber-50 text-amber-700 rounded-md border border-amber-200">
-                  {language === 'dv' 
-                    ? 'ވަގުތީ މަޢުލޫމާތު ބޭނުންކުރެވެނީ' 
-                    : 'Using backup data - some features may be limited'}
-                </div>
-              )}
-              {atollsError && (
-                <div className="text-xs px-2 py-1 bg-red-50 text-red-700 rounded-md border border-red-200">
-                  {language === 'dv' 
-                    ? 'ޑޭޓާބޭސް އެރަރ' 
-                    : `DB Error: ${atollsError}`}
-                </div>
-              )}
-            </div>
+            <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+              {language === 'dv' ? 'އަތޮޅުތައް' : 'Atolls'}
+            </label>
             <MultiSelect
               options={atolls || []}
-              value={selectedAtolls || []}
-              onChange={(values) => {
-                console.log('Selected atolls changed:', values);
-                setSelectedAtolls((values || []).filter(id => typeof id === 'number') as number[]);
-                setSelectedIslands([]);
-              }}
+              value={selectedAtolls}
+              onChange={(values) => setSelectedAtolls(values.filter(id => typeof id === 'number') as number[])}
               language={language}
               placeholder={language === 'dv' ? 'އަތޮޅުތައް އިޚްތިޔާރު ކުރައްވާ' : 'Select atolls'}
             />
-          </div>          {selectedAtolls && selectedAtolls.length > 0 && (
-            <div className="md:col-span-2">
-              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                {language === 'dv' ? 'ރަށްތައް' : 'Islands'}
-              </label>
-              <IslandsSelect
-                atollIds={selectedAtolls}
-                value={selectedIslands || []}
-                onChange={(values) => {
-                  console.log('Selected islands changed:', values);
-                  setSelectedIslands((values || []).filter(id => typeof id === 'number') as number[]);
-                }}
-                language={language}
-              />
-            </div>
-          )}{selectedIslands && selectedIslands.length > 0 && (
-            <div className="md:col-span-2">
-              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+          </div>          {selectedAtolls.length > 0 && (
+            <>
+              <div className="md:col-span-2">
+                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                  {language === 'dv' ? 'ރަށުގެ ބަި ފިލްޓަރ' : 'Island Category Filter'}
+                </label>
+                <MultiSelect
+                  options={[
+                    { id: 'residential', name: language === 'dv' ? 'އާބާދީ' : 'Residential', name_en: 'Residential' },
+                    { id: 'resort', name: language === 'dv' ? 'ރިސޯޓް' : 'Resort', name_en: 'Resort' },
+                    { id: 'airport', name: language === 'dv' ? 'އެއަރޕޯޓް' : 'Airport', name_en: 'Airport' },
+                    { id: 'industrial', name: language === 'dv' ? 'ސިނާޢީ' : 'Industrial', name_en: 'Industrial' },
+                    { id: 'agricultural', name: language === 'dv' ? 'ދަނޑުވެރިކަން' : 'Agricultural', name_en: 'Agricultural' },
+                    { id: 'uninhabited', name: language === 'dv' ? 'އާބާދީ ނެތް' : 'Uninhabited', name_en: 'Uninhabited' }
+                  ]}
+                  value={selectedIslandCategory || []}
+                  onChange={(values) => {
+                    console.log('Selected island category filter changed:', values);
+                    setSelectedIslandCategory((values || []).filter(id => typeof id === 'string') as string[]);
+                    setSelectedIslands([]);
+                  }}
+                  language={language}
+                  placeholder={language === 'dv' ? 'ރަށުގެ ބައި ފިލްޓަރ' : 'Filter by island category'}
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                  {language === 'dv' ? 'ރަށްތައް' : 'Islands'}
+                </label>
+                <IslandsSelect
+                  atollIds={selectedAtolls}
+                  islandCategory={selectedIslandCategory}
+                  value={selectedIslands || []}
+                  onChange={(values) => {
+                    console.log('Selected islands changed:', values);
+                    setSelectedIslands((values || []).filter(id => typeof id === 'number') as number[]);
+                  }}
+                  language={language}
+                />
+              </div>
+            </>
+          )}
+
+          {selectedIslands && selectedIslands.length > 0 && (
+            <div className="md:col-span-2">              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
                 {language === 'dv' ? 'ރަށުގެ ބައި' : 'Island Category'}
               </label>
               <MultiSelect
                 options={[
                   { id: 'residential', name: language === 'dv' ? 'އާބާދީ' : 'Residential', name_en: 'Residential' },
                   { id: 'resort', name: language === 'dv' ? 'ރިސޯޓް' : 'Resort', name_en: 'Resort' },
+                  { id: 'airport', name: language === 'dv' ? 'އެއަރޕޯޓް' : 'Airport', name_en: 'Airport' },
                   { id: 'industrial', name: language === 'dv' ? 'ސިނާޢީ' : 'Industrial', name_en: 'Industrial' },
                   { id: 'agricultural', name: language === 'dv' ? 'ދަނޑުވެރިކަން' : 'Agricultural', name_en: 'Agricultural' },
                   { id: 'uninhabited', name: language === 'dv' ? 'އާބާދީ ނެތް' : 'Uninhabited', name_en: 'Uninhabited' }
@@ -806,14 +749,13 @@ const NewArticle: React.FC = () => {
                 value={islandCategory || []}
                 onChange={(values) => {
                   console.log('Selected island category changed:', values);
-                  setIslandCategory((values || []).filter(id => typeof id === 'string') as string[]);
-                }}
+                  setIslandCategory((values || []).filter(id => typeof id === 'string') as string[]);                }}
                 language={language}
                 placeholder={language === 'dv' ? 'ރަށުގެ ބައި އިޚްތިޔާރު ކުރައްވާ' : 'Select island categories'}
               />
             </div>
           )}
-
+          
           <div className="md:col-span-2">
             <div className="flex justify-between items-center mb-1">
               <label className={`block text-sm font-medium text-gray-700 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
@@ -836,14 +778,14 @@ const NewArticle: React.FC = () => {
             </div>
             <MultiSelect
               options={government.map(item => ({
-                id: item.id,
+                id: item.id, // Use original UUID string
                 name: item.name,
                 name_en: item.name_en
               }))}
               value={selectedGovernmentIds}
               onChange={(values) => {
                 console.log('Selected ministries changed:', values);
-                setSelectedGovernmentIds((values || []).filter(id => typeof id === 'string') as string[]);
+                setSelectedGovernmentIds(values.filter(id => typeof id === 'string') as string[]);
               }}
               language={language}
               placeholder={language === 'dv' ? 'މިނިސްޓްރީތައް އިޚްތިޔާރު ކުރައްވާ' : 'Select ministries'}
@@ -857,42 +799,48 @@ const NewArticle: React.FC = () => {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowImageBrowser(true)}
-                className="px-3 py-1 bg-blue-600 text-white rounded-l hover:bg-blue-700"
+                className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 aria-label={language === 'dv' ? 'ފޮޓޯއެއް އިންތިޚާބުކުރައްވާ' : 'Select image'}
                 title={language === 'dv' ? 'ފޮޓޯއެއް އިންތިޚާބުކުރައްވާ' : 'Select image'}
               >
                 <ImageIcon size={20} />
               </button>
-              <input
-                type="text"
-                value={coverImage}
-                readOnly
-                className="flex-1 rounded-r-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 cursor-not-allowed"
-                placeholder="Select an image..."
-              />
+              {coverImage && (
+                <div className="flex-1 text-sm text-gray-500 py-1 px-2">
+                  Image selected
+                </div>
+              )}
             </div>            <CollaborativeInput
               fieldId="imageCaption"
               value={imageCaption}
               onChange={setImageCaption}
               collaborative={collaborative}
               currentUser={user?.email || ''}
-              placeholder={language === 'dv' ? 'ފޮޓޯގެ ތަފްޞީލް' : 'Image caption'}
               className={`mt-2 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${language === 'dv' ? 'thaana-waheed placeholder:thaana-waheed' : ''}`}
+              placeholder={language === 'dv' ? 'ފޮޓޯގެ ތަފްޞީލް' : 'Image caption'}
               dir={language === 'dv' ? 'rtl' : 'ltr'}
             />
           </div>
         </div>
 
         {coverImage && (
-          <div className="mb-6 relative h-[200px] rounded-lg overflow-hidden">
+          <div className="mb-6 relative h-[200px] rounded-lg overflow-hidden group">
             <img
               src={coverImage}
               alt={imageCaption}
               className="w-full h-full object-cover"
             />
+            <button
+              onClick={() => setCoverImage('')}
+              className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+              aria-label={language === 'dv' ? 'ފޮޓޯ ނައްތާލާ' : 'Remove image'}
+              title={language === 'dv' ? 'ފޮޓޯ ނައްތާލާ' : 'Remove image'}
+            >
+              <X size={16} />
+            </button>
           </div>
         )}
-
+        
         {/* Article Flags Section */}
         <div className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
           <h3 className={`text-lg font-medium mb-3 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
@@ -956,10 +904,62 @@ const NewArticle: React.FC = () => {
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" 
               />
               <span className={`${language === 'dv' ? 'thaana-waheed mr-2' : 'ml-2'}`}>
-                {language === 'dv' ? 'ސްޕޮންަރޑް' : 'Sponsored'}
-              </span>            </label>
+                {language === 'dv' ? 'ސްޕޮންސަރޑް' : 'Sponsored'}
+              </span>
+            </label>
           </div>
-            {/* Developing story date field */}
+            {/* Sponsored content fields - only show if sponsored is checked */}
+          {isSponsored && (
+            <div className="mt-4 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                    {language === 'dv' ? 'ސްޕޮންސަރ ކުރި ފަރާތް' : 'Sponsored By'}
+                  </label>
+                  <CollaborativeInput
+                    fieldId="sponsoredBy"
+                    value={sponsoredBy}
+                    onChange={setSponsoredBy}
+                    collaborative={collaborative}
+                    currentUser={user?.email || ''}
+                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder={language === 'dv' ? 'ސްޕޮންސަރ ކުރި ފަރާތް' : 'Sponsor name'}
+                    dir={language === 'dv' ? 'rtl' : 'ltr'}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                    {language === 'dv' ? 'ސްޕޮންސަރ ލިންކް' : 'Sponsor URL'}
+                  </label>
+                  <CollaborativeInput
+                    fieldId="sponsoredUrl"
+                    value={sponsoredUrl}
+                    onChange={setSponsoredUrl}
+                    collaborative={collaborative}
+                    currentUser={user?.email || ''}
+                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+              <div>
+                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                  {language === 'dv' ? 'ސްޕޮންސަރ ރަސްމު' : 'Sponsor Logo/Image'}
+                </label>
+                <CollaborativeInput
+                  fieldId="sponsoredImage"
+                  value={sponsoredImage}
+                  onChange={setSponsoredImage}
+                  collaborative={collaborative}
+                  currentUser={user?.email || ''}
+                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  placeholder={language === 'dv' ? 'ރަސްމުގެ ލިންކް' : 'Image URL'}
+                />
+              </div>
+            </div>
+          )}
+          
+          {/* Developing story date field */}
           {isDeveloping && (
             <div className="md:col-span-3">
               <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
@@ -974,108 +974,137 @@ const NewArticle: React.FC = () => {
               />
             </div>
           )}
-            {/* Sponsored content fields */}
-          {isSponsored && (
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">              <div>
-                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                  {language === 'dv' ? 'ސްޕޮންސަރ ކުރި ފަރާތް' : 'Sponsored By'}
-                </label>                <CollaborativeInput
-                  fieldId="sponsoredBy"
-                  value={sponsoredBy}
-                  onChange={setSponsoredBy}
-                  collaborative={collaborative}
-                  currentUser={user?.email || ''}
-                  placeholder={language === 'dv' ? 'ސްޕޮންސަރ ކުރި ފަރާތް' : 'Sponsor name'}
-                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  dir={language === 'dv' ? 'rtl' : 'ltr'}
-                />
-              </div>
-              <div>
-                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                  {language === 'dv' ? 'ސްޕޮންސަރ ލިންކް' : 'Sponsor URL'}
-                </label>                <CollaborativeInput
-                  fieldId="sponsoredUrl"
-                  value={sponsoredUrl}
-                  onChange={setSponsoredUrl}
-                  collaborative={collaborative}
-                  currentUser={user?.email || ''}
-                  placeholder="https://..."
-                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  type="url"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                  {language === 'dv' ? 'ސްޕޮންސަރ ފޮޓޯ' : 'Sponsor Image'}
-                </label>                <CollaborativeInput
-                  fieldId="sponsoredImage"
-                  value={sponsoredImage}
-                  onChange={setSponsoredImage}
-                  collaborative={collaborative}
-                  currentUser={user?.email || ''}
-                  placeholder={language === 'dv' ? 'ސްޕޮންސަރ ފޮޓޯ URL' : 'Sponsor image URL'}
-                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
+        </div>        {/* Island Category Filter Section */}
+        {selectedAtolls.length > 0 && (
+          <>
+            <div className="md:col-span-2">
+              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                {language === 'dv' ? 'ރަށުގެ ބަި ފިލްޓަރ' : 'Island Category Filter'}
+              </label>
+              <MultiSelect
+                options={[
+                  { id: 'residential', name: language === 'dv' ? 'އާބާދީ' : 'Residential', name_en: 'Residential' },
+                  { id: 'resort', name: language === 'dv' ? 'ރިސޯޓް' : 'Resort', name_en: 'Resort' },
+                  { id: 'airport', name: language === 'dv' ? 'އެއަރޕޯޓް' : 'Airport', name_en: 'Airport' },
+                  { id: 'industrial', name: language === 'dv' ? 'ސިނާޢީ' : 'Industrial', name_en: 'Industrial' },
+                  { id: 'agricultural', name: language === 'dv' ? 'ދަނޑުވެރިކަން' : 'Agricultural', name_en: 'Agricultural' },
+                  { id: 'uninhabited', name: language === 'dv' ? 'އާބާދީ ނެތް' : 'Uninhabited', name_en: 'Uninhabited' }
+                ]}
+                value={selectedIslandCategory || []}
+                onChange={(values) => {
+                  console.log('Selected island category filter changed:', values);
+                  setSelectedIslandCategory((values || []).filter(id => typeof id === 'string') as string[]);
+                  setSelectedIslands([]);
+                }}
+                language={language}
+                placeholder={language === 'dv' ? 'ރަށުގެ ބައި ފިލްޓަރ' : 'Filter by island category'}
+              />
             </div>
-          )}
-        </div>        {/* Article Metadata Section */}
+
+            <div className="md:col-span-2">
+              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                {language === 'dv' ? 'ރަށްައްތައް' : 'Islands'}
+              </label>
+              <IslandsSelect
+                atollIds={selectedAtolls}
+                islandCategory={selectedIslandCategory}
+                value={selectedIslands || []}
+                onChange={(values) => {
+                  console.log('Selected islands changed:', values);
+                  setSelectedIslands((values || []).filter(id => typeof id === 'number') as number[]);
+                }}
+                language={language}
+              />
+            </div>
+          </>
+        )}        {selectedIslands && selectedIslands.length > 0 && (
+          <div className="md:col-span-2">
+            <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+              {language === 'dv' ? 'ރަށުގެ ބައި' : 'Island Category'}
+            </label>
+            <MultiSelect
+              options={[
+                { id: 'residential', name: language === 'dv' ? 'އާބާދީ' : 'Residential', name_en: 'Residential' },
+                { id: 'resort', name: language === 'dv' ? 'ރިސޯޓް' : 'Resort', name_en: 'Resort' },
+                { id: 'airport', name: language === 'dv' ? 'އެއަރޕޯޓް' : 'Airport', name_en: 'Airport' },
+                { id: 'industrial', name: language === 'dv' ? 'ސިނާޢީ' : 'Industrial', name_en: 'Industrial' },
+                { id: 'agricultural', name: language === 'dv' ? 'ދަނޑުވެރިކަން' : 'Agricultural', name_en: 'Agricultural' },
+                { id: 'uninhabited', name: language === 'dv' ? 'އާބާދީ ނެތް' : 'Uninhabited', name_en: 'Uninhabited' }
+              ]}
+              value={islandCategory || []}
+              onChange={(values) => {
+                console.log('Selected island category changed:', values);
+                setIslandCategory((values || []).filter(id => typeof id === 'string') as string[]);
+              }}
+              language={language}
+              placeholder={language === 'dv' ? 'ރަށުގެ ބައި އިޚްތިޔާރު ކުރައްވާ' : 'Select island categories'}
+            />
+          </div>
+        )}
+        
+        {/* Article Metadata Section */}
         <div className="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
           <h3 className={`text-lg font-medium mb-3 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
             {language === 'dv' ? 'ލިޔުމުގެ މަޢުލޫމާތު' : 'Article Metadata'}
           </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                {language === 'dv' ? 'ނިއުސް ޢަމިއްޔަތް' : 'News Priority'}
-              </label>
-              <select
-                value={newsPriority}
-                onChange={(e) => setNewsPriority(Number(e.target.value))}
-                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                title={language === 'dv' ? 'ނިއުސް ޢަމިއްޔަތް' : 'News Priority'}
-              >
-                <option value={1}>{language === 'dv' ? 'އެންމެ މުހިންމު' : 'High Priority'}</option>
-                <option value={2}>{language === 'dv' ? 'މުހިންމު' : 'Medium Priority'}</option>
-                <option value={3}>{language === 'dv' ? 'ސާދާ' : 'Normal Priority'}</option>
-              </select>
-            </div>
-            <div>
-              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                {language === 'dv' ? 'ނިއުސް ސްރަޮތް' : 'News Type'}
+                {language === 'dv' ? 'ނިއުސް ބައި' : 'News Type'}
               </label>              <select
                 value={newsType}
                 onChange={(e) => setNewsType(e.target.value)}
                 className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                title={language === 'dv' ? 'ނިއުސް ސްރަޮތް' : 'News Type'}
+                dir={language === 'dv' ? 'rtl' : 'ltr'}
+                title={language === 'dv' ? 'ނިއުސް ބައި އިޚްތިޔާރު ކުރައްވާ' : 'Select news type'}
               >
-                <option value="">{language === 'dv' ? 'ސެލެކްޓް ކުރައްވާ' : 'Select type'}</option>
-                <option value="news">{language === 'dv' ? 'ނިއުސް' : 'News'}</option>
+                <option value="">{language === 'dv' ? 'ނިއުސް ބައި އިޚްތިޔާރު ކުރައްވާ' : 'Select news type'}</option>
+                <option value="update">{language === 'dv' ? 'އަޕްޑޭޓް' : 'Update'}</option>
+                <option value="breaking">{language === 'dv' ? 'ބްރޭކިންގ' : 'Breaking'}</option>
                 <option value="feature">{language === 'dv' ? 'ފީޗަރ' : 'Feature'}</option>
-                <option value="opinion">{language === 'dv' ? 'ރޭ' : 'Opinion'}</option>
-                <option value="analysis">{language === 'dv' ? 'ތަޙުލީލް' : 'Analysis'}</option>
+                <option value="opinion">{language === 'dv' ? 'ރައުޔު' : 'Opinion'}</option>
+                <option value="interview">{language === 'dv' ? 'އިންޓަވިއު' : 'Interview'}</option>
+              </select>
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                {language === 'dv' ? 'ނިއުސް އިސްކަން' : 'News Priority'}
+              </label>              <select
+                value={newsPriority}
+                onChange={(e) => setNewsPriority(parseInt(e.target.value))}
+                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                dir={language === 'dv' ? 'rtl' : 'ltr'}
+                title={language === 'dv' ? 'ނިއުސް އިސްކަން އިޚްތިޔާރު ކުރައްވާ' : 'Select news priority'}
+              >
+                <option value={1}>{language === 'dv' ? '1 - އެންމެ މުހިންމު' : '1 - Critical'}</option>
+                <option value={2}>{language === 'dv' ? '2 - މުހިންމު' : '2 - High'}</option>
+                <option value={3}>{language === 'dv' ? '3 - މެދު' : '3 - Medium'}</option>
+                <option value={4}>{language === 'dv' ? '4 - ދެން' : '4 - Low'}</option>
+                <option value={5}>{language === 'dv' ? '5 - އާދައިގެ' : '5 - Normal'}</option>
               </select>
             </div>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">            <div>
-              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                {language === 'dv' ? 'ނިއުސް ސޯސް' : 'News Source'}
-              </label>
-              <CollaborativeInput
-                fieldId="newsSource"
-                value={newsSource}
-                onChange={setNewsSource}
-                collaborative={collaborative}
-                currentUser={user?.email || ''}
-                placeholder={language === 'dv' ? 'ނިއުސް ސޯސް' : 'News source'}
-                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                dir={language === 'dv' ? 'rtl' : 'ltr'}
-              />
-            </div>
+
+          <div className="mb-4">
+            <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+              {language === 'dv' ? 'ނިއުސް ސޯސް' : 'News Source'}
+            </label>
+            <CollaborativeInput
+              fieldId="newsSource"
+              value={newsSource}
+              onChange={setNewsSource}
+              collaborative={collaborative}
+              currentUser={user?.email || ''}
+              placeholder={language === 'dv' ? 'ނިއުސް ސޯސް' : 'News source'}
+              className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              dir={language === 'dv' ? 'rtl' : 'ltr'}
+            />
           </div>
           
-          <div className="grid grid-cols-1 gap-4">            <div>
+          <div className="grid grid-cols-1 gap-4">
+            <div>
               <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
                 {language === 'dv' ? 'ޓެގްސް' : 'Tags'}
               </label>
@@ -1090,7 +1119,8 @@ const NewArticle: React.FC = () => {
                 dir={language === 'dv' ? 'rtl' : 'ltr'}
               />
             </div>
-              <div>
+            
+            <div>
               <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
                 {language === 'dv' ? 'ގުޅުންހުރި ލިޔުންތައް' : 'Related Articles'}
               </label>
@@ -1104,10 +1134,11 @@ const NewArticle: React.FC = () => {
                 className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 dir={language === 'dv' ? 'rtl' : 'ltr'}
               />
-            </div></div>
+            </div>
+          </div>
         </div>
 
-        {/* SEO Section */}
+        {/* SEO Information Section */}
         <div className="mb-6 bg-purple-50 p-4 rounded-lg border border-purple-200">
           <h3 className={`text-lg font-medium mb-3 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
             {language === 'dv' ? 'SEO މަޢުލޫމާތު' : 'SEO Information'}
@@ -1160,105 +1191,179 @@ const NewArticle: React.FC = () => {
                 className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 dir={language === 'dv' ? 'rtl' : 'ltr'}
                 rows={3}
-              />            </div>
+              />
+            </div>
           </div>
         </div>
 
         {/* Collaboration Section */}
         <div className="mb-6 bg-indigo-50 p-4 rounded-lg border border-indigo-200">
           <h3 className={`text-lg font-medium mb-3 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-            {language === 'dv' ? 'އެކުގައި މަސައްކަތް ކުރުން' : 'Collaboration'}
+            {language === 'dv' ? 'އެއްބަސްވުން' : 'Collaboration'}
           </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                {language === 'dv' ? 'އެކުގައި މަސައްކަތް ކުރާ މީހުން' : 'Collaborators'}
-              </label>
-              <UserSelector
-                selectedUserIds={collaboratorHook.selectedUserIds}
+          {/* Article Collaborators */}
+          <div className="mb-4">
+            <label className={`block text-sm font-medium text-gray-700 mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+              {language === 'dv' ? 'އެއްބަސްވުމުގެ ބައިވެރިން' : 'Collaborators'}
+            </label>
+            <div className="mb-3">
+              <CollaboratorSelector
+                collaborators={collaboratorHook.selectedUserIds}
                 onChange={collaboratorHook.handleCollaboratorsChange}
                 language={language}
-                placeholder={language === 'dv' ? 'މީހުން އިޚްތިޔާރު ކުރައްވާ' : 'Select collaborators'}
-                currentUserId={user?.id}
+                placeholder={language === 'dv' ? 'އީމެއިލް އިތުރުކުރައްވާ' : 'Add collaborator email'}
               />
+              <p className="mt-1 text-xs text-gray-500">
+                {language === 'dv' ? 'އެއްބަސްވުމުގެ ބައިވެރިންގެ އީމެއިލް އެޑްރެސް އިތުރުކުރައްވާ' : 'Enter email addresses of collaborators'}
+              </p>
             </div>
-            
-            <div>
-              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                {language === 'dv' ? 'އެކުގައި މަސައްކަތް ކުރުމުގެ ނޯޓް' : 'Collaboration Notes'}
-              </label>
-              <CollaborativeTextArea
-                fieldId="collaborationNotes"
-                value={collaborationNotes}
-                onChange={setCollaborationNotes}
-                collaborative={collaborative}
-                currentUser={user?.email || ''}
-                placeholder={language === 'dv' ? 'އެކުގައި މަސައްކަތް ކުރުމުގެ ނޯޓް' : 'Collaboration notes'}
-                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                dir={language === 'dv' ? 'rtl' : 'ltr'}
-                rows={3}
-              />
-            </div>
-          </div>        </div>        {/* Article Content */}
-        <div className="space-y-2">
-          <label className={`block text-sm font-medium ${language === 'dv' ? 'text-right thaana-waheed' : 'text-left'} text-gray-700`}>
-            {language === 'dv' ? 'ލިޔުން' : 'Article Content'} *
-          </label>          <div className="border border-gray-300 rounded-lg overflow-hidden">
-            <EditorJSComponent
-              placeholder={language === 'dv' ? 'އާޓިކަލުގެ ތުންތައް ލިޔުއްވާ...' : 'Write your article content...'}
-              data={content || undefined}
-              onChange={setContent}
-              className="min-h-96"
+            <AuthorCollab 
+              activeUsers={collaborative.activeUsers}
+              collaboratorEmails={collaboratorHook.selectedUserIds}
+            />
+          </div>
+          
+          <div>
+            <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+              {language === 'dv' ? 'އެއްބަސްވުމުގެ ނޯޓް' : 'Collaboration Notes'}
+            </label>
+            <CollaborativeTextArea
+              fieldId="collaborationNotes"
+              value={collaborationNotes}
+              onChange={setCollaborationNotes}
               collaborative={collaborative}
+              currentUser={user?.email || ''}
+              placeholder={language === 'dv' ? 'އެކުގައި މަސައްކަތް ކުރުމުގެ ނޯޓް' : 'Collaboration notes'}
+              className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              dir={language === 'dv' ? 'rtl' : 'ltr'}
+              rows={3}
             />
           </div>
         </div>
-      </div><div className="flex justify-end gap-4 mt-6">
+
+        {/* Translation Information Section */}
+        <div className="mb-6 bg-amber-50 p-4 rounded-lg border border-amber-200">
+          <h3 className={`text-lg font-medium mb-3 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+            {language === 'dv' ? 'ތަރުޖަމާ މަޢުލޫމާތު' : 'Translation Information'}
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                {language === 'dv' ? 'އަސްލު ސޯސް URL' : 'Original Source URL'}
+              </label>
+              <CollaborativeInput
+                fieldId="originalSourceUrl"
+                value={originalSourceUrl}
+                onChange={setOriginalSourceUrl}
+                collaborative={collaborative}
+                currentUser={user?.email || ''}
+                placeholder="https://..."
+                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                {language === 'dv' ? 'ތަރުޖަމާ ސޯސް URL' : 'Translation Source URL'}
+              </label>
+              <CollaborativeInput
+                fieldId="translationSourceUrl"
+                value={translationSourceUrl}
+                onChange={setTranslationSourceUrl}
+                collaborative={collaborative}
+                currentUser={user?.email || ''}
+                placeholder="https://..."
+                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                {language === 'dv' ? 'ތަރުޖަމާ ސޯސް ބަސް' : 'Translation Source Language'}
+              </label>
+              <CollaborativeInput
+                fieldId="translationSourceLang"
+                value={translationSourceLang}
+                onChange={setTranslationSourceLang}
+                collaborative={collaborative}
+                currentUser={user?.email || ''}
+                placeholder={language === 'dv' ? 'މިސާލު: en, ar, hi' : 'e.g., en, ar, hi'}
+                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                dir={language === 'dv' ? 'rtl' : 'ltr'}
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                {language === 'dv' ? 'ތަރުޖަމާ ނޯޓް' : 'Translation Notes'}
+              </label>
+              <CollaborativeInput
+                fieldId="translationNotes"
+                value={translationNotes}
+                onChange={setTranslationNotes}
+                collaborative={collaborative}
+                currentUser={user?.email || ''}
+                placeholder={language === 'dv' ? 'ތަރުޖަމާ ނޯޓް' : 'Translation notes'}
+                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                dir={language === 'dv' ? 'rtl' : 'ltr'}
+              />            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Editor Content */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
+        <h3 className={`text-lg font-medium mb-3 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+          {language === 'dv' ? 'މަޟްމޫން' : 'Content'}
+        </h3>
+        <div className="relative">
+          {collaborative.isFieldLocked('content') && (
+            <div className="absolute inset-0 bg-gray-100/80 z-10 flex items-center justify-center rounded-lg">
+              <div className="bg-white p-4 rounded-lg shadow-lg">
+                <p className="text-sm text-gray-600">
+                  Content is being edited by {collaborative.getFieldLocker('content')}
+                </p>
+              </div>
+            </div>
+          )}
+          <EditorContent
+            editor={editor}
+            className="prose prose-lg max-w-none min-h-96 focus:outline-none"
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-4 mt-6">
         <button
           onClick={handleSaveDraft}
-          disabled={saving || (collaborative.fieldLocks && Object.keys(collaborative.fieldLocks).length > 0)}
+          disabled={saving}
           className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          title={collaborative.fieldLocks && Object.keys(collaborative.fieldLocks).length > 0 
-            ? (language === 'dv' ? 'ފީލްޑް ލޮކް ވެފައިވާތީ ސޭވް ކުރެވޭނެ ނޫން' : 'Cannot save due to locked fields')
-            : undefined
-          }
         >
-          {saving ? (
-            <Loader2 size={18} className="animate-spin" />
-          ) : (
-            <Save size={18} />
-          )}
+          <Save size={18} />
           <span className={language === 'dv' ? 'thaana-waheed' : ''}>
             {language === 'dv' ? 'ޑްރާފްޓް ކުރައްވާ' : 'Save as Draft'}
           </span>
         </button>
-        
         <button
           onClick={handleSendToReview}
           disabled={sendingToReview}
           className="px-6 py-2 rounded-lg border border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {sendingToReview ? (
-            <Loader2 size={18} className="animate-spin" />
-          ) : (
-            <Eye size={18} />
-          )}
+          <Eye size={18} />
           <span className={language === 'dv' ? 'thaana-waheed' : ''}>
             {language === 'dv' ? 'ރިވިއުއަށް ފޮނުވާ' : 'Send to Review'}
           </span>
         </button>
-        
         <button
           onClick={handlePublish}
           disabled={publishing}
           className="px-6 py-2 rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {publishing ? (
-            <Loader2 size={18} className="animate-spin" />
-          ) : (
-            <Send size={18} />
-          )}
+          <Send size={18} />
           <span className={language === 'dv' ? 'thaana-waheed' : ''}>
             {language === 'dv' ? 'ޝާއިޢު ކުރައްވާ' : 'Publish'}
           </span>

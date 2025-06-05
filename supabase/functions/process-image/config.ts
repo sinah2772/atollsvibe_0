@@ -1,4 +1,4 @@
-// @ts-ignore - This will be handled by Deno runtime
+// @ts-expect-error - This will be handled by Deno runtime
 import { defineConfig } from '@supabase/functions-js';
 
 export default defineConfig({

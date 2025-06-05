@@ -129,11 +129,13 @@ const Article = () => {
 
         {/* Cover Image */}
         <div className="mb-8">
-          <img
-            src={article.cover_image || defaultCoverImage}
-            alt={article.title}
-            className="w-full h-auto rounded-lg shadow-md"
-          />
+          <div className="relative group aspect-video rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500">
+            <img
+              src={article.cover_image || defaultCoverImage}
+              alt={article.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
           {article.image_caption && (
             <p className="text-sm text-gray-500 mt-2 italic">{article.image_caption}</p>
           )}

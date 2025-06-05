@@ -130,11 +130,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ articles, onDelete, onRefresh
                         disabled={deleting === article.id}
                         title="Delete article"
                       >
-                        {deleting === article.id ? (
-                          <span className="inline-block w-4 h-4 border-2 border-t-transparent border-gray-600 rounded-full animate-spin"></span>
-                        ) : (
-                          <Trash2 size={16} />
-                        )}
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </div>

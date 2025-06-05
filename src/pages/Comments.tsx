@@ -127,22 +127,38 @@ const Comments: React.FC = () => {
                     Reported
                   </span>
                 )}
-                <button className="p-1 hover:bg-gray-100 rounded-full" title="More options" aria-label="More options">
+                <button 
+                  className="p-1 hover:bg-gray-100 rounded-full" 
+                  title="More options" 
+                  aria-label="More options"
+                >
                   <MoreVertical size={20} className="text-gray-500" />
                 </button>
               </div>
             </div>
             
             <div className="flex items-center space-x-4 mt-4 pt-4 border-t border-gray-100">
-              <button className="flex items-center space-x-1 text-gray-500 hover:text-blue-600">
+              <button 
+                className="flex items-center space-x-1 text-gray-500 hover:text-blue-600"
+                aria-label="Like comment"
+                title="Like comment"
+              >
                 <ThumbsUp size={18} />
                 <span className="text-sm">{comment.likes}</span>
               </button>
-              <button className="flex items-center space-x-1 text-gray-500 hover:text-blue-600">
+              <button 
+                className="flex items-center space-x-1 text-gray-500 hover:text-blue-600"
+                aria-label="View replies"
+                title="View replies"
+              >
                 <MessageSquare size={18} />
                 <span className="text-sm">{comment.replies}</span>
               </button>
-              <button className="flex items-center space-x-1 text-gray-500 hover:text-red-600">
+              <button 
+                className="flex items-center space-x-1 text-gray-500 hover:text-red-600"
+                aria-label="Report comment"
+                title="Report comment"
+              >
                 <Flag size={18} />
                 <span className="text-sm">Report</span>
               </button>

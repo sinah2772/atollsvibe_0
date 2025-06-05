@@ -198,9 +198,8 @@ export const ColoredMultiSelect: React.FC<ColoredMultiSelectProps> = ({
                     e.stopPropagation();
                     handleRemove(selectedId);
                   }}
-                  className={`hover:text-opacity-80 ${language === 'dv' ? 'ml-0 mr-2' : 'ml-2'}`}
-                  aria-label={`Remove ${displayName}`}
-                  title={`Remove ${displayName}`}
+                  className={`hover:text-opacity-80 ${language === 'dv' ? 'ml-0 mr-2' : 'ml-2'}`}                  aria-label={language === 'dv' ? `${displayName} އުނިކުރައްވާ` : `Remove ${displayName}`}
+                  title={language === 'dv' ? `${displayName} އުނިކުރައްވާ` : `Remove ${displayName}`}
                 >
                   <X size={14} />
                 </button>

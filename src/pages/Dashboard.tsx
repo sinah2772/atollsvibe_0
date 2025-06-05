@@ -369,7 +369,7 @@ const Dashboard = () => {
                       className="flex items-start p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       {article.cover_image ? (
-                        <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+                        <div className="relative group aspect-video w-20 rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500 flex-shrink-0">
                           <img 
                             src={article.cover_image} 
                             alt={article.title}

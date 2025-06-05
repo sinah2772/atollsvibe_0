@@ -4,7 +4,6 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import MobileSidebar from './MobileSidebar';
 import { useUser } from '../../hooks/useUser';
-import { Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 const DashboardLayout: React.FC = () => {
@@ -67,7 +66,7 @@ const DashboardLayout: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <div className="w-12 h-12 mx-auto mb-4">Loading...</div>
           <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>

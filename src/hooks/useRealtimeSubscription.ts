@@ -1,19 +1,25 @@
 import { useEffect, useState } from 'react';
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
+interface DatabaseRecord {
+  id: string | number;
+  [key: string]: unknown;
+}
+
 // Custom hook for real-time subscriptions
-export function useRealtimeSubscription<T>(
+export function useRealtimeSubscription<T extends DatabaseRecord>(
   table: string,
   options: {
     event?: 'INSERT' | 'UPDATE' | 'DELETE' | '*';
     filter?: string;
-    filterValue?: any;
+    filterValue?: string | number | boolean;
     initialData?: T[];
-    callback?: (payload: any) => void;
+    callback?: (payload: RealtimePostgresChangesPayload<T>) => void;
   } = {}
 ) {
-  const [data, setData] = useState<T[]>(options.initialData || []);
+  const { event, filter, filterValue, initialData, callback } = options;
+  const [data, setData] = useState<T[]>(initialData || []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   
@@ -23,21 +29,21 @@ export function useRealtimeSubscription<T>(
     // Fetch initial data if not provided
     const fetchInitialData = async () => {
       try {
-        if (!options.initialData) {
+        if (!initialData) {
           let query = supabase.from(table).select('*');
           
-          if (options.filter && options.filterValue !== undefined) {
-            query = query.eq(options.filter, options.filterValue);
+          if (filter && filterValue !== undefined) {
+            query = query.eq(filter, filterValue);
           }
           
-          const { data: initialData, error: fetchError } = await query;
+          const { data: fetchedData, error: fetchError } = await query;
           
           if (fetchError) {
             throw fetchError;
           }
           
-          if (initialData) {
-            setData(initialData as T[]);
+          if (fetchedData) {
+            setData(fetchedData as T[]);
           }
         }
       } catch (err) {
@@ -49,10 +55,9 @@ export function useRealtimeSubscription<T>(
     };
     
     fetchInitialData();
-    
-    // Set up real-time subscription
-    let channelFilter = options.filter && options.filterValue !== undefined 
-      ? `${options.filter}=eq.${options.filterValue}`
+     // Set up real-time subscription
+    const channelFilter = filter && filterValue !== undefined 
+      ? `${filter}=eq.${filterValue}`
       : '';
       
     let channel: RealtimeChannel;
@@ -63,7 +68,7 @@ export function useRealtimeSubscription<T>(
         .on(
           'postgres_changes' as unknown as "system",
           {
-            event: options.event || '*', 
+            event: event || '*',
             schema: 'public',
             table,
             filter: channelFilter
@@ -77,7 +82,7 @@ export function useRealtimeSubscription<T>(
         .on(
           'postgres_changes' as unknown as "system",
           {
-            event: options.event || '*',
+            event: event || '*',
             schema: 'public',
             table
           },
@@ -87,14 +92,14 @@ export function useRealtimeSubscription<T>(
     }
     
     // Handle changes from real-time subscription
-    function handleRealtimeChange(payload: any) {
+    function handleRealtimeChange(payload: RealtimePostgresChangesPayload<T>) {
       const { eventType, new: newRecord, old: oldRecord } = payload;
       
       console.log(`Real-time event on ${table}:`, eventType, payload);
       
       // Call the optional callback if provided
-      if (options.callback) {
-        options.callback(payload);
+      if (callback) {
+        callback(payload);
       }
       
       // Update the local data state based on the event
@@ -104,13 +109,13 @@ export function useRealtimeSubscription<T>(
       else if (eventType === 'UPDATE') {
         setData(currentData => 
           currentData.map(item => 
-            (item as any).id === (newRecord as any).id ? newRecord as T : item
+            item.id === (newRecord as T).id ? newRecord as T : item
           )
         );
       } 
       else if (eventType === 'DELETE') {
         setData(currentData => 
-          currentData.filter(item => (item as any).id !== (oldRecord as any).id)
+          currentData.filter(item => item.id !== (oldRecord as T).id)
         );
       }
     }
@@ -119,7 +124,7 @@ export function useRealtimeSubscription<T>(
     return () => {
       channel.unsubscribe();
     };
-  }, [table, options.filter, options.filterValue, options.event, options.callback]);
+  }, [table, filter, filterValue, event, callback, initialData]);
   
   return { data, loading, error };
 }

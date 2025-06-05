@@ -152,8 +152,7 @@ export const UserSelector: React.FC<UserSelectorProps> = ({
                 <div className="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">
                   {getUserInitials(user)}
                 </div>
-                <span className="max-w-24 truncate">{getUserDisplayName(user)}</span>
-                <button
+                <span className="max-w-24 truncate">{getUserDisplayName(user)}</span>                <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -162,6 +161,7 @@ export const UserSelector: React.FC<UserSelectorProps> = ({
                   className="text-blue-600 hover:text-blue-800 ml-1"
                   disabled={disabled}
                   title={`Remove ${getUserDisplayName(user)}`}
+                  aria-label={`Remove ${getUserDisplayName(user)}`}
                 >
                   <X size={12} />
                 </button>

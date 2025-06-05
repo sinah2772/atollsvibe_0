@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { supabase } from '../lib/supabase';
 
@@ -156,7 +156,6 @@ const StorageImageGallery: React.FC<StorageImageGalleryProps> = ({
             className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}
           >
             {language === 'dv' ? 'ސްޓޯރޭޖް ބަކެޓް' : 'Storage Bucket'}
-            {loadingBuckets && <span className="ml-2 text-blue-600"><Loader2 className="w-4 h-4 inline animate-spin" /></span>}
           </label>
           <select
             id="bucket-select"
@@ -179,7 +178,7 @@ const StorageImageGallery: React.FC<StorageImageGalleryProps> = ({
   if (loading) {
     return (
       <div className="flex justify-center items-center p-12">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <div>Loading...</div>
       </div>
     );
   }

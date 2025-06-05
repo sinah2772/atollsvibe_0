@@ -8,7 +8,7 @@ export type FileObject = {
   created_at: string;
   last_accessed_at: string;
   updated_at: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   bucketId: string;
 };
 

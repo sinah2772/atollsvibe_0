@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Loader2, AlertCircle } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { AlertCircle } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 const ChangePassword: React.FC = () => {
   const navigate = useNavigate();
@@ -52,8 +52,9 @@ const ChangePassword: React.FC = () => {
       setTimeout(() => {
         navigate('/dashboard', { replace: true });
       }, 2000);
-    } catch (error: any) {
-      setMessage({ text: error.message || 'Failed to update password', type: 'error' });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update password';
+      setMessage({ text: errorMessage, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -146,9 +147,6 @@ const ChangePassword: React.FC = () => {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              {loading ? (
-                <Loader2 className="animate-spin h-5 w-5 mr-2" />
-              ) : null}
               Update Password
             </button>
           </div>

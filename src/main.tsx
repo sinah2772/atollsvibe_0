@@ -1,3 +1,7 @@
+// Import extension cache guard first for maximum protection
+import './utils/extensionCacheGuard';
+// Import content script suppressor for targeted extension fixes
+import './utils/contentScriptSuppressor';
 // Import content script safety first to prevent cache errors
 import './utils/contentScriptSafety';
 // Import global cache polyfill first to prevent browser extension conflicts
@@ -7,11 +11,19 @@ import './utils/setupCache';
 import './utils/extensionCompat'; // For browser extension compatibility
 import './utils/extensionErrorSuppressor'; // Advanced error suppression
 
+// Import extension error monitor in development mode
+if (import.meta.env.DEV) {
+  // @ts-expect-error - Development utility doesn't need strict typing
+  import('./utils/extensionErrorMonitor');
+}
+
 // Import cache polyfill test in development mode
 if (import.meta.env.DEV) {
   import('./utils/cachePolyfillTest');
   // @ts-expect-error - Test file doesn't need strict typing
   import('./utils/cacheStorageTest');
+  // @ts-expect-error - Test file doesn't need strict typing
+  import('./utils/polyfillTest');
 }
 
 import { StrictMode } from 'react';

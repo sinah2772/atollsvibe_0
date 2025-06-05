@@ -686,7 +686,7 @@ const Articles = () => {
                   {/* Article Image */}
                   <div className="flex-shrink-0 mr-4">
                     {article.cover_image ? (
-                      <div className="w-32 h-24 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                      <div className="relative group aspect-video w-32 rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500 cursor-pointer hover:opacity-90 transition-opacity flex-shrink-0"
                            onClick={() => article.cover_image && window.open(article.cover_image, '_blank')}
                            title="Click to view full image">
                         <img
@@ -706,6 +706,7 @@ const Articles = () => {
                       to={`/dashboard/edit-article/${article.id}`}
                       className="text-gray-600 hover:text-blue-600 p-2"
                       title="Edit article"
+                      aria-label="Edit article"
                     >
                       <Edit size={20} />
                     </Link>
@@ -764,11 +765,7 @@ const Articles = () => {
                       aria-label="Delete article"
                       title="Delete article"
                     >
-                      {deleting === article.id ? (
-                        <span className="inline-block w-5 h-5 border-2 border-t-transparent border-gray-600 rounded-full animate-spin"></span>
-                      ) : (
-                        <Trash2 size={20} />
-                      )}
+                      <Trash2 size={20} />
                     </button>
                   </div>
                 </div>

@@ -11,30 +11,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* EditorJS RTL/LTR Support */
-.editor-rtl {
-  direction: rtl;
-}
-
-.editor-ltr {
-  direction: ltr;
-}
-
-/* EditorJS Block Styling for Thaana */
-.editor-rtl .ce-block__content,
-.editor-rtl .ce-toolbar,
-.editor-rtl .ce-inline-toolbar {
-  direction: rtl;
-  text-align: right;
-}
-
-.editor-ltr .ce-block__content,
-.editor-ltr .ce-toolbar,
-.editor-ltr .ce-inline-toolbar {
-  direction: ltr;
-  text-align: left;
-}
-
 @font-face {
   font-family: 'MV Waheed';
   /* Fallback to Noto Sans Thaana if MV Waheed is not available */
@@ -146,5 +122,71 @@
   /* Optional hover effect */
   .kanban-card:hover {
     background: #dbeafe;
+  }
+
+  /* Block Editor Styles */
+  .block-editor {
+    @apply leading-relaxed;
+  }
+
+  .block-editor .block-image {
+    @apply max-w-full h-auto rounded-lg shadow-sm my-4 mx-auto block;
+  }
+
+  .block-editor .youtube-embed {
+    @apply my-4 rounded-lg overflow-hidden;
+  }
+
+  .block-editor .code-block {
+    @apply bg-gray-900 text-gray-100 p-4 rounded-lg my-4 overflow-x-auto;
+  }
+
+  .block-editor .task-list {
+    @apply list-none pl-0;
+  }
+
+  .block-editor .task-item {
+    @apply flex items-start gap-2 mb-2;
+  }
+
+  .block-editor table {
+    @apply table-auto border-collapse border border-gray-300 my-4 w-full;
+  }
+
+  .block-editor th,
+  .block-editor td {
+    @apply border border-gray-300 px-4 py-2;
+  }
+
+  .block-editor th {
+    @apply bg-gray-50 font-semibold text-left;
+  }
+
+  .block-editor blockquote {
+    @apply border-l-4 border-gray-300 pl-4 italic my-4;
+  }
+
+  .block-editor hr {
+    @apply border-t border-gray-300 my-6;
+  }
+
+  .block-editor .ProseMirror {
+    @apply outline-none;
+  }
+
+  .block-editor ul[data-type="taskList"] {
+    @apply list-none pl-0;
+  }
+
+  .block-editor li[data-type="taskItem"] {
+    @apply flex gap-2 items-start;
+  }
+
+  .block-editor li[data-type="taskItem"] > label {
+    @apply flex-shrink-0 cursor-pointer;
+  }
+
+  .block-editor li[data-type="taskItem"] > div {
+    @apply flex-1;
   }
 }

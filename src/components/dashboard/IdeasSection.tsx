@@ -313,6 +313,8 @@ const IdeasSection: React.FC<IdeasSectionProps> = ({ language = 'en' }) => {
                     <button
                       onClick={() => handleStatusChange(idea.id)}
                       className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(idea.status)}`}
+                      aria-label={`Change status: ${getStatusText(idea.status)}`}
+                      title={`Change status: ${getStatusText(idea.status)}`}
                     >
                       {getStatusText(idea.status)}
                     </button>

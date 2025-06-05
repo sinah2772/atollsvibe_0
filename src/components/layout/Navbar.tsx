@@ -170,6 +170,8 @@ const Navbar: React.FC<HeaderProps> = () => {
                         handleSignOut();
                       }}
                       className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 text-left"
+                      aria-label="Sign out of your account"
+                      title="Sign out of your account"
                     >
                       <LogOut size={16} className="mr-2" />
                       Sign Out
@@ -192,6 +194,8 @@ const Navbar: React.FC<HeaderProps> = () => {
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="md:hidden p-2 hover:bg-gray-100 rounded-lg"
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+            title={isOpen ? "Close menu" : "Open menu"}
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>

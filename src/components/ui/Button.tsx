@@ -54,14 +54,25 @@ const Button: React.FC<ButtonProps> = ({
     onClick?.(e);
   };
 
+  // Prepare accessible label
+  const ariaLabel = props['aria-label'] || 
+    (language === 'dv' 
+      ? `${children} ${variant === 'add' ? 'އިތުރުކުރައްވާ' : variant === 'edit' ? 'އެޑިޓްކުރައްވާ' : 'ޑިލީޓްކުރައްވާ'}`
+      : `${variant === 'add' ? 'Add' : variant === 'edit' ? 'Edit' : 'Delete'} ${children}`);
+
   return (
     <button
       className={`${baseStyles} ${variants[variant]} ${fullWidth ? 'w-full' : ''} ${className}`}
       onClick={handleClick}
       dir={language === 'dv' ? 'rtl' : 'ltr'}
+      disabled={loading || props.disabled}
+      aria-label={ariaLabel}
+      title={ariaLabel}
       {...props}
     >
-      {language === 'dv' ? (
+      {loading ? (
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+      ) : language === 'dv' ? (
         <>
           {children}
           {icons[variant]}

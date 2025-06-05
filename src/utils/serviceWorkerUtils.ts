@@ -76,10 +76,10 @@ export const checkServiceWorker = async (): Promise<boolean> => {
  * @returns A promise that resolves to the response from the service worker, or undefined if no response
  */
 export const sendMessageToServiceWorker = async (
-  message: any, 
+  message: Record<string, unknown>, 
   expectResponse: boolean = false,
   timeout: number = 3000
-): Promise<any | undefined> => {
+): Promise<unknown | undefined> => {
   if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) {
     console.error('No active service worker found');
     return undefined;

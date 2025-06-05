@@ -27,7 +27,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
           {article.coverImage ? (
             <img 
               src={article.coverImage}
-              alt={language === 'dv' ? article.heading : article.title}
+              alt={article.title}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -51,7 +51,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
 
         <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
           <h3 className={`font-medium mb-2 line-clamp-2 ${language === 'dv' ? 'thaana-waheed text-right' : ''}`}>
-            {language === 'dv' ? article.heading : article.title}
+            {article.title}
           </h3>
           
           <div className="flex items-center justify-between text-xs text-gray-300">
@@ -90,6 +90,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
               onClick={() => onEdit(article.id)}
               className="p-1.5 bg-white/90 hover:bg-white rounded-full text-gray-700 hover:text-blue-600 transition-colors"
               title={language === 'dv' ? 'އެޑިޓްކުރައްވާ' : 'Edit'}
+              aria-label={language === 'dv' ? 'އެޑިޓްކުރައްވާ' : 'Edit'}
             >
               <Edit size={16} />
             </button>
@@ -99,6 +100,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
               onClick={() => onDelete(article.id)}
               className="p-1.5 bg-white/90 hover:bg-white rounded-full text-gray-700 hover:text-red-600 transition-colors"
               title={language === 'dv' ? 'ޑިލީޓްކުރައްވާ' : 'Delete'}
+              aria-label={language === 'dv' ? 'ޑިލީޓްކުރައްވާ' : 'Delete'}
             >
               <Trash2 size={16} />
             </button>
@@ -111,11 +113,11 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
       <div className="flex flex-col md:flex-row gap-4">
-        <div className="md:w-[200px] h-[120px] flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+        <div className="relative group aspect-video md:w-[200px] flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500">
           {article.coverImage ? (
             <img 
               src={article.coverImage}
-              alt={language === 'dv' ? article.heading : article.title}
+              alt={article.title}
               className="w-full h-full object-cover"
               loading="lazy"
             />
@@ -140,28 +142,29 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
                 )}
               </div>
               <h3 className={`font-medium text-gray-900 mb-1 line-clamp-2 ${language === 'dv' ? 'thaana-waheed text-right' : ''}`}>
-                {language === 'dv' ? article.heading : article.title}
+                {article.title}
               </h3>
               <p className={`text-sm text-gray-500 line-clamp-2 ${language === 'dv' ? 'thaana-waheed text-right' : ''}`}>
-                {language === 'dv' ? article.title : article.heading}
+                {language === 'dv' ? article.title : article.title}
               </p>
             </div>
 
             <div className="flex items-center gap-2">
-              {onEdit && (
-                <button
-                  onClick={() => onEdit(article.id)}
-                  className="p-1.5 hover:bg-gray-100 rounded-full text-gray-500 hover:text-blue-600 transition-colors"
-                  title={language === 'dv' ? 'އެޑިޓްކުރައްވާ' : 'Edit'}
-                >
-                  <Edit size={16} />
-                </button>
+              {onEdit && (              <button
+                onClick={() => onEdit(article.id)}
+                className="p-1.5 hover:bg-gray-100 rounded-full text-gray-500 hover:text-blue-600 transition-colors"
+                title={language === 'dv' ? 'އެޑިޓްކުރައްވާ' : 'Edit'}
+                aria-label={language === 'dv' ? 'އެޑިޓްކުރައްވާ' : 'Edit'}
+              >
+                <Edit size={16} />
+              </button>
               )}
               {onDelete && (
                 <button
                   onClick={() => onDelete(article.id)}
                   className="p-1.5 hover:bg-gray-100 rounded-full text-gray-500 hover:text-red-600 transition-colors"
                   title={language === 'dv' ? 'ޑިލީޓްކުރައްވާ' : 'Delete'}
+                  aria-label={language === 'dv' ? 'ޑިލީޓްކުރައްވާ' : 'Delete'}
                 >
                   <Trash2 size={16} />
                 </button>

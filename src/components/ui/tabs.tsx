@@ -12,7 +12,7 @@ export const Tabs: React.FC<TabsProps> = ({ defaultValue, className = "", childr
   // Clone children and pass activeTab to them
   const childrenWithProps = React.Children.map(children, (child) => {
     if (React.isValidElement(child)) {
-      return React.cloneElement(child as React.ReactElement<any>, {
+      return React.cloneElement(child as React.ReactElement<{ activeTab?: string; onTabChange?: (tab: string) => void }>, {
         activeTab: activeTab,
         onTabChange: setActiveTab,
       });
@@ -43,7 +43,7 @@ export const TabsList: React.FC<TabsListProps> = ({
   // Clone children and pass activeTab to them
   const childrenWithProps = React.Children.map(children, (child) => {
     if (React.isValidElement(child)) {
-      return React.cloneElement(child as React.ReactElement<any>, {
+      return React.cloneElement(child as React.ReactElement<{ activeTab?: string; onTabChange?: (tab: string) => void }>, {
         activeTab: activeTab,
         onTabChange: onTabChange,
       });
