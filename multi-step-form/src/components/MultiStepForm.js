@@ -256,10 +256,8 @@ const MultiStepForm = () => {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Form Card */}
-        <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
+        </div>        {/* Form Card */}
+        <div className="glass-card p-6 md:p-8">
           {/* Step Header */}
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -287,7 +285,7 @@ const MultiStepForm = () => {
                 flex items-center px-6 py-3 rounded-lg font-medium transition-all duration-200
                 ${currentStep === 0
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'glass-button'
                 }
               `}
             >
@@ -303,7 +301,7 @@ const MultiStepForm = () => {
                   flex items-center px-8 py-3 rounded-lg font-medium text-white transition-all duration-200
                   ${isSubmitting
                     ? 'bg-blue-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700'
+                    : 'glass-button'
                   }
                 `}
               >
@@ -322,7 +320,7 @@ const MultiStepForm = () => {
             ) : (
               <button
                 onClick={nextStep}
-                className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all duration-200"
+                className="glass-button flex items-center px-6 py-3 text-white rounded-lg font-medium transition-all duration-200"
               >
                 Next
                 <ChevronRightIcon className="w-5 h-5 ml-2" />

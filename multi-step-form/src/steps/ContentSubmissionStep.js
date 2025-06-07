@@ -8,29 +8,28 @@ const ContentSubmissionStep = ({ formData, updateFormData, errors }) => {
 
   // Simple mock for rich text editor
   const [isToolbarVisible, setIsToolbarVisible] = React.useState(false);
-
   return (
     <div className="space-y-6">
-      <div className="form-group">
+      <div className="glass-card p-4">
         <label className="form-label">
           Main Content *
         </label>
-        <div className="rich-text-editor-container">
+        <div className="glass-card p-4">
           {isToolbarVisible && (
-            <div className="rich-text-toolbar">
-              <button type="button" className="toolbar-btn">B</button>
-              <button type="button" className="toolbar-btn">I</button>
-              <button type="button" className="toolbar-btn">U</button>
-              <button type="button" className="toolbar-btn">H1</button>
-              <button type="button" className="toolbar-btn">H2</button>
-              <button type="button" className="toolbar-btn">Quote</button>
-              <button type="button" className="toolbar-btn">Link</button>
-              <button type="button" className="toolbar-btn">Image</button>
-              <button type="button" className="toolbar-btn">List</button>
+            <div className="glass-card p-2 mb-2">
+              <button type="button" className="glass-button mr-2">B</button>
+              <button type="button" className="glass-button mr-2">I</button>
+              <button type="button" className="glass-button mr-2">U</button>
+              <button type="button" className="glass-button mr-2">H1</button>
+              <button type="button" className="glass-button mr-2">H2</button>
+              <button type="button" className="glass-button mr-2">Quote</button>
+              <button type="button" className="glass-button mr-2">Link</button>
+              <button type="button" className="glass-button mr-2">Image</button>
+              <button type="button" className="glass-button">List</button>
             </div>
           )}
           <textarea
-            className={`rich-text-area ${errors.mainContent ? 'error' : ''}`}
+            className={`glass-input ${errors.mainContent ? 'error' : ''}`}
             value={formData.content?.mainContent || ''}
             onChange={(e) => handleChange('mainContent', e.target.value)}
             onFocus={() => setIsToolbarVisible(true)}
@@ -49,26 +48,26 @@ const ContentSubmissionStep = ({ formData, updateFormData, errors }) => {
         )}
       </div>
 
-      <div className="submission-options">
+      <div className="glass-card p-4">
         <p className="text-sm text-gray-600 mb-4">When you're ready, choose one of the following options:</p>
         <div className="flex flex-wrap gap-4">
           <button 
             type="button" 
-            className="btn btn-outline"
+            className="glass-button"
             onClick={() => handleChange('submissionStatus', 'draft')}
           >
             Save as Draft
           </button>
           <button 
             type="button" 
-            className="btn btn-secondary"
+            className="glass-button"
             onClick={() => handleChange('submissionStatus', 'review')}
           >
             Send to Review
           </button>
           <button 
             type="button" 
-            className="btn btn-primary"
+            className="glass-button"
             onClick={() => handleChange('submissionStatus', 'publish')}
           >
             Publish Now

@@ -5,11 +5,10 @@ const ArticleOptionsStep = ({ formData, updateFormData }) => {
   const handleChange = (field, value) => {
     updateFormData('articleOptions', { [field]: value });
   };
-
   return (
     <div className="space-y-6">
-      <div className="checkbox-group feature-options">
-        <div className="feature-option">
+      <div className="glass-card p-4">
+        <div className="glass-card p-4">
           <input
             type="checkbox"
             id="breaking-news"
@@ -22,7 +21,7 @@ const ArticleOptionsStep = ({ formData, updateFormData }) => {
           </label>
         </div>
         
-        <div className="feature-option">
+        <div className="glass-card p-4 mt-4">
           <input
             type="checkbox"
             id="featured"
@@ -35,7 +34,7 @@ const ArticleOptionsStep = ({ formData, updateFormData }) => {
           </label>
         </div>
         
-        <div className="feature-option">
+        <div className="glass-card p-4 mt-4">
           <input
             type="checkbox"
             id="developing-story"
@@ -48,7 +47,7 @@ const ArticleOptionsStep = ({ formData, updateFormData }) => {
           </label>
         </div>
         
-        <div className="feature-option">
+        <div className="glass-card p-4 mt-4">
           <input
             type="checkbox"
             id="exclusive"
@@ -61,7 +60,7 @@ const ArticleOptionsStep = ({ formData, updateFormData }) => {
           </label>
         </div>
         
-        <div className="feature-option">
+        <div className="glass-card p-4 mt-4">
           <input
             type="checkbox"
             id="sponsored"

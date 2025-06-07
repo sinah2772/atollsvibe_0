@@ -22,21 +22,22 @@ const SeoNotesStep = ({ formData, updateFormData }) => {
       handleChange('seoKeywords', formData.metadata.tags.join(', '));
     }
   }, [formData.articleIdentity, formData.metadata?.tags]);
-
   return (
     <div className="space-y-6">
-      <div className="form-group">
+      <div className="glass-card p-4">
         <label className="form-label">
           SEO Title
         </label>
         <input
           type="text"
-          className="form-input"
+          className="glass-input"
           value={formData.seoNotes?.seoTitle || ''}
           onChange={(e) => handleChange('seoTitle', e.target.value)}
           placeholder="SEO optimized title (auto-generated, can edit)"
         />
-        <p className="help-text">Recommended length: 50-60 characters</p>
+        <div className="glass-card p-2 mt-2">
+          <p className="help-text">Recommended length: 50-60 characters</p>
+        </div>
         {formData.seoNotes?.seoTitle && (
           <div className="character-count">
             {formData.seoNotes.seoTitle.length} characters
@@ -44,18 +45,20 @@ const SeoNotesStep = ({ formData, updateFormData }) => {
         )}
       </div>
 
-      <div className="form-group">
+      <div className="glass-card p-4">
         <label className="form-label">
           SEO Description
         </label>
         <textarea
-          className="form-textarea"
+          className="glass-input"
           value={formData.seoNotes?.seoDescription || ''}
           onChange={(e) => handleChange('seoDescription', e.target.value)}
           placeholder="Meta description for search engines (auto-generated, can edit)"
           rows="3"
         ></textarea>
-        <p className="help-text">Recommended length: 120-155 characters</p>
+        <div className="glass-card p-2 mt-2">
+          <p className="help-text">Recommended length: 120-155 characters</p>
+        </div>
         {formData.seoNotes?.seoDescription && (
           <div className="character-count">
             {formData.seoNotes.seoDescription.length} characters
@@ -63,25 +66,25 @@ const SeoNotesStep = ({ formData, updateFormData }) => {
         )}
       </div>
 
-      <div className="form-group">
+      <div className="glass-card p-4">
         <label className="form-label">
           SEO Keywords
         </label>
         <input
           type="text"
-          className="form-input"
+          className="glass-input"
           value={formData.seoNotes?.seoKeywords || ''}
           onChange={(e) => handleChange('seoKeywords', e.target.value)}
           placeholder="Comma-separated keywords (auto-generated from tags, can edit)"
         />
       </div>
 
-      <div className="form-group">
+      <div className="glass-card p-4">
         <label className="form-label">
           Author Notes
         </label>
         <textarea
-          className="form-textarea"
+          className="glass-input"
           value={formData.seoNotes?.authorNotes || ''}
           onChange={(e) => handleChange('authorNotes', e.target.value)}
           placeholder="Add any notes for editors (not published)"
@@ -89,12 +92,12 @@ const SeoNotesStep = ({ formData, updateFormData }) => {
         ></textarea>
       </div>
 
-      <div className="form-group">
+      <div className="glass-card p-4">
         <label className="form-label">
           Editor Notes
         </label>
         <textarea
-          className="form-textarea"
+          className="glass-input"
           value={formData.seoNotes?.editorNotes || ''}
           onChange={(e) => handleChange('editorNotes', e.target.value)}
           placeholder="Editor's notes about this article (not published)"

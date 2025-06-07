@@ -4,8 +4,8 @@ import { Facebook, Twitter, Instagram } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-white border-t border-gray-200 mt-12">
-      <div className="container mx-auto px-4 py-8">
+    <footer className="bg-white border-t border-gray-200 mt-16">
+      <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <h3 className="text-lg font-semibold mb-4">Habaru</h3>
@@ -59,13 +59,13 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4 thaana-waheed">ސޯޝަލް މީޑިއާ</h3>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-600 hover:text-blue-600">
+              <a href="#" className="text-gray-600 hover:text-blue-600" aria-label="Facebook">
                 <Facebook size={24} />
               </a>
-              <a href="#" className="text-gray-600 hover:text-blue-600">
+              <a href="#" className="text-gray-600 hover:text-blue-600" aria-label="Twitter">
                 <Twitter size={24} />
               </a>
-              <a href="#" className="text-gray-600 hover:text-blue-600">
+              <a href="#" className="text-gray-600 hover:text-blue-600" aria-label="Instagram">
                 <Instagram size={24} />
               </a>
             </div>

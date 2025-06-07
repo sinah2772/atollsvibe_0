@@ -57,13 +57,12 @@ const PreferencesStep = ({ formData, updateFormData, errors }) => {
         <div className="grid grid-cols-2 gap-3">
           {interests.map((interest) => {
             const isSelected = formData.preferences?.interests?.includes(interest) || false;
-            return (
-              <label
+            return (              <label
                 key={interest}
-                className={`relative flex items-center p-3 border rounded-lg cursor-pointer transition-all duration-200 ${
+                className={`glass-card relative flex items-center p-3 cursor-pointer transition-all duration-200 ${
                   isSelected
-                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                    : 'border-gray-300 bg-white hover:border-gray-400'
+                    ? 'text-indigo-700'
+                    : 'hover:border-gray-400'
                 }`}
               >
                 <input
@@ -97,10 +96,9 @@ const PreferencesStep = ({ formData, updateFormData, errors }) => {
         <div className="space-y-2">
           {communicationMethods.map((method) => {
             const isSelected = formData.preferences?.communication?.includes(method.value) || false;
-            return (
-              <label
+            return (              <label
                 key={method.value}
-                className="flex items-center p-3 border rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                className="glass-card flex items-center p-3 cursor-pointer hover:border-gray-400 transition-colors"
               >
                 <input
                   type="checkbox"

@@ -8,20 +8,12 @@ const ContactInfoStep = ({ formData, updateFormData, errors }) => {
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
             Email Address *
-          </label>
-          <input
+          </label>          <input
             type="email"
             id="email"
             value={formData.email}
             onChange={(e) => updateFormData('email', e.target.value)}
-            className={`
-              w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-              transition-all duration-200
-              ${errors.email 
-                ? 'border-red-300 bg-red-50' 
-                : 'border-gray-300 focus:border-blue-500'
-              }
-            `}
+            className={`glass-input ${errors.email ? 'error' : ''}`}
             placeholder="your.email@example.com"
           />
           {errors.email && (
@@ -33,20 +25,12 @@ const ContactInfoStep = ({ formData, updateFormData, errors }) => {
         <div>
           <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
             Phone Number *
-          </label>
-          <input
+          </label>          <input
             type="tel"
             id="phone"
             value={formData.phone}
             onChange={(e) => updateFormData('phone', e.target.value)}
-            className={`
-              w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-              transition-all duration-200
-              ${errors.phone 
-                ? 'border-red-300 bg-red-50' 
-                : 'border-gray-300 focus:border-blue-500'
-              }
-            `}
+            className={`glass-input ${errors.phone ? 'error' : ''}`}
             placeholder="+1 (555) 123-4567"
           />
           {errors.phone && (
@@ -59,20 +43,12 @@ const ContactInfoStep = ({ formData, updateFormData, errors }) => {
       <div>
         <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
           Street Address *
-        </label>
-        <input
+        </label>        <input
           type="text"
           id="address"
           value={formData.address}
           onChange={(e) => updateFormData('address', e.target.value)}
-          className={`
-            w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-            transition-all duration-200
-            ${errors.address 
-              ? 'border-red-300 bg-red-50' 
-              : 'border-gray-300 focus:border-blue-500'
-            }
-          `}
+          className={`glass-input ${errors.address ? 'error' : ''}`}
           placeholder="123 Main Street, Apt 4B"
         />
         {errors.address && (
@@ -85,20 +61,12 @@ const ContactInfoStep = ({ formData, updateFormData, errors }) => {
         <div>
           <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
             City *
-          </label>
-          <input
+          </label>          <input
             type="text"
             id="city"
             value={formData.city}
             onChange={(e) => updateFormData('city', e.target.value)}
-            className={`
-              w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-              transition-all duration-200
-              ${errors.city 
-                ? 'border-red-300 bg-red-50' 
-                : 'border-gray-300 focus:border-blue-500'
-              }
-            `}
+            className={`glass-input ${errors.city ? 'error' : ''}`}
             placeholder="New York"
           />
           {errors.city && (
@@ -110,20 +78,12 @@ const ContactInfoStep = ({ formData, updateFormData, errors }) => {
         <div>
           <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-2">
             ZIP Code *
-          </label>
-          <input
+          </label>          <input
             type="text"
             id="zipCode"
             value={formData.zipCode}
             onChange={(e) => updateFormData('zipCode', e.target.value)}
-            className={`
-              w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-              transition-all duration-200
-              ${errors.zipCode 
-                ? 'border-red-300 bg-red-50' 
-                : 'border-gray-300 focus:border-blue-500'
-              }
-            `}
+            className={`glass-input ${errors.zipCode ? 'error' : ''}`}
             placeholder="10001"
           />
           {errors.zipCode && (
@@ -133,7 +93,7 @@ const ContactInfoStep = ({ formData, updateFormData, errors }) => {
       </div>
 
       {/* Contact Preferences */}
-      <div className="bg-gray-50 p-4 rounded-lg">
+      <div className="glass-card p-4">
         <h3 className="text-sm font-medium text-gray-900 mb-3">Contact Preferences</h3>
         <div className="space-y-2">
           <label className="flex items-center">

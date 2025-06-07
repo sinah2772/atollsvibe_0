@@ -137,7 +137,7 @@ const ArticleAnalytics: React.FC<ArticleAnalyticsProps> = ({ articles }) => {  c
       </div>
     </div>
   );  return (
-    <div className="dashboard-bg min-h-screen">
+    <div className="min-h-screen">
       <div className="dashboard-container space-y-6">
         <div className="glass-card p-6 rounded-xl">
           <div className="flex items-center justify-between">

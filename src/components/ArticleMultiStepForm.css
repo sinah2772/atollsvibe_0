@@ -138,7 +138,7 @@
 
 /* Dashboard background styling */
 .dashboard-bg {
-  background: linear-gradient(135deg, #ebf8ff 0%, #e0e7ff 100%);
+  background: transparent;
   min-height: 100vh;
   position: relative;
 }
@@ -150,8 +150,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  opacity: 0.05;
+  background: transparent;
+  opacity: 0;
   z-index: 0;
 }
 
@@ -315,7 +315,7 @@ html {
 
 /* Dashboard Background with Gradient */
 .dashboard-bg {
-  background: linear-gradient(135deg, #ebf8ff 0%, #e0e7ff 100%);
+  background: transparent;
   min-height: 100vh;
   position: relative;
 }
@@ -327,8 +327,8 @@ html {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  opacity: 0.05;
+  background: transparent;
+  opacity: 0;
   z-index: 0;
 }
 

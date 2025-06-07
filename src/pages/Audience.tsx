@@ -46,7 +46,7 @@ const COLORS = ['#1E40AF', '#60A5FA', '#93C5FD', '#BFDBFE', '#DBEAFE'];
 
 const Audience: React.FC = () => {
   return (
-    <div className="dashboard-bg min-h-screen">
+    <div className="min-h-screen">
       <div className="dashboard-container space-y-6">
         <div className="glass-card p-6 rounded-xl">
           <h1 className="text-2xl font-bold text-gray-900">Audience Insights</h1>
@@ -143,7 +143,7 @@ const Audience: React.FC = () => {
                     dataKey="value"
                     label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
                   >
-                    {locationData.map((entry, index) => (
+                    {locationData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>

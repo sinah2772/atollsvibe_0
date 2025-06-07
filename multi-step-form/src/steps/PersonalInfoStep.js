@@ -8,20 +8,12 @@ const PersonalInfoStep = ({ formData, updateFormData, errors }) => {
         <div>
           <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
             First Name *
-          </label>
-          <input
+          </label>          <input
             type="text"
             id="firstName"
             value={formData.firstName}
             onChange={(e) => updateFormData('firstName', e.target.value)}
-            className={`
-              w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-              transition-all duration-200
-              ${errors.firstName 
-                ? 'border-red-300 bg-red-50' 
-                : 'border-gray-300 focus:border-blue-500'
-              }
-            `}
+            className={`glass-input ${errors.firstName ? 'error' : ''}`}
             placeholder="Enter your first name"
           />
           {errors.firstName && (
@@ -33,20 +25,12 @@ const PersonalInfoStep = ({ formData, updateFormData, errors }) => {
         <div>
           <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
             Last Name *
-          </label>
-          <input
+          </label>          <input
             type="text"
             id="lastName"
             value={formData.lastName}
             onChange={(e) => updateFormData('lastName', e.target.value)}
-            className={`
-              w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-              transition-all duration-200
-              ${errors.lastName 
-                ? 'border-red-300 bg-red-50' 
-                : 'border-gray-300 focus:border-blue-500'
-              }
-            `}
+            className={`glass-input ${errors.lastName ? 'error' : ''}`}
             placeholder="Enter your last name"
           />
           {errors.lastName && (
@@ -60,20 +44,12 @@ const PersonalInfoStep = ({ formData, updateFormData, errors }) => {
         <div>
           <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-2">
             Date of Birth *
-          </label>
-          <input
+          </label>          <input
             type="date"
             id="dateOfBirth"
             value={formData.dateOfBirth}
             onChange={(e) => updateFormData('dateOfBirth', e.target.value)}
-            className={`
-              w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-              transition-all duration-200
-              ${errors.dateOfBirth 
-                ? 'border-red-300 bg-red-50' 
-                : 'border-gray-300 focus:border-blue-500'
-              }
-            `}
+            className={`glass-input ${errors.dateOfBirth ? 'error' : ''}`}
           />
           {errors.dateOfBirth && (
             <p className="mt-2 text-sm text-red-600">{errors.dateOfBirth}</p>
@@ -84,19 +60,11 @@ const PersonalInfoStep = ({ formData, updateFormData, errors }) => {
         <div>
           <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
             Gender *
-          </label>
-          <select
+          </label>          <select
             id="gender"
             value={formData.gender}
             onChange={(e) => updateFormData('gender', e.target.value)}
-            className={`
-              w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-              transition-all duration-200
-              ${errors.gender 
-                ? 'border-red-300 bg-red-50' 
-                : 'border-gray-300 focus:border-blue-500'
-              }
-            `}
+            className={`glass-input ${errors.gender ? 'error' : ''}`}
           >
             <option value="">Select gender</option>
             <option value="male">Male</option>
@@ -108,10 +76,8 @@ const PersonalInfoStep = ({ formData, updateFormData, errors }) => {
             <p className="mt-2 text-sm text-red-600">{errors.gender}</p>
           )}
         </div>
-      </div>
-
-      {/* Additional Info */}
-      <div className="bg-blue-50 p-4 rounded-lg">
+      </div>      {/* Additional Info */}
+      <div className="glass-card p-4">
         <h3 className="text-sm font-medium text-blue-900 mb-2">Why do we need this information?</h3>
         <p className="text-sm text-blue-700">
           This information helps us personalize your experience and ensure we're providing 

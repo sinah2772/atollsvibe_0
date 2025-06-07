@@ -79,10 +79,8 @@ const ReviewStep = ({ formData, errors, onEdit }) => {
         <p className="text-sm text-gray-600 mb-6">
           Please review all the information you've provided. You can edit any section by clicking the "Edit" button.
         </p>
-      </div>
-
-      {hasErrors && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      </div>      {hasErrors && (
+        <div className="glass-card p-4 mb-6 border-red-200">
           <div className="flex items-start">
             <XCircleIcon className="h-5 w-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" />
             <div>
@@ -97,10 +95,8 @@ const ReviewStep = ({ formData, errors, onEdit }) => {
             </div>
           </div>
         </div>
-      )}
-
-      {sections.map((section) => (
-        <div key={section.title} className="bg-white border border-gray-200 rounded-lg p-6">
+      )}      {sections.map((section) => (
+        <div key={section.title} className="glass-card p-6">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-md font-medium text-gray-900 flex items-center">
               <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
@@ -128,10 +124,8 @@ const ReviewStep = ({ formData, errors, onEdit }) => {
             ))}
           </div>
         </div>
-      ))}
-
-      {/* Terms and Conditions */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+      ))}      {/* Terms and Conditions */}
+      <div className="glass-card p-6">
         <h4 className="text-md font-medium text-gray-900 mb-4">
           Terms and Conditions
         </h4>
@@ -163,10 +157,8 @@ const ReviewStep = ({ formData, errors, onEdit }) => {
             </span>
           </label>
         </div>
-      </div>
-
-      {/* Submission Note */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      </div>      {/* Submission Note */}
+      <div className="glass-card p-4 border-blue-200">
         <div className="flex items-start">
           <CheckCircleIcon className="h-5 w-5 text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
           <div>

@@ -67,14 +67,13 @@ const ClassificationStep = ({ formData, updateFormData, errors }) => {
   const availableSubcategories = Array.from(new Set(
     (formData.classification?.categories || []).flatMap(cat => subcategories[cat] || [])
   ));
-
   return (
     <div className="space-y-6">
-      <div className="form-group">
+      <div className="glass-card p-4">
         <label className="form-label">
           Categories (Multi-select) *
         </label>
-        <div className={`checkbox-group ${errors.categories ? 'error-border' : ''}`}>
+        <div className={`glass-card p-4 ${errors.categories ? 'error-border' : ''}`}>
           {categories.map((category) => (
             <div key={category} className="checkbox-item">
               <input
@@ -95,11 +94,11 @@ const ClassificationStep = ({ formData, updateFormData, errors }) => {
       </div>
 
       {formData.classification?.categories?.length > 0 && (
-        <div className="form-group">
+        <div className="glass-card p-4">
           <label className="form-label">
             Subcategories
           </label>
-          <div className="checkbox-group">
+          <div className="glass-card p-4">
             {availableSubcategories.map((subcategory) => (
               <div key={subcategory} className="checkbox-item">
                 <input
@@ -117,12 +116,12 @@ const ClassificationStep = ({ formData, updateFormData, errors }) => {
         </div>
       )}
 
-      <div className="form-group">
+      <div className="glass-card p-4">
         <label className="form-label">
           Atolls
         </label>
         <select
-          className="form-select"
+          className="glass-input"
           value={formData.classification?.atoll || ''}
           onChange={(e) => handleChange('atoll', e.target.value)}
         >
@@ -135,12 +134,12 @@ const ClassificationStep = ({ formData, updateFormData, errors }) => {
         </select>
       </div>
 
-      <div className="form-group">
+      <div className="glass-card p-4">
         <label className="form-label">
           Government Ministries
         </label>
         <select
-          className="form-select"
+          className="glass-input"
           value={formData.classification?.ministry || ''}
           onChange={(e) => handleChange('ministry', e.target.value)}
         >

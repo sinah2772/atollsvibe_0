@@ -66,7 +66,7 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({ isOpen, toggleSidebar }) 
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
             <h2 className="text-xl font-bold text-blue-800">Habaru</h2>
             <p className="text-sm text-gray-500">Author Dashboard</p>
@@ -80,15 +80,15 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({ isOpen, toggleSidebar }) 
           </button>
         </div>
         
-        <nav className="flex-1 p-4">
-          <ul className="space-y-1">
+        <nav className="flex-1 p-6">
+          <ul className="space-y-2">
             {navItems.map((item) => (
               <li key={item.name}>
                 <NavLink
                   to={item.path}
                   onClick={toggleSidebar}
                   className={({ isActive }) => 
-                    `flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors duration-150 ease-in-out ${
+                    `flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-150 ease-in-out ${
                       isActive 
                         ? 'bg-blue-50 text-blue-700' 
                         : 'text-gray-700 hover:bg-gray-100'
@@ -103,10 +103,10 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({ isOpen, toggleSidebar }) 
           </ul>
         </nav>
         
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-6 border-t border-gray-200">
           <button 
             onClick={handleLogout}
-            className="flex items-center w-full px-3 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors duration-150 ease-in-out"
+            className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors duration-150 ease-in-out"
             aria-label="Log out of your account"
             title="Log out of your account"
           >

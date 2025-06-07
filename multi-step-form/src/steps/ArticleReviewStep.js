@@ -5,22 +5,21 @@ const ArticleReviewStep = ({ formData, onEdit }) => {
   // Helper function to render review section
   const renderSection = (title, data, sectionKey) => {
     if (!data) return null;
-    
-    return (
-      <div className="review-section">
-        <div className="review-header">
+      return (
+      <div className="glass-card p-4 mb-4">
+        <div className="flex items-center justify-between mb-4">
           <h3>{title}</h3>
           {onEdit && (
             <button 
               type="button" 
-              className="btn-text"
+              className="glass-button"
               onClick={() => onEdit(sectionKey)}
             >
               Edit
             </button>
           )}
         </div>
-        <div className="review-content">
+        <div className="glass-card p-4">
           {Object.entries(data).map(([key, value]) => {
             // Skip some fields that don't need to be displayed or need special handling
             if (key === 'tagsInput' || key === 'submissionStatus' || !value) return null;
@@ -126,7 +125,6 @@ const ArticleReviewStep = ({ formData, onEdit }) => {
     6: 'translation',
     7: 'content'
   };
-
   return (
     <div className="article-review">
       <p className="mb-4 text-gray-700">
@@ -142,7 +140,7 @@ const ArticleReviewStep = ({ formData, onEdit }) => {
       {renderSection('Translation Info', formData.translation, 6)}
       {renderSection('Content', formData.content, 7)}
       
-      <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-md">
+      <div className="glass-card p-4 border-blue-200">
         <h3 className="text-blue-800">Ready to Submit?</h3>
         <p className="text-blue-700">
           Choose an action to proceed with this article:
@@ -150,19 +148,19 @@ const ArticleReviewStep = ({ formData, onEdit }) => {
         <div className="flex flex-wrap gap-4 mt-4">
           <button 
             type="button" 
-            className="btn btn-outline"
+            className="glass-button"
           >
             Save as Draft
           </button>
           <button 
             type="button" 
-            className="btn btn-secondary"
+            className="glass-button"
           >
             Send to Review
           </button>
           <button 
             type="button" 
-            className="btn btn-primary"
+            className="glass-button"
           >
             Publish Now
           </button>

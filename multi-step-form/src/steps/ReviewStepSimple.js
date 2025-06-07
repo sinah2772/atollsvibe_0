@@ -73,14 +73,13 @@ const ReviewStep = ({ formData, errors, onEdit }) => {
         </p>
       </div>
 
-      {hasErrors && (
-        <div style={{
+      {hasErrors && (        <div style={{
           backgroundColor: '#fef2f2',
           border: '1px solid #fecaca',
           borderRadius: '0.5rem',
           padding: '1rem',
           marginBottom: '1.5rem'
-        }}>
+        }} className="glass-card">
           <div style={{ display: 'flex', alignItems: 'flex-start' }}>
             <XCircleIcon style={{ width: '1.25rem', height: '1.25rem', color: '#f87171', marginTop: '0.125rem', marginRight: '0.75rem', flexShrink: 0 }} />
             <div>
@@ -97,11 +96,7 @@ const ReviewStep = ({ formData, errors, onEdit }) => {
         </div>
       )}
 
-      {sections.map((section) => (
-        <div key={section.title} style={{
-          backgroundColor: 'white',
-          border: '1px solid #e5e7eb',
-          borderRadius: '0.5rem',
+      {sections.map((section) => (        <div key={section.title} className="glass-card" style={{
           padding: '1.5rem'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
@@ -139,13 +134,8 @@ const ReviewStep = ({ formData, errors, onEdit }) => {
             ))}
           </div>
         </div>
-      ))}
-
-      {/* Terms and Conditions */}
-      <div style={{
-        backgroundColor: '#f9fafb',
-        border: '1px solid #e5e7eb',
-        borderRadius: '0.5rem',
+      ))}      {/* Terms and Conditions */}
+      <div className="glass-card" style={{
         padding: '1.5rem'
       }}>
         <h4 style={{ fontSize: '1rem', fontWeight: '500', color: '#1f2937', marginBottom: '1rem' }}>
@@ -180,13 +170,8 @@ const ReviewStep = ({ formData, errors, onEdit }) => {
             </span>
           </label>
         </div>
-      </div>
-
-      {/* Submission Note */}
-      <div style={{
-        backgroundColor: '#eff6ff',
-        border: '1px solid #c3ddfd',
-        borderRadius: '0.5rem',
+      </div>      {/* Submission Note */}
+      <div className="glass-card" style={{
         padding: '1rem'
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>

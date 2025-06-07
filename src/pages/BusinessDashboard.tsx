@@ -211,7 +211,7 @@ const BusinessDashboard: React.FC = () => {
           </div>
         </div>
 
-      {/* Ads List */}
+        {/* Ads List */}
       <div className="glass-card rounded-xl overflow-hidden">
         {loading && (
           <div className="flex justify-center my-8">
@@ -297,6 +297,7 @@ const BusinessDashboard: React.FC = () => {
             </tbody>
           </table>
         </div>
+      </div>
       </div>
     </div>
   );

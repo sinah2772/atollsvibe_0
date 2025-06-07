@@ -48,17 +48,14 @@ const PreferencesStep = ({ formData, updateFormData, errors }) => {
         <div className="grid-2">
           {interests.map((interest) => {
             const isSelected = formData.preferences?.interests?.includes(interest) || false;
-            return (
-              <label
+            return (              <label
                 key={interest}
+                className={`glass-card ${isSelected ? 'glass-selected' : ''}`}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   padding: '0.75rem',
-                  border: `1px solid ${isSelected ? '#2563eb' : '#d1d5db'}`,
-                  borderRadius: '0.5rem',
                   cursor: 'pointer',
-                  backgroundColor: isSelected ? '#eff6ff' : 'white',
                   color: isSelected ? '#1d4ed8' : '#374151',
                   transition: 'all 0.2s ease-in-out'
                 }}
@@ -87,17 +84,14 @@ const PreferencesStep = ({ formData, updateFormData, errors }) => {
         <div className="space-y-3">
           {communicationMethods.map((method) => {
             const isSelected = formData.preferences?.communication?.includes(method.value) || false;
-            return (
-              <label
+            return (              <label
                 key={method.value}
+                className="glass-card"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   padding: '0.75rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.5rem',
                   cursor: 'pointer',
-                  backgroundColor: 'white',
                   transition: 'border-color 0.2s'
                 }}
               >

@@ -316,10 +316,8 @@ const ArticleMultiStepForm = () => {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Form Card */}
-        <div className="form-card">
+        </div>        {/* Form Card */}
+        <div className="glass-card">
           {/* Step Header */}
           <div className="step-header">
             <h2 className="step-title-main">
@@ -345,7 +343,7 @@ const ArticleMultiStepForm = () => {
             <button
               onClick={prevStep}
               disabled={currentStep === 0}
-              className={`btn ${currentStep === 0 ? 'btn-secondary' : 'btn-secondary'}`}
+              className={`glass-button ${currentStep === 0 ? 'btn-secondary' : 'btn-secondary'}`}
               style={{ opacity: currentStep === 0 ? 0.5 : 1 }}
             >
               <ChevronLeftIcon className="icon mr-2" />
@@ -356,7 +354,7 @@ const ArticleMultiStepForm = () => {
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="btn btn-primary"
+                className="glass-button btn-primary"
                 style={{ opacity: isSubmitting ? 0.5 : 1 }}
               >
                 {isSubmitting ? (
@@ -374,7 +372,7 @@ const ArticleMultiStepForm = () => {
             ) : showNextOnContentStep ? (
               <button
                 onClick={nextStep}
-                className="btn btn-primary"
+                className="glass-button btn-primary"
               >
                 Next
                 <ChevronRightIcon className="icon ml-2" />
@@ -382,7 +380,7 @@ const ArticleMultiStepForm = () => {
             ) : !isContentStep ? (
               <button
                 onClick={nextStep}
-                className="btn btn-primary"
+                className="glass-button btn-primary"
               >
                 Next
                 <ChevronRightIcon className="icon ml-2" />

@@ -11,43 +11,46 @@ const TranslationStep = ({ formData, updateFormData }) => {
     'English', 'Dhivehi', 'Arabic', 'Hindi', 'Urdu', 'Bengali', 
     'Sinhala', 'Tamil', 'French', 'German', 'Chinese', 'Japanese', 'Other'
   ];
-
   return (
     <div className="space-y-6">
-      <div className="form-group">
+      <div className="glass-card p-4">
         <label className="form-label">
           Original Source URL
         </label>
         <input
           type="url"
-          className="form-input"
+          className="glass-input"
           value={formData.translation?.originalSourceUrl || ''}
           onChange={(e) => handleChange('originalSourceUrl', e.target.value)}
           placeholder="https://example.com/original-article"
         />
-        <p className="help-text">The URL of the original article (if this is a republication)</p>
+        <div className="glass-card p-2 mt-2">
+          <p className="help-text">The URL of the original article (if this is a republication)</p>
+        </div>
       </div>
 
-      <div className="form-group">
+      <div className="glass-card p-4">
         <label className="form-label">
           Translation Source URL
         </label>
         <input
           type="url"
-          className="form-input"
+          className="glass-input"
           value={formData.translation?.translationSourceUrl || ''}
           onChange={(e) => handleChange('translationSourceUrl', e.target.value)}
           placeholder="https://example.com/source-to-translate"
         />
-        <p className="help-text">The URL of the article being translated (if this is a translation)</p>
+        <div className="glass-card p-2 mt-2">
+          <p className="help-text">The URL of the article being translated (if this is a translation)</p>
+        </div>
       </div>
 
-      <div className="form-group">
+      <div className="glass-card p-4">
         <label className="form-label">
           Translation Source Language
         </label>
         <select
-          className="form-select"
+          className="glass-input"
           value={formData.translation?.translationSourceLanguage || ''}
           onChange={(e) => handleChange('translationSourceLanguage', e.target.value)}
         >
@@ -60,12 +63,12 @@ const TranslationStep = ({ formData, updateFormData }) => {
         </select>
       </div>
 
-      <div className="form-group">
+      <div className="glass-card p-4">
         <label className="form-label">
           Translation Notes
         </label>
         <textarea
-          className="form-textarea"
+          className="glass-input"
           value={formData.translation?.translationNotes || ''}
           onChange={(e) => handleChange('translationNotes', e.target.value)}
           placeholder="Notes about the translation process, challenges, or adaptations made"

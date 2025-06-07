@@ -21,18 +21,17 @@ const MediaVisualsStep = ({ formData, updateFormData, errors }) => {
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="form-group">
+  return (    <div className="space-y-6">
+      <div className="glass-card p-4">
         <label className="form-label">
           Cover Image Upload *
         </label>
-        <div className="file-upload-container">
+        <div className="glass-card p-4">
           <input
             type="file"
             id="coverImage"
             accept="image/*"
-            className={`file-input ${errors.coverImage ? 'error' : ''}`}
+            className={`glass-input ${errors.coverImage ? 'error' : ''}`}
             onChange={handleFileChange}
           />
           <label htmlFor="coverImage" className="file-upload-label">
@@ -45,11 +44,11 @@ const MediaVisualsStep = ({ formData, updateFormData, errors }) => {
           <p className="error-message">{errors.coverImage}</p>
         )}
         {formData.mediaVisuals?.coverImage?.name && (
-          <div className="image-preview-container">
+          <div className="glass-card p-4 mt-4">
             <p>Image selected: {formData.mediaVisuals.coverImage.name}</p>
             <button 
               type="button" 
-              className="btn-text"
+              className="glass-button"
               onClick={() => handleChange('coverImage', null)}
             >
               Remove
@@ -58,12 +57,12 @@ const MediaVisualsStep = ({ formData, updateFormData, errors }) => {
         )}
       </div>
 
-      <div className="form-group">
+      <div className="glass-card p-4">
         <label className="form-label">
           Image Caption
         </label>
         <textarea
-          className="form-textarea"
+          className="glass-input"
           value={formData.mediaVisuals?.imageCaption || ''}
           onChange={(e) => handleChange('imageCaption', e.target.value)}
           placeholder="Enter caption for the cover image"
