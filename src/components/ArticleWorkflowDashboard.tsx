@@ -169,7 +169,7 @@ const ArticleWorkflowDashboard: React.FC<ArticleWorkflowDashboardProps> = ({
     
     return (
       <div 
-        className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
+        className="dashboard-card p-4 rounded-lg cursor-pointer"
         onClick={() => onArticleSelect(article.id)}
       >
         {/* Header */}
@@ -310,10 +310,8 @@ const ArticleWorkflowDashboard: React.FC<ArticleWorkflowDashboardProps> = ({
             <div className="text-sm text-gray-600 capitalize">{status.replace('-', ' ')}</div>
           </div>
         ))}
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-4">
+      </div>      {/* Filters */}
+      <div className="dashboard-section p-4 rounded-lg">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">          <div>
             <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">Status</label>            <select
               id="status-filter"

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navbar Fix Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            height: 200vh; /* Make page scrollable for testing */
+        }
+        
+        .navbar {
+            transition: transform 0.3s ease;
+        }
+        
+        .navbar.hidden {
+            transform: translateY(-100%);
+        }
+        
+        .content {
+            padding-top: 80px; /* Space for navbar */
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <nav id="navbar" class="navbar bg-white shadow-lg fixed top-0 left-0 right-0 z-50 py-4 px-6">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-blue-800">Habaru</h1>
+            <div class="flex items-center space-x-4">
+                <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Login</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="content container mx-auto px-4 py-4">
+        <h2 class="text-2xl font-bold mb-4">Test Page Content</h2>
+        <p class="mb-4">Scroll down to test navbar behavior.</p>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h3 class="text-xl font-semibold mb-2">Fixed Navbar Test</h3>
+            <p>This page tests the fixed navbar behavior when scrolling.</p>
+        </div>
+
+        <!-- Add more content to make the page scrollable -->
+        <div class="space-y-6">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-semibold mb-2">Section 1</h3>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam semper diam at erat pulvinar, at pulvinar felis blandit.</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-semibold mb-2">Section 2</h3>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam semper diam at erat pulvinar, at pulvinar felis blandit.</p>
+            </div>
+            <!-- Repeat for more sections -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-semibold mb-2">Section 3</h3>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam semper diam at erat pulvinar, at pulvinar felis blandit.</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Script to handle navbar visibility based on scroll direction
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbar = document.getElementById('navbar');
+            let lastScrollY = 0;
+            const SCROLL_THRESHOLD = 10;
+            const isDashboard = true; // Set to true to test dashboard behavior
+
+            function handleScroll() {
+                const currentScrollY = window.scrollY;
+                
+                // Determine scroll direction if scrolled more than threshold
+                if (Math.abs(currentScrollY - lastScrollY) > SCROLL_THRESHOLD) {
+                    const scrollingDown = currentScrollY > lastScrollY;
+                    
+                    // Show navbar when scrolling up or near top, or if in dashboard
+                    if (!scrollingDown || currentScrollY < 100 || isDashboard) {
+                        navbar.classList.remove('hidden');
+                    } else {
+                        navbar.classList.add('hidden');
+                    }
+                    
+                    lastScrollY = currentScrollY;
+                }
+            }
+
+            window.addEventListener('scroll', handleScroll);
+        });
+    </script>
+</body>
+</html>

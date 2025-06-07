@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Navbar Scroll Fix</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .test-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #1f2937;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            z-index: 50;
+            transition: transform 0.3s ease;
+        }
+        .test-navbar.hidden {
+            transform: translateY(-100%);
+        }
+        .content {
+            height: 200vh;
+            padding: 80px 20px 20px;
+            background: linear-gradient(to bottom, #f3f4f6, #e5e7eb);
+        }
+        .scroll-status {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 100;
+        }
+        .section {
+            margin: 50px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <nav class="test-navbar" id="navbar">
+        <h1>🧪 Navbar Scroll Test - Should appear when scrolling UP</h1>
+        <p>Scroll down to hide, scroll up to show</p>
+    </nav>
+
+    <div class="scroll-status" id="status">
+        Direction: <span id="direction">up</span><br>
+        Visible: <span id="visible">YES</span><br>
+        Scroll: <span id="scroll">0</span>px
+    </div>
+
+    <div class="content">
+        <div class="section">
+            <h2>📋 Test Instructions</h2>
+            <p><strong>Expected Behavior:</strong></p>
+            <ul>
+                <li>✅ Navbar should be VISIBLE when at the top of the page</li>
+                <li>✅ Navbar should HIDE when scrolling DOWN</li>
+                <li>✅ Navbar should APPEAR immediately when scrolling UP (regardless of distance)</li>
+                <li>✅ Navbar should APPEAR if scrolled within 100px of top</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🔄 Scroll Test Areas</h2>
+            <p>Scroll down past this section to test the hide functionality...</p>
+        </div>
+
+        <div class="section">
+            <h2>⬇️ Keep Scrolling Down</h2>
+            <p>The navbar should disappear as you scroll down.</p>
+        </div>
+
+        <div class="section">
+            <h2>⬆️ Now Try Scrolling Up</h2>
+            <p>The navbar should appear immediately when you start scrolling up!</p>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Test Complete</h2>
+            <p>If the navbar appears when scrolling up, the fix is working correctly!</p>
+        </div>
+    </div>
+
+    <script>
+        // Replicate the useScrollDirection logic
+        let scrollDirection = 'up';
+        let isVisible = true;
+        let lastScrollY = 0;
+
+        function updateScrollDirection() {
+            const scrollY = window.pageYOffset;
+            const direction = scrollY > lastScrollY ? 'down' : 'up';
+            
+            // Update direction if we've scrolled a meaningful amount
+            if (Math.abs(scrollY - lastScrollY) > 10) {
+                scrollDirection = direction;
+            }
+            
+            // Update visibility: always show when scrolling up or near top
+            const shouldShow = direction === 'up' || scrollY < 100;
+            isVisible = shouldShow;
+            
+            lastScrollY = scrollY > 0 ? scrollY : 0;
+            
+            // Update UI
+            const navbar = document.getElementById('navbar');
+            const statusDirection = document.getElementById('direction');
+            const statusVisible = document.getElementById('visible');
+            const statusScroll = document.getElementById('scroll');
+            
+            navbar.classList.toggle('hidden', !isVisible);
+            statusDirection.textContent = direction;
+            statusVisible.textContent = isVisible ? 'YES' : 'NO';
+            statusScroll.textContent = Math.round(scrollY);
+        }
+
+        let ticking = false;
+        function onScroll() {
+            if (!ticking) {
+                requestAnimationFrame(updateScrollDirection);
+                ticking = true;
+            }
+        }
+
+        window.addEventListener('scroll', onScroll);
+    </script>
+</body>
+</html>

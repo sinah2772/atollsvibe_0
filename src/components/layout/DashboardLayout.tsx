@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import Header from './Header';
 import MobileSidebar from './MobileSidebar';
 import { useUser } from '../../hooks/useUser';
 import { supabase } from '../../lib/supabase';
+import '../../components/ArticleMultiStepForm.css';
 
 const DashboardLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -78,14 +78,15 @@ const DashboardLayout: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen dashboard-bg">
       <Sidebar />
       <MobileSidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header toggleSidebar={toggleSidebar} />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto">
+          <div className="dashboard-container">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

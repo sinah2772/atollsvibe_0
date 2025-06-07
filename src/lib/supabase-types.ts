@@ -18,6 +18,7 @@ export interface Database {
           island_code: string | null
           island_category: string | null
           island_category_en: string | null
+          island_categories_id: number | null
           island_details: string | null
           longitude: string | null
           latitude: string | null
@@ -37,6 +38,7 @@ export interface Database {
           island_code?: string | null
           island_category?: string | null
           island_category_en?: string | null
+          island_categories_id?: number | null
           island_details?: string | null
           longitude?: string | null
           latitude?: string | null
@@ -56,6 +58,7 @@ export interface Database {
           island_code?: string | null
           island_category?: string | null
           island_category_en?: string | null
+          island_categories_id?: number | null
           island_details?: string | null
           longitude?: string | null
           latitude?: string | null

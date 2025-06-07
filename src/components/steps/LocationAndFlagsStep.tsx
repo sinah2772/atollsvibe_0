@@ -3,7 +3,71 @@ import { CollaborativeInput } from '../CollaborativeInput';
 import { MultiSelect } from '../MultiSelect';
 import { IslandsSelect } from '../IslandsSelect';
 import { ColoredMultiSelect } from '../ColoredMultiSelect';
-import { ValidationField } from '../../types/editor';
+
+// Define proper data types for atolls and government
+interface AtollData {
+  id: number;
+  name: string;
+  name_en: string;
+  slug: string;
+}
+
+interface GovernmentData {
+  id: string;
+  name: string;
+  name_en: string;
+}
+
+// Define option types that match the component requirements
+interface AtollOption {
+  id: number | string;
+  name: string;
+  name_en: string;
+  atoll?: {
+    id: number;
+    name: string;
+    name_en: string;
+    slug: string;
+  };
+}
+
+interface IslandCategoryOption {
+  id: number | string;
+  name: string;
+  name_en: string;
+  atoll?: {
+    id: number;
+    name: string;
+    name_en: string;
+    slug: string;
+  };
+}
+
+interface GovernmentOption {
+  id: number | string;
+  name: string;
+  name_en: string;
+  type: 'category' | 'subcategory';
+  parentCategoryName?: string;
+  parentCategoryNameEn?: string;
+  categoryId?: number;
+  atoll?: {
+    id: number;
+    name: string;
+    name_en: string;
+    slug: string;
+  };
+}
+
+// Define collaborative interface
+interface CollaborativeData {
+  isFieldLocked: (fieldId: string) => boolean;
+  lockField: (fieldId: string) => void;
+  unlockField: (fieldId: string) => void;
+  broadcastFieldUpdate: (fieldId: string, value: string) => void;
+  getFieldLocker: (fieldId: string) => string | null;
+  pendingUpdates: Record<string, string>;
+}
 
 interface LocationAndFlagsStepProps {
   // Location fields
@@ -41,11 +105,11 @@ interface LocationAndFlagsStepProps {
   setNewsType: (value: string) => void;
   
   // Data sources
-  atolls: any[];
-  government: any[];
+  atolls: AtollData[];
+  government: GovernmentData[];
   
   // Collaborative editing
-  collaborative: any;
+  collaborative: CollaborativeData;
   currentUser: string;
   language: 'en' | 'dv';
 }
@@ -84,24 +148,26 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
   collaborative,
   currentUser,
   language
-}) => {
-  const atollOptions = atolls.map(atoll => ({
-    value: atoll.id.toString(),
-    label: language === 'dv' ? atoll.name : atoll.name_en || atoll.name
+}) => {  const atollOptions: AtollOption[] = atolls.map(atoll => ({
+    id: atoll.id,
+    name: atoll.name,
+    name_en: atoll.name_en || atoll.name
   }));
 
-  const governmentOptions = government.map(gov => ({
-    value: gov.id.toString(),
-    label: language === 'dv' ? gov.name : gov.name_en || gov.name,
-    color: `hsl(${parseInt(gov.id) * 137.508}, 60%, 50%)`
+  const governmentOptions: GovernmentOption[] = government.map(gov => ({
+    id: gov.id,
+    name: gov.name,
+    name_en: gov.name_en || gov.name,
+    type: 'category' as const,
+    categoryId: parseInt(gov.id)
   }));
 
-  const islandCategoryOptions = [
-    { value: 'residential', label: language === 'dv' ? 'އާބާދީގެ' : 'Residential' },
-    { value: 'resort', label: language === 'dv' ? 'ރީސޯޓް' : 'Resort' },
-    { value: 'industrial', label: language === 'dv' ? 'ސިނާއީ' : 'Industrial' },
-    { value: 'uninhabited', label: language === 'dv' ? 'އާބާދިކުރެވިފައިނުވާ' : 'Uninhabited' },
-    { value: 'picnic', label: language === 'dv' ? 'ގޮއްވާ' : 'Picnic Island' }
+  const islandCategoryOptions: IslandCategoryOption[] = [
+    { id: 'residential', name: 'އާބާދީގެ', name_en: 'Residential' },
+    { id: 'resort', name: 'ރީސޯޓް', name_en: 'Resort' },
+    { id: 'industrial', name: 'ސިނާއީ', name_en: 'Industrial' },
+    { id: 'uninhabited', name: 'އާބާދިކުރެވިފައިނުވާ', name_en: 'Uninhabited' },
+    { id: 'picnic', name: 'ގޮއްވާ', name_en: 'Picnic Island' }
   ];
 
   const newsTypeOptions = [
@@ -134,11 +200,10 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
           <div>
             <label className={`block text-sm font-medium text-gray-700 mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
               {language === 'dv' ? 'އަތޮޅުތައް' : 'Atolls'}
-            </label>
-            <MultiSelect
+            </label>            <MultiSelect
               options={atollOptions}
               value={selectedAtolls.map(id => id.toString())}
-              onChange={(values) => setSelectedAtolls(values.map(v => parseInt(v)))}
+              onChange={(values) => setSelectedAtolls(values.map(v => typeof v === 'string' ? parseInt(v) : v))}
               placeholder={language === 'dv' ? 'އަތޮޅު ހޮއްވަވާ' : 'Select atolls'}
               language={language}
             />
@@ -148,11 +213,10 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
           <div>
             <label className={`block text-sm font-medium text-gray-700 mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
               {language === 'dv' ? 'ރަށްރަށް' : 'Islands'}
-            </label>
-            <IslandsSelect
-              selectedAtolls={selectedAtolls}
-              selectedIslands={selectedIslands}
-              setSelectedIslands={setSelectedIslands}
+            </label>            <IslandsSelect
+              atollIds={selectedAtolls}
+              value={selectedIslands}
+              onChange={setSelectedIslands}
               language={language}
             />
           </div>
@@ -162,11 +226,10 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
             <div>
               <label className={`block text-sm font-medium text-gray-700 mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
                 {language === 'dv' ? 'ރަށުގެ ބާވަތް' : 'Island Category'}
-              </label>
-              <MultiSelect
+              </label>              <MultiSelect
                 options={islandCategoryOptions}
-                value={selectedIslandCategory}
-                onChange={setSelectedIslandCategory}
+                value={selectedIslandCategory.map(id => id.toString())}
+                onChange={(values) => setSelectedIslandCategory(values.map(v => v.toString()))}
                 placeholder={language === 'dv' ? 'ރަށުގެ ބާވަތް ހޮއްވަވާ' : 'Select island categories'}
                 language={language}
               />
@@ -177,11 +240,10 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
           <div>
             <label className={`block text-sm font-medium text-gray-700 mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
               {language === 'dv' ? 'ސަރުކާރީ އޮފީސްތައް' : 'Government Organizations'}
-            </label>
-            <ColoredMultiSelect
+            </label>            <ColoredMultiSelect
               options={governmentOptions}
               value={selectedGovernmentIds}
-              onChange={setSelectedGovernmentIds}
+              onChange={(values) => setSelectedGovernmentIds(values.map(v => v.toString()))}
               placeholder={language === 'dv' ? 'ސަރުކާރީ އޮފީސް ހޮއްވަވާ' : 'Select government organizations'}
               language={language}
             />
@@ -200,14 +262,15 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
           <div>
             <label className={`block text-sm font-medium text-gray-700 mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
               {language === 'dv' ? 'ޚަބަރުގެ ބާވަތް' : 'News Type'}
-            </label>
-            <select
+            </label>            <select
               value={newsType}
               onChange={(e) => setNewsType(e.target.value)}
               className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 language === 'dv' ? 'thaana-waheed text-right' : ''
               }`}
               dir={language === 'dv' ? 'rtl' : 'ltr'}
+              aria-label={language === 'dv' ? 'ޚަބަރުގެ ބާވަތް ހޮއްވަވާ' : 'Select news type'}
+              title={language === 'dv' ? 'ޚަބަރުގެ ބާވަތް ހޮއްވަވާ' : 'Select news type'}
             >
               <option value="">{language === 'dv' ? 'ހޮއްވަވާ...' : 'Select...'}</option>
               {newsTypeOptions.map(option => (
@@ -222,14 +285,15 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
           <div>
             <label className={`block text-sm font-medium text-gray-700 mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
               {language === 'dv' ? 'މުހިއްމުކަން' : 'Priority'}
-            </label>
-            <select
+            </label>            <select
               value={newsPriority}
               onChange={(e) => setNewsPriority(parseInt(e.target.value))}
               className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 language === 'dv' ? 'thaana-waheed text-right' : ''
               }`}
               dir={language === 'dv' ? 'rtl' : 'ltr'}
+              aria-label={language === 'dv' ? 'މުހިއްމުކަން ހޮއްވަވާ' : 'Select priority level'}
+              title={language === 'dv' ? 'މުހިއްމުކަން ހޮއްވަވާ' : 'Select priority level'}
             >
               {priorityLevels.map(level => (
                 <option key={level.value} value={level.value}>
@@ -319,12 +383,13 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
           <div className="mt-4">
             <label className={`block text-sm font-medium text-gray-700 mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
               {language === 'dv' ? 'ޑިވެލޮޕިން ސްޓޯރީ ކަން މަނާ ތާރީޚު' : 'Developing Until Date'}
-            </label>
-            <input
+            </label>            <input
               type="datetime-local"
               value={developingUntil}
               onChange={(e) => setDevelopingUntil(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              title={language === 'dv' ? 'ޑިވެލޮޕިން ސްޓޯރީ ކަން މަނާ ތާރީޚު ހޮއްވަވާ' : 'Select developing story end date'}
+              placeholder={language === 'dv' ? 'ތާރީޚް ހޮއްވަވާ' : 'Select date and time'}
             />
           </div>
         )}
@@ -367,42 +432,6 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
       </div>
     </div>
   );
-};
-
-// Validation function for location and flags step
-export const validateLocationAndFlags = (data: any): ValidationField[] => {
-  const validationFields: ValidationField[] = [];
-
-  // If islands are selected, island category should be selected
-  if (data.selectedIslands && data.selectedIslands.length > 0) {
-    validationFields.push({
-      name: 'Island Category',
-      valid: data.selectedIslandCategory && data.selectedIslandCategory.length > 0,
-      errorMessage: data.language === 'dv' ? 'ރަށް ހޮއްވާފައި ވާނަމަ ރަށުގެ ބާވަތް ހޮއްވަވާ' : 'Island category is required when islands are selected'
-    });
-  }
-
-  // If sponsored, sponsor details are required
-  if (data.isSponsored) {
-    validationFields.push({
-      name: 'Sponsor Name',
-      valid: data.sponsoredBy && data.sponsoredBy.trim() !== '',
-      errorMessage: data.language === 'dv' ? 'ސްޕޮންސަރ ކުރި ފަރާތުގެ ނަން ލާޒިމް' : 'Sponsor name is required for sponsored content'
-    });
-  }
-
-  // If developing, end date should be in the future
-  if (data.isDeveloping && data.developingUntil) {
-    const developingDate = new Date(data.developingUntil);
-    const now = new Date();
-    validationFields.push({
-      name: 'Developing Until Date',
-      valid: developingDate > now,
-      errorMessage: data.language === 'dv' ? 'ޑިވެލޮޕިން ޚަބަރުގެ މުއްދަތު ކުރިއަށް ވާން ޖެހޭ' : 'Developing story end date must be in the future'
-    });
-  }
-
-  return validationFields;
 };
 
 export default LocationAndFlagsStep;

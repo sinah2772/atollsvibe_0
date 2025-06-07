@@ -1,16 +1,25 @@
 import React from 'react';
-import { FormField } from '@/components/ui/form';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, Calendar, Clock, UserPlus, Trash2, Plus, Workflow, Bell } from 'lucide-react';
-import { StepProps } from '../MultiStepForm';
+import { Users, UserPlus, Workflow, Bell, Calendar } from 'lucide-react';
+import { StepProps } from '../../types/editor';
+import Button from '../ui/Button';
+
+// Define types for form data
+interface Collaborator {
+  email: string;
+  role: 'editor' | 'reviewer' | 'contributor' | 'viewer';
+  permissions: string[];
+}
+
+interface Comment {
+  id: string;
+  author: string;
+  text: string;
+  timestamp: string;
+  isEditing?: boolean;
+}
+
+// Define proper type for field values
+type FieldValue = string | boolean | Collaborator[] | Comment[] | Date;
 
 export const CollaborationStep: React.FC<StepProps> = ({ 
   formData, 
@@ -141,10 +150,9 @@ export const CollaborationStep: React.FC<StepProps> = ({
       required: 'ބޭނުންވާ'
     }
   };
-
   const text = t[language];
 
-  const handleFieldChange = (field: string, value: any) => {
+  const handleFieldChange = (field: string, value: FieldValue) => {
     onFormDataChange({
       ...formData,
       [field]: value
@@ -152,15 +160,15 @@ export const CollaborationStep: React.FC<StepProps> = ({
   };
 
   const addCollaborator = () => {
-    const currentCollaborators = formData.collaborators || [];
+    const currentCollaborators = (formData.collaborators as Collaborator[]) || [];
     handleFieldChange('collaborators', [
       ...currentCollaborators,
-      { email: '', role: 'contributor', permissions: [] }
+      { email: '', role: 'contributor' as const, permissions: [] }
     ]);
   };
 
-  const updateCollaborator = (index: number, field: string, value: any) => {
-    const currentCollaborators = formData.collaborators || [];
+  const updateCollaborator = (index: number, field: string, value: string) => {
+    const currentCollaborators = (formData.collaborators as Collaborator[]) || [];
     const updatedCollaborators = currentCollaborators.map((collaborator, i) => 
       i === index ? { ...collaborator, [field]: value } : collaborator
     );
@@ -168,21 +176,9 @@ export const CollaborationStep: React.FC<StepProps> = ({
   };
 
   const removeCollaborator = (index: number) => {
-    const currentCollaborators = formData.collaborators || [];
+    const currentCollaborators = (formData.collaborators as Collaborator[]) || [];
     const updatedCollaborators = currentCollaborators.filter((_, i) => i !== index);
     handleFieldChange('collaborators', updatedCollaborators);
-  };
-
-  const addComment = () => {
-    const currentComments = formData.internalComments || [];
-    const newComment = {
-      id: Date.now().toString(),
-      author: 'Current User', // This should come from user context
-      text: '',
-      timestamp: new Date().toISOString(),
-      isEditing: true
-    };
-    handleFieldChange('internalComments', [...currentComments, newComment]);
   };
 
   return (
@@ -196,338 +192,326 @@ export const CollaborationStep: React.FC<StepProps> = ({
         </p>
       </div>
 
-      {/* Collaborators */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
+      {/* Collaborators Section */}
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <div className="mb-4">
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
             <Users className="h-5 w-5" />
             {text.collaborators}
-          </CardTitle>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             {text.collaboratorsDesc}
           </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {(formData.collaborators || []).map((collaborator, index) => (
-            <div key={index} className="flex gap-3 items-end p-4 border rounded-lg">
+        </div>
+        
+        <div className="space-y-4">
+          {((formData.collaborators as Collaborator[]) || []).map((collaborator: Collaborator, index: number) => (
+            <div key={index} className="flex gap-3 items-end p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
               <div className="flex-1">
-                <Label htmlFor={`collaborator-email-${index}`}>{text.collaboratorEmail}</Label>
-                <Input
-                  id={`collaborator-email-${index}`}
+                <label htmlFor={`collaborator-email-${index}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {text.collaboratorEmail}
+                </label>
+                <input
                   type="email"
-                  placeholder="user@example.com"
+                  id={`collaborator-email-${index}`}
                   value={collaborator.email}
-                  onChange={(e) => updateCollaborator(index, 'email', e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateCollaborator(index, 'email', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="collaborator@example.com"
                 />
               </div>
               <div className="flex-1">
-                <Label htmlFor={`collaborator-role-${index}`}>{text.collaboratorRole}</Label>
-                <Select
+                <label htmlFor={`collaborator-role-${index}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {text.collaboratorRole}
+                </label>
+                <select
+                  id={`collaborator-role-${index}`}
                   value={collaborator.role}
-                  onValueChange={(value) => updateCollaborator(index, 'role', value)}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateCollaborator(index, 'role', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="editor">{text.roles.editor}</SelectItem>
-                    <SelectItem value="reviewer">{text.roles.reviewer}</SelectItem>
-                    <SelectItem value="contributor">{text.roles.contributor}</SelectItem>
-                    <SelectItem value="viewer">{text.roles.viewer}</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <option value="editor">{text.roles.editor}</option>
+                  <option value="reviewer">{text.roles.reviewer}</option>
+                  <option value="contributor">{text.roles.contributor}</option>
+                  <option value="viewer">{text.roles.viewer}</option>
+                </select>
               </div>
               <Button
-                type="button"
-                variant="outline"
-                size="icon"
                 onClick={() => removeCollaborator(index)}
-                className="text-red-600 hover:text-red-700"
+                variant="delete"
+                className="flex items-center gap-1"
               >
-                <Trash2 className="h-4 w-4" />
+                {text.remove}
               </Button>
             </div>
           ))}
-          
           <Button
-            type="button"
-            variant="outline"
             onClick={addCollaborator}
-            className="w-full"
+            variant="add"
+            className="flex items-center gap-2 w-full"
           >
-            <UserPlus className="h-4 w-4 mr-2" />
+            <UserPlus className="h-4 w-4" />
             {text.addCollaborator}
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Workflow Settings */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
+      {/* Workflow Settings Section */}
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <div className="mb-4">
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
             <Workflow className="h-5 w-5" />
             {text.workflow}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="workflowStatus">{text.workflowStatus}</Label>
-              <Select
-                value={formData.workflowStatus || 'draft'}
-                onValueChange={(value) => handleFieldChange('workflowStatus', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">{text.statuses.draft}</SelectItem>
-                  <SelectItem value="in_review">{text.statuses.in_review}</SelectItem>
-                  <SelectItem value="needs_revision">{text.statuses.needs_revision}</SelectItem>
-                  <SelectItem value="approved">{text.statuses.approved}</SelectItem>
-                  <SelectItem value="scheduled">{text.statuses.scheduled}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="priority">{text.priority}</Label>
-              <Select
-                value={formData.priority || 'medium'}
-                onValueChange={(value) => handleFieldChange('priority', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">{text.priorities.low}</SelectItem>
-                  <SelectItem value="medium">{text.priorities.medium}</SelectItem>
-                  <SelectItem value="high">{text.priorities.high}</SelectItem>
-                  <SelectItem value="urgent">{text.priorities.urgent}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="assignedTo">{text.assignedTo}</Label>
-              <Input
-                id="assignedTo"
-                placeholder="user@example.com"
-                value={formData.assignedTo || ''}
-                onChange={(e) => handleFieldChange('assignedTo', e.target.value)}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="dueDate">{text.dueDate}</Label>
-              <Input
-                id="dueDate"
-                type="datetime-local"
-                value={formData.dueDate || ''}
-                onChange={(e) => handleFieldChange('dueDate', e.target.value)}
-              />
-            </div>
+          </h3>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="workflowStatus" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {text.workflowStatus}
+            </label>
+            <select
+              id="workflowStatus"
+              value={(formData.workflowStatus as string) || 'draft'}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFieldChange('workflowStatus', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            >
+              <option value="draft">{text.statuses.draft}</option>
+              <option value="in_review">{text.statuses.in_review}</option>
+              <option value="needs_revision">{text.statuses.needs_revision}</option>
+              <option value="approved">{text.statuses.approved}</option>
+              <option value="scheduled">{text.statuses.scheduled}</option>
+            </select>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Scheduling */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
+          <div>
+            <label htmlFor="priority" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {text.priority}
+            </label>
+            <select
+              id="priority"
+              value={(formData.priority as string) || 'medium'}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFieldChange('priority', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            >
+              <option value="low">{text.priorities.low}</option>
+              <option value="medium">{text.priorities.medium}</option>
+              <option value="high">{text.priorities.high}</option>
+              <option value="urgent">{text.priorities.urgent}</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="assignedTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {text.assignedTo}
+            </label>
+            <input
+              type="email"
+              id="assignedTo"
+              value={(formData.assignedTo as string) || ''}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange('assignedTo', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+              placeholder="assignee@example.com"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {text.dueDate}
+            </label>
+            <input
+              type="date"
+              id="dueDate"
+              value={(formData.dueDate as string) || ''}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange('dueDate', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Scheduling Section */}
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <div className="mb-4">
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
             <Calendar className="h-5 w-5" />
             {text.scheduling}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="publishNow"
-                checked={formData.publishSchedule === 'now'}
-                onCheckedChange={(checked) => 
-                  handleFieldChange('publishSchedule', checked ? 'now' : 'scheduled')
-                }
-              />
-              <Label htmlFor="publishNow">{text.publishNow}</Label>
-            </div>
-
-            {formData.publishSchedule === 'scheduled' && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pl-6">
-                <div>
-                  <Label htmlFor="scheduledDate">{text.scheduledDate}</Label>
-                  <Input
-                    id="scheduledDate"
-                    type="date"
-                    value={formData.scheduledDate || ''}
-                    onChange={(e) => handleFieldChange('scheduledDate', e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="scheduledTime">{text.scheduledTime}</Label>
-                  <Input
-                    id="scheduledTime"
-                    type="time"
-                    value={formData.scheduledTime || ''}
-                    onChange={(e) => handleFieldChange('scheduledTime', e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="timezone">{text.timezone}</Label>
-                  <Select
-                    value={formData.timezone || 'Asia/Maldives'}
-                    onValueChange={(value) => handleFieldChange('timezone', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Asia/Maldives">Maldives Time</SelectItem>
-                      <SelectItem value="UTC">UTC</SelectItem>
-                      <SelectItem value="Asia/Dubai">Dubai Time</SelectItem>
-                      <SelectItem value="Asia/Kolkata">India Time</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Review Settings */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">{text.reviewSettings}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          </h3>
+        </div>
+        
+        <div className="space-y-4">
           <div className="flex items-center space-x-2">
-            <Switch
-              id="requireReview"
-              checked={formData.requireReview || false}
-              onCheckedChange={(checked) => handleFieldChange('requireReview', checked)}
+            <input
+              type="checkbox"
+              id="publishNow"
+              checked={(formData.publishSchedule as string) === 'now'}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handleFieldChange('publishSchedule', e.target.checked ? 'now' : 'scheduled')
+              }
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
-            <Label htmlFor="requireReview">{text.requireReview}</Label>
+            <label htmlFor="publishNow" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {text.publishNow}
+            </label>
           </div>
 
-          {formData.requireReview && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6">
+          {(formData.publishSchedule as string) !== 'now' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <div>
-                <Label htmlFor="reviewers">{text.reviewers}</Label>
-                <Input
-                  id="reviewers"
-                  placeholder="reviewer1@example.com, reviewer2@example.com"
-                  value={formData.reviewers || ''}
-                  onChange={(e) => handleFieldChange('reviewers', e.target.value)}
+                <label htmlFor="scheduledDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {text.scheduledDate}
+                </label>
+                <input
+                  type="date"
+                  id="scheduledDate"
+                  value={(formData.scheduledDate as string) || ''}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange('scheduledDate', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:text-white"
                 />
               </div>
 
               <div>
-                <Label htmlFor="approvalLevel">{text.approvalLevel}</Label>
-                <Select
-                  value={formData.approvalLevel || 'one'}
-                  onValueChange={(value) => handleFieldChange('approvalLevel', value)}
+                <label htmlFor="scheduledTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {text.scheduledTime}
+                </label>
+                <input
+                  type="time"
+                  id="scheduledTime"
+                  value={(formData.scheduledTime as string) || ''}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange('scheduledTime', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="timezone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {text.timezone}
+                </label>
+                <select
+                  id="timezone"
+                  value={(formData.timezone as string) || 'Asia/Maldives'}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFieldChange('timezone', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:text-white"
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="one">{text.approvalLevels.one}</SelectItem>
-                    <SelectItem value="two">{text.approvalLevels.two}</SelectItem>
-                    <SelectItem value="all">{text.approvalLevels.all}</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <option value="Asia/Maldives">Maldives Time</option>
+                  <option value="UTC">UTC</option>
+                  <option value="Asia/Dubai">Dubai Time</option>
+                  <option value="Asia/Kolkata">India Time</option>
+                </select>
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Notifications */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
+      {/* Review Settings Section */}
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            {text.reviewSettings}
+          </h3>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="requireReview"
+              checked={(formData.requireReview as boolean) || false}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange('requireReview', e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="requireReview" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {text.requireReview}
+            </label>
+          </div>
+
+          {(formData.requireReview as boolean) && (
+            <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div>
+                <label htmlFor="reviewers" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {text.reviewers}
+                </label>
+                <input
+                  type="text"
+                  id="reviewers"
+                  value={(formData.reviewers as string) || ''}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange('reviewers', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:text-white"
+                  placeholder="reviewer1@example.com, reviewer2@example.com"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="approvalLevel" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {text.approvalLevel}
+                </label>
+                <select
+                  id="approvalLevel"
+                  value={(formData.approvalLevel as string) || 'one'}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFieldChange('approvalLevel', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:text-white"
+                >
+                  <option value="one">{text.approvalLevels.one}</option>
+                  <option value="two">{text.approvalLevels.two}</option>
+                  <option value="all">{text.approvalLevels.all}</option>
+                </select>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Notifications Section */}
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <div className="mb-4">
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
             <Bell className="h-5 w-5" />
             {text.notifications}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="notifyOnComment"
-                checked={formData.notifyOnComment || false}
-                onCheckedChange={(checked) => handleFieldChange('notifyOnComment', checked)}
-              />
-              <Label htmlFor="notifyOnComment">{text.notifyOnComment}</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="notifyOnStatusChange"
-                checked={formData.notifyOnStatusChange || false}
-                onCheckedChange={(checked) => handleFieldChange('notifyOnStatusChange', checked)}
-              />
-              <Label htmlFor="notifyOnStatusChange">{text.notifyOnStatusChange}</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="notifyOnPublish"
-                checked={formData.notifyOnPublish || false}
-                onCheckedChange={(checked) => handleFieldChange('notifyOnPublish', checked)}
-              />
-              <Label htmlFor="notifyOnPublish">{text.notifyOnPublish}</Label>
-            </div>
+          </h3>
+        </div>
+        
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="notifyOnComment"
+              checked={(formData.notifyOnComment as boolean) || false}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange('notifyOnComment', e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="notifyOnComment" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {text.notifyOnComment}
+            </label>
           </div>
-        </CardContent>
-      </Card>
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="notifyOnStatusChange"
+              checked={(formData.notifyOnStatusChange as boolean) || false}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange('notifyOnStatusChange', e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="notifyOnStatusChange" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {text.notifyOnStatusChange}
+            </label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="notifyOnPublish"
+              checked={(formData.notifyOnPublish as boolean) || false}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange('notifyOnPublish', e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="notifyOnPublish" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {text.notifyOnPublish}
+            </label>
+          </div>
+        </div>
+      </div>
     </div>
   );
-};
-
-// Validation function for this step
-export const validateCollaboration = (formData: any): string[] => {
-  const errors: string[] = [];
-
-  // Validate collaborators
-  if (formData.collaborators && formData.collaborators.length > 0) {
-    formData.collaborators.forEach((collaborator: any, index: number) => {
-      if (!collaborator.email) {
-        errors.push(`Collaborator ${index + 1}: Email is required`);
-      } else if (!isValidEmail(collaborator.email)) {
-        errors.push(`Collaborator ${index + 1}: Invalid email format`);
-      }
-    });
-  }
-
-  // Validate scheduled publishing
-  if (formData.publishSchedule === 'scheduled') {
-    if (!formData.scheduledDate) {
-      errors.push('Scheduled date is required when scheduling publication');
-    }
-    if (!formData.scheduledTime) {
-      errors.push('Scheduled time is required when scheduling publication');
-    }
-  }
-
-  // Validate review settings
-  if (formData.requireReview) {
-    if (!formData.reviewers) {
-      errors.push('Reviewers are required when review is enabled');
-    }
-  }
-
-  // Validate assigned user
-  if (formData.assignedTo && !isValidEmail(formData.assignedTo)) {
-    errors.push('Invalid email format for assigned user');
-  }
-
-  return errors;
-};
-
-const isValidEmail = (email: string): boolean => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };

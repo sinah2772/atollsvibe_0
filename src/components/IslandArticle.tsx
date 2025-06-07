@@ -59,11 +59,14 @@ export const IslandArticle: React.FC<IslandArticleProps> = ({ id, language = 'en
               {language === 'dv' ? island.atoll?.name : island.atoll?.name_en}
             </span>
           </div>
-          {island.island_category && (
+          {(island.island_category || island.island_category_en || island.island_categories_id) && (
             <div className="flex items-center gap-1">
               <Building size={16} />
               <span className={language === 'dv' ? 'thaana-waheed' : ''}>
-                {language === 'dv' ? island.island_category : island.island_category_en}
+                {island.island_category?.name ? 
+                  (language === 'dv' ? island.island_category.name : island.island_category.name_en) : 
+                  (language === 'dv' ? island.island_category : island.island_category_en)
+                }
               </span>
             </div>
           )}

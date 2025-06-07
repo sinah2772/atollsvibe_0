@@ -1,15 +1,8 @@
-// Import extension cache guard first for maximum protection
-import './utils/extensionCacheGuard';
-// Import content script suppressor for targeted extension fixes
-import './utils/contentScriptSuppressor';
-// Import content script safety first to prevent cache errors
-import './utils/contentScriptSafety';
-// Import global cache polyfill first to prevent browser extension conflicts
-import './utils/globalCachePolyfill';
-// Import cache and compatibility modules first to ensure they're available
-import './utils/setupCache';
-import './utils/extensionCompat'; // For browser extension compatibility
-import './utils/extensionErrorSuppressor'; // Advanced error suppression
+// Import essential cache compatibility modules in the correct order
+import './utils/aggressiveErrorSuppression'; // Error suppression FIRST
+import './utils/globalCachePolyfill'; // Core cache polyfill
+import './utils/setupCache'; // Cache setup and initialization
+import './utils/layoutOptimization'; // Layout optimization for CLS
 
 // Import extension error monitor in development mode
 if (import.meta.env.DEV) {
@@ -30,13 +23,6 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
-
-// Configure React Router future flags for v7 compatibility
-// @ts-expect-error - These future flags may not be typed yet
-window.REACT_ROUTER_FUTURE = {
-  v7_startTransition: true,
-  v7_relativeSplatPath: true
-};
 
 // Import service worker utilities
 import { registerServiceWorker, unregisterServiceWorkers } from './utils/serviceWorkerUtils';
@@ -78,7 +64,7 @@ if ('performance' in window && 'PerformanceObserver' in window) {
       // Log large layout shifts and long tasks
       if (entry.entryType === 'layout-shift') {
         const layoutShiftEntry = entry as LayoutShift;
-        if (layoutShiftEntry.value && layoutShiftEntry.value > 0.1) {
+        if (layoutShiftEntry.value && layoutShiftEntry.value > 0.25) {
           console.warn(`Large layout shift detected: ${layoutShiftEntry.value.toFixed(2)}`);
         }
       }

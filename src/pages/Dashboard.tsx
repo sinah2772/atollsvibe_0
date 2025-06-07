@@ -20,7 +20,6 @@ import {
   Search,  
   Calendar
 } from 'lucide-react';
-import Header from '../components/layout/Header';
 import MobileSidebar from '../components/layout/MobileSidebar';
 
 interface DashboardStats {
@@ -103,18 +102,17 @@ const Dashboard = () => {
         <MobileSidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
         
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Header toggleSidebar={toggleSidebar} />
           <main className="flex-1 overflow-y-auto p-4 md:p-6">
             <div className="animate-pulse space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="bg-white p-6 rounded-xl shadow-sm">
+                  <div key={i} className="dashboard-card p-6 rounded-xl">
                     <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
                     <div className="h-10 bg-gray-200 rounded w-3/4"></div>
                   </div>
                 ))}
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm">
+              <div className="dashboard-card p-6 rounded-xl">
                 <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
                 <div className="space-y-4">
                   {[...Array(5)].map((_, i) => (
@@ -145,7 +143,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen dashboard-bg">
       <MobileSidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -153,7 +151,7 @@ const Dashboard = () => {
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           <div className="space-y-8">
             {/* Welcome Section */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="dashboard-card p-6 rounded-xl">
               <div className="flex items-center">
                 <img 
                   src={user.avatar_url || "https://images.pexels.com/photos/3763188/pexels-photo-3763188.jpeg?auto=compress&cs=tinysrgb&w=150"} 
@@ -178,7 +176,7 @@ const Dashboard = () => {
 
             {/* Stats Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <div className="dashboard-card p-6 rounded-xl">
                 <div className="flex items-center">
                   <div className="p-3 rounded-lg bg-blue-50 text-blue-600">
                     <Newspaper size={24} />
@@ -195,7 +193,7 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <div className="dashboard-card p-6 rounded-xl">
                 <div className="flex items-center">
                   <div className="p-3 rounded-lg bg-green-50 text-green-600">
                     <Eye size={24} />
@@ -211,7 +209,7 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <div className="dashboard-card p-6 rounded-xl">
                 <div className="flex items-center">
                   <div className="p-3 rounded-lg bg-yellow-50 text-yellow-600">
                     <ThumbsUp size={24} />
@@ -227,7 +225,7 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <div className="dashboard-card p-6 rounded-xl">
                 <div className="flex items-center">
                   <div className="p-3 rounded-lg bg-purple-50 text-purple-600">
                     <MessageSquare size={24} />
@@ -245,7 +243,7 @@ const Dashboard = () => {
             </div>
 
             {/* Enhanced Features Section */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="dashboard-card p-6 rounded-xl">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">Enhanced Article Management</h2>
                 <p className="text-sm text-gray-600">Powerful tools for content analysis and workflow</p>
@@ -312,7 +310,7 @@ const Dashboard = () => {
             </div>
 
             {/* Recent Articles Section */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="dashboard-card p-6 rounded-xl">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">Recent Articles</h2>
                 <div className="flex items-center gap-4">
@@ -492,7 +490,7 @@ const Dashboard = () => {
             </div>
 
             {/* Analytics Overview */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="dashboard-card p-6 rounded-xl">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">Analytics Overview</h2>
                 <div className="flex items-center gap-2 text-sm">
@@ -517,7 +515,7 @@ const Dashboard = () => {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <div className="dashboard-card p-6 rounded-xl">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                 <div className="space-y-3">
                   <Link
@@ -550,7 +548,7 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <div className="dashboard-card p-6 rounded-xl">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Categories</h3>
                 <div className="space-y-2">
                   {categories?.slice(0, 5).map(category => {
@@ -577,7 +575,7 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <div className="dashboard-card p-6 rounded-xl">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
                 <div className="space-y-4">
                   {filteredArticles?.slice(0, 3).map(article => (

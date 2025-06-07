@@ -31,7 +31,8 @@ import {
   Eye,
   Languages,
   ArrowLeft,
-  X
+  X,
+  Users
 } from 'lucide-react';
 
 const NewArticle: React.FC = () => {
@@ -69,8 +70,10 @@ const NewArticle: React.FC = () => {
   const [sendingToReview, setSendingToReview] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showImageBrowser, setShowImageBrowser] = useState(false);
+  const [showCollaborationPopup, setShowCollaborationPopup] = useState(false);
   const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   
   // Article flag states
   const [isBreaking, setIsBreaking] = useState(false);
@@ -198,6 +201,17 @@ const NewArticle: React.FC = () => {
     
     checkAuth();
   }, [navigate]);
+
+  // Scroll detection for collaboration component positioning
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      setIsScrolled(scrollTop > 80);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const validateForm = () => {
     if (!user) {
@@ -541,7 +555,32 @@ const NewArticle: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <div className="mb-6 flex justify-between items-center">
+      {/* Top Collaborative Presence - visible when not scrolled */}
+      {!isScrolled && (
+        <CollaborativePresence 
+          activeUsers={collaborative.activeUsers}
+          isConnected={collaborative.isConnected}
+          sticky={false}
+          className="mb-4"
+        />
+      )}
+      
+      {/* Side Collaborative Presence - appears when scrolled */}
+      <div className={`fixed left-4 md:left-6 top-1/2 transform -translate-y-1/2 z-40 transition-all duration-300 hover:scale-105 ${
+        isScrolled ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full pointer-events-none'
+      }`}>
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-2 max-w-[160px] md:max-w-[180px] hover:shadow-xl transition-shadow duration-200">
+          <CollaborativePresence 
+            activeUsers={collaborative.activeUsers}
+            isConnected={collaborative.isConnected}
+            sticky={false}
+            compact={true}
+            className=""
+          />
+        </div>
+      </div>
+      
+      <div className="mb-6 flex justify-between items-center sticky top-0 bg-gray-50 z-10 py-4 -mx-6 px-6">
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate('/articles')}
@@ -561,21 +600,93 @@ const NewArticle: React.FC = () => {
             </p>
           </div>
         </div>
-        <button
-          onClick={toggleLanguage}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-          dir={language === 'dv' ? 'rtl' : 'ltr'}
-        >
-          <Languages size={20} className={language === 'dv' ? 'ml-2' : 'mr-2'} />
-          <span className={`text-sm font-medium ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-            {language === 'dv' ? 'Switch to English' : 'ދިވެހި އަށް ބަދަލުކުރައްވާ'}
-          </span>
-        </button>
-      </div>      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">        {/* Collaborative Presence Indicator */}
-        <div className="mb-4">          <CollaborativePresence 
-            activeUsers={collaborative.activeUsers}
-            isConnected={collaborative.isConnected}
-          />
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowCollaborationPopup(true)}
+            className="flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors relative"
+            title={language === 'dv' ? 'އެއްބަސްވުން' : 'Collaboration'}
+          >
+            <Users size={20} />
+            {collaborative.activeUsers.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {collaborative.activeUsers.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={toggleLanguage}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            dir={language === 'dv' ? 'rtl' : 'ltr'}
+          >
+            <Languages size={20} className={language === 'dv' ? 'ml-2' : 'mr-2'} />
+            <span className={`text-sm font-medium ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+              {language === 'dv' ? 'Switch to English' : 'ދިވެހި އަށް ބަދަލުކުރައްވާ'}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Collaboration Popup */}
+      {showCollaborationPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl border border-gray-200 p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className={`text-lg font-medium ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                {language === 'dv' ? 'އެއްބަސްވުން' : 'Collaboration'}
+              </h3>
+              <button
+                onClick={() => setShowCollaborationPopup(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                title={language === 'dv' ? 'ބަންދުކުރާ' : 'Close'}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            {/* Article Collaborators */}
+            <div className="mb-4">
+              <label className={`block text-sm font-medium text-gray-700 mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                {language === 'dv' ? 'އެއްބަސްވުމުގެ ބައިވެރިން' : 'Collaborators'}
+              </label>
+              <div className="mb-3">
+                <CollaboratorSelector
+                  collaborators={collaboratorHook.selectedUserIds}
+                  onChange={collaboratorHook.handleCollaboratorsChange}
+                  language={language}
+                  placeholder={language === 'dv' ? 'އީމެއިލް އިތުރުކުރައްވާ' : 'Add collaborator email'}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  {language === 'dv' ? 'އެއްބަސްވުމުގެ ބައިވެރިންގެ އީމެއިލް އެޑްރެސް އިތުރުކުރައްވާ' : 'Enter email addresses of collaborators'}
+                </p>
+              </div>
+              <AuthorCollab 
+                activeUsers={collaborative.activeUsers}
+                collaboratorEmails={collaboratorHook.selectedUserIds}
+              />
+            </div>
+            
+            <div>
+              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+                {language === 'dv' ? 'އެއްބަސްވުމުގެ ނޯޓް' : 'Collaboration Notes'}
+              </label>
+              <CollaborativeTextArea
+                fieldId="collaborationNotes"
+                value={collaborationNotes}
+                onChange={setCollaborationNotes}
+                collaborative={collaborative}
+                currentUser={user?.email || ''}
+                placeholder={language === 'dv' ? 'އެކުގައި މަސައްކަތް ކުރުމުގެ ނޯޓް' : 'Collaboration notes'}
+                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                dir={language === 'dv' ? 'rtl' : 'ltr'}
+                rows={3}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="mb-4">
           <AutoSaveStatus 
             lastSaveTime={lastAutoSave}
             isSaving={isAutoSaving}
@@ -1193,52 +1304,6 @@ const NewArticle: React.FC = () => {
                 rows={3}
               />
             </div>
-          </div>
-        </div>
-
-        {/* Collaboration Section */}
-        <div className="mb-6 bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-          <h3 className={`text-lg font-medium mb-3 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-            {language === 'dv' ? 'އެއްބަސްވުން' : 'Collaboration'}
-          </h3>
-          
-          {/* Article Collaborators */}
-          <div className="mb-4">
-            <label className={`block text-sm font-medium text-gray-700 mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-              {language === 'dv' ? 'އެއްބަސްވުމުގެ ބައިވެރިން' : 'Collaborators'}
-            </label>
-            <div className="mb-3">
-              <CollaboratorSelector
-                collaborators={collaboratorHook.selectedUserIds}
-                onChange={collaboratorHook.handleCollaboratorsChange}
-                language={language}
-                placeholder={language === 'dv' ? 'އީމެއިލް އިތުރުކުރައްވާ' : 'Add collaborator email'}
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                {language === 'dv' ? 'އެއްބަސްވުމުގެ ބައިވެރިންގެ އީމެއިލް އެޑްރެސް އިތުރުކުރައްވާ' : 'Enter email addresses of collaborators'}
-              </p>
-            </div>
-            <AuthorCollab 
-              activeUsers={collaborative.activeUsers}
-              collaboratorEmails={collaboratorHook.selectedUserIds}
-            />
-          </div>
-          
-          <div>
-            <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-              {language === 'dv' ? 'އެއްބަސްވުމުގެ ނޯޓް' : 'Collaboration Notes'}
-            </label>
-            <CollaborativeTextArea
-              fieldId="collaborationNotes"
-              value={collaborationNotes}
-              onChange={setCollaborationNotes}
-              collaborative={collaborative}
-              currentUser={user?.email || ''}
-              placeholder={language === 'dv' ? 'އެކުގައި މަސައްކަތް ކުރުމުގެ ނޯޓް' : 'Collaboration notes'}
-              className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              dir={language === 'dv' ? 'rtl' : 'ltr'}
-              rows={3}
-            />
           </div>
         </div>
 

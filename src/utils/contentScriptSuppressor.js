@@ -90,24 +90,23 @@
     if (typeof global !== 'undefined') {
       contexts.push({ obj: global, name: 'global' });
     }
-    
-    contexts.forEach(({ obj, name }) => {
+      contexts.forEach(({ obj, name }) => {
       if (obj && typeof obj.caches === 'undefined') {
         try {
           // Try to install with different configurations
           const cache = createExtensionSafeCache();
           
-          // First try: non-configurable (most secure)
+          // First try: configurable property definition
           try {
             Object.defineProperty(obj, 'caches', {
               value: cache,
               writable: false,
-              configurable: false,
+              configurable: true, // Allow other polyfills to modify if needed
               enumerable: false
             });
-            console.debug(`[Content Script Suppressor] Non-configurable cache installed on ${name}`);
+            console.debug(`[Content Script Suppressor] Configurable cache installed on ${name}`);
           } catch (e) {
-            // Second try: configurable (allows extensions to override if needed)
+            // Second try: writable and configurable
             try {
               Object.defineProperty(obj, 'caches', {
                 value: cache,
@@ -115,7 +114,7 @@
                 configurable: true,
                 enumerable: false
               });
-              console.debug(`[Content Script Suppressor] Configurable cache installed on ${name}`);
+              console.debug(`[Content Script Suppressor] Writable cache installed on ${name}`);
             } catch (e2) {
               // Final fallback: direct assignment
               obj.caches = cache;

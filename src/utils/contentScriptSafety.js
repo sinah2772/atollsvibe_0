@@ -132,15 +132,14 @@ export function installContentScriptSafeCache() {
     
     // Install on multiple contexts to ensure coverage
     const contexts = [window, self, globalThis];
-    
-    contexts.forEach(context => {
+      contexts.forEach(context => {
       if (context && typeof context.caches === 'undefined') {
         try {
-          // Try to use Object.defineProperty for immutable installation
+          // Try to use Object.defineProperty for installation
           Object.defineProperty(context, 'caches', {
             value: safeCacheStorage,
             writable: false,
-            configurable: false,
+            configurable: true, // Allow other polyfills to modify if needed
             enumerable: false
           });
           console.debug('Content script safe cache installed on context:', context.constructor.name);

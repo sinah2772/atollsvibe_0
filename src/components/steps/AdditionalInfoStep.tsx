@@ -1,14 +1,6 @@
 import React from 'react';
-import { FormField } from '@/components/ui/form';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Trash2, Plus, ExternalLink, Info, FileText, Globe } from 'lucide-react';
-import { StepProps } from '../MultiStepForm';
+import { StepProps } from '../../types/editor';
 
 export const AdditionalInfoStep: React.FC<StepProps> = ({ 
   formData, 
@@ -79,18 +71,15 @@ export const AdditionalInfoStep: React.FC<StepProps> = ({
       required: 'ބޭނުންވާ'
     }
   };
+  const text = t[language as keyof typeof t];
 
-  const text = t[language];
-
-  const handleFieldChange = (field: string, value: any) => {
+  const handleFieldChange = (field: string, value: unknown) => {
     onFormDataChange({
-      ...formData,
       [field]: value
     });
   };
-
   const addSourceUrl = () => {
-    const currentSources = formData.sourceUrls || [];
+    const currentSources = (formData.sourceUrls as Array<{name: string, url: string}>) || [];
     handleFieldChange('sourceUrls', [
       ...currentSources,
       { name: '', url: '' }
@@ -98,16 +87,16 @@ export const AdditionalInfoStep: React.FC<StepProps> = ({
   };
 
   const updateSourceUrl = (index: number, field: 'name' | 'url', value: string) => {
-    const currentSources = formData.sourceUrls || [];
-    const updatedSources = currentSources.map((source, i) => 
+    const currentSources = (formData.sourceUrls as Array<{name: string, url: string}>) || [];
+    const updatedSources = currentSources.map((source: {name: string, url: string}, i: number) => 
       i === index ? { ...source, [field]: value } : source
     );
     handleFieldChange('sourceUrls', updatedSources);
   };
 
   const removeSourceUrl = (index: number) => {
-    const currentSources = formData.sourceUrls || [];
-    const updatedSources = currentSources.filter((_, i) => i !== index);
+    const currentSources = (formData.sourceUrls as Array<{name: string, url: string}>) || [];
+    const updatedSources = currentSources.filter((_: unknown, i: number) => i !== index);
     handleFieldChange('sourceUrls', updatedSources);
   };
 
@@ -120,259 +109,208 @@ export const AdditionalInfoStep: React.FC<StepProps> = ({
         <p className="text-gray-600 dark:text-gray-400">
           {text.description}
         </p>
-      </div>
-
-      {/* Author and Editor Notes */}
+      </div>      {/* Author and Editor Notes */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="pb-3">
+            <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
               <FileText className="h-5 w-5" />
               {text.authorNotes}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea
+            </h3>
+          </div>
+          <div>
+            <textarea
               placeholder={text.authorNotesPlaceholder}
-              value={formData.authorNotes || ''}
-              onChange={(e) => handleFieldChange('authorNotes', e.target.value)}
-              className="min-h-[100px]"
+              value={(formData.authorNotes as string) || ''}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleFieldChange('authorNotes', e.target.value)}
+              className="min-h-[100px] w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="pb-3">
+            <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
               <Info className="h-5 w-5" />
               {text.editorNotes}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea
+            </h3>
+          </div>
+          <div>
+            <textarea
               placeholder={text.editorNotesPlaceholder}
-              value={formData.editorNotes || ''}
-              onChange={(e) => handleFieldChange('editorNotes', e.target.value)}
-              className="min-h-[100px]"
+              value={(formData.editorNotes as string) || ''}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleFieldChange('editorNotes', e.target.value)}
+              className="min-h-[100px] w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Source URLs */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
+          </div>
+        </div>
+      </div>      {/* Source URLs */}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="pb-3">
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
             <ExternalLink className="h-5 w-5" />
             {text.sourceUrls}
-          </CardTitle>
+          </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             {text.sourceUrlsDesc}
           </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {(formData.sourceUrls || []).map((source, index) => (
+        </div>
+        <div className="space-y-4">
+          {((formData.sourceUrls as Array<{name: string, url: string}>) || []).map((source: {name: string, url: string}, index: number) => (
             <div key={index} className="flex gap-3 items-end">
               <div className="flex-1">
-                <Label htmlFor={`source-name-${index}`}>{text.sourceName}</Label>
-                <Input
+                <label htmlFor={`source-name-${index}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{text.sourceName}</label>
+                <input
                   id={`source-name-${index}`}
                   placeholder={text.sourceNamePlaceholder}
                   value={source.name}
-                  onChange={(e) => updateSourceUrl(index, 'name', e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSourceUrl(index, 'name', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 />
               </div>
               <div className="flex-1">
-                <Label htmlFor={`source-url-${index}`}>{text.sourceUrl}</Label>
-                <Input
+                <label htmlFor={`source-url-${index}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{text.sourceUrl}</label>
+                <input
                   id={`source-url-${index}`}
                   type="url"
                   placeholder={text.sourceUrlPlaceholder}
                   value={source.url}
-                  onChange={(e) => updateSourceUrl(index, 'url', e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSourceUrl(index, 'url', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 />
-              </div>
-              <Button
+              </div>              <button
                 type="button"
-                variant="outline"
-                size="icon"
                 onClick={() => removeSourceUrl(index)}
-                className="text-red-600 hover:text-red-700"
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                aria-label={`Remove source ${index + 1}`}
               >
                 <Trash2 className="h-4 w-4" />
-              </Button>
+              </button>
             </div>
           ))}
           
-          <Button
+          <button
             type="button"
-            variant="outline"
             onClick={addSourceUrl}
-            className="w-full"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 flex items-center justify-center gap-2"
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4" />
             {text.addSource}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Translation Information */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
+          </button>
+        </div>
+      </div>      {/* Translation Information */}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="pb-3">
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
             <Globe className="h-5 w-5" />
             {text.translationInfo}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          </h3>
+        </div>
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="originalLanguage">{text.originalLanguage}</Label>
-              <Select
-                value={formData.originalLanguage || ''}
-                onValueChange={(value) => handleFieldChange('originalLanguage', value)}
+              <label htmlFor="originalLanguage" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{text.originalLanguage}</label>              <select
+                id="originalLanguage"
+                value={(formData.originalLanguage as string) || ''}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFieldChange('originalLanguage', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select language" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="dv">Dhivehi</SelectItem>
-                  <SelectItem value="ar">Arabic</SelectItem>
-                  <SelectItem value="ur">Urdu</SelectItem>
-                  <SelectItem value="hi">Hindi</SelectItem>
-                </SelectContent>
-              </Select>
+                <option value="">Select language</option>
+                <option value="en">English</option>
+                <option value="dv">Dhivehi</option>
+                <option value="ar">Arabic</option>
+                <option value="ur">Urdu</option>
+                <option value="hi">Hindi</option>
+              </select>
             </div>
 
             <div>
-              <Label htmlFor="translator">{text.translator}</Label>
-              <Input
+              <label htmlFor="translator" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{text.translator}</label>
+              <input
                 id="translator"
                 placeholder={text.translatorPlaceholder}
-                value={formData.translator || ''}
-                onChange={(e) => handleFieldChange('translator', e.target.value)}
+                value={(formData.translator as string) || ''}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange('translator', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
           </div>
 
           <div>
-            <Label htmlFor="translationNotes">{text.translationNotes}</Label>
-            <Textarea
+            <label htmlFor="translationNotes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{text.translationNotes}</label>
+            <textarea
               id="translationNotes"
               placeholder={text.translationNotesPlaceholder}
-              value={formData.translationNotes || ''}
-              onChange={(e) => handleFieldChange('translationNotes', e.target.value)}
-              className="min-h-[80px]"
+              value={(formData.translationNotes as string) || ''}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleFieldChange('translationNotes', e.target.value)}
+              className="min-h-[80px] w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             />
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Archive Settings */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">{text.archiveSettings}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        </div>
+      </div>      {/* Archive Settings */}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="pb-3">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{text.archiveSettings}</h3>
+        </div>
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="archiveDate">{text.archiveDate}</Label>
-              <Input
+              <label htmlFor="archiveDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{text.archiveDate}</label>
+              <input
                 id="archiveDate"
                 type="date"
-                value={formData.archiveDate || ''}
-                onChange={(e) => handleFieldChange('archiveDate', e.target.value)}
+                value={(formData.archiveDate as string) || ''}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFieldChange('archiveDate', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
 
             <div>
-              <Label htmlFor="archiveReason">{text.archiveReason}</Label>
-              <Select
-                value={formData.archiveReason || ''}
-                onValueChange={(value) => handleFieldChange('archiveReason', value)}
+              <label htmlFor="archiveReason" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{text.archiveReason}</label>              <select
+                id="archiveReason"
+                value={(formData.archiveReason as string) || ''}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFieldChange('archiveReason', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select reason" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="outdated">Outdated</SelectItem>
-                  <SelectItem value="duplicate">Duplicate</SelectItem>
-                  <SelectItem value="policy">Policy Violation</SelectItem>
-                  <SelectItem value="legal">Legal Issue</SelectItem>
-                  <SelectItem value="author_request">Author Request</SelectItem>
-                </SelectContent>
-              </Select>
+                <option value="">Select reason</option>
+                <option value="outdated">Outdated</option>
+                <option value="duplicate">Duplicate</option>
+                <option value="policy">Policy Violation</option>
+                <option value="legal">Legal Issue</option>
+                <option value="author_request">Author Request</option>
+              </select>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Legal & Compliance */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">{text.legal}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        </div>
+      </div>      {/* Legal & Compliance */}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="pb-3">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{text.legal}</h3>
+        </div>
+        <div className="space-y-4">
           <div>
-            <Label htmlFor="copyrightInfo">{text.copyrightInfo}</Label>
-            <Textarea
+            <label htmlFor="copyrightInfo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{text.copyrightInfo}</label>
+            <textarea
               id="copyrightInfo"
               placeholder={text.copyrightPlaceholder}
-              value={formData.copyrightInfo || ''}
-              onChange={(e) => handleFieldChange('copyrightInfo', e.target.value)}
-              className="min-h-[80px]"
+              value={(formData.copyrightInfo as string) || ''}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleFieldChange('copyrightInfo', e.target.value)}
+              className="min-h-[80px] w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             />
           </div>
 
           <div>
-            <Label htmlFor="legalNotes">{text.legalNotes}</Label>
-            <Textarea
+            <label htmlFor="legalNotes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{text.legalNotes}</label>
+            <textarea
               id="legalNotes"
               placeholder={text.legalNotesPlaceholder}
-              value={formData.legalNotes || ''}
-              onChange={(e) => handleFieldChange('legalNotes', e.target.value)}
-              className="min-h-[80px]"
+              value={(formData.legalNotes as string) || ''}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleFieldChange('legalNotes', e.target.value)}
+              className="min-h-[80px] w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
-};
-
-// Validation function for this step
-export const validateAdditionalInfo = (formData: any): string[] => {
-  const errors: string[] = [];
-
-  // Validate source URLs if provided
-  if (formData.sourceUrls && formData.sourceUrls.length > 0) {
-    formData.sourceUrls.forEach((source: any, index: number) => {
-      if (source.name && !source.url) {
-        errors.push(`Source ${index + 1}: URL is required when name is provided`);
-      }
-      if (source.url && !source.name) {
-        errors.push(`Source ${index + 1}: Name is required when URL is provided`);
-      }
-      if (source.url && !isValidUrl(source.url)) {
-        errors.push(`Source ${index + 1}: Invalid URL format`);
-      }
-    });
-  }
-
-  // Validate translation info consistency
-  if (formData.translator && !formData.originalLanguage) {
-    errors.push('Original language is required when translator is specified');
-  }
-
-  return errors;
-};
-
-const isValidUrl = (url: string): boolean => {
-  try {
-    new URL(url);
-    return true;
-  } catch {
-    return false;
-  }
 };

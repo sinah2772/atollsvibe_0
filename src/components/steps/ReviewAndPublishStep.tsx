@@ -1,32 +1,128 @@
 import React from 'react';
-import { FormField } from '@/components/ui/form';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
 import { 
   CheckCircle, 
   XCircle, 
   AlertTriangle, 
-  Info, 
   Eye, 
   Globe, 
   Calendar,
   Users,
-  Tag,
   MapPin,
-  Image,
   FileText,
-  Settings,
   Send
 } from 'lucide-react';
-import { StepProps } from '../MultiStepForm';
+import { StepProps } from '../../types/editor';
+
+// Local UI component implementations
+const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: string }> = ({ 
+  children, 
+  className = '', 
+  variant = 'default',
+  ...props 
+}) => {
+  const baseClasses = 'px-4 py-2 rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const variantClasses = {
+    default: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
+    outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-blue-500',
+    ghost: 'text-gray-600 hover:bg-gray-100 focus:ring-gray-500'
+  };
+  
+  return (
+    <button 
+      className={`${baseClasses} ${variantClasses[variant as keyof typeof variantClasses] || variantClasses.default} ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
+
+const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ children, className = '', ...props }) => (
+  <div className={`bg-white rounded-lg border border-gray-200 shadow-sm ${className}`} {...props}>
+    {children}
+  </div>
+);
+
+const CardHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ children, className = '', ...props }) => (
+  <div className={`p-6 pb-4 ${className}`} {...props}>
+    {children}
+  </div>
+);
+
+const CardTitle: React.FC<React.HTMLAttributes<HTMLHeadingElement>> = ({ children, className = '', ...props }) => (
+  <h3 className={`text-lg font-semibold text-gray-900 ${className}`} {...props}>
+    {children}
+  </h3>
+);
+
+const CardContent: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ children, className = '', ...props }) => (
+  <div className={`p-6 pt-0 ${className}`} {...props}>
+    {children}
+  </div>
+);
+
+const Alert: React.FC<React.HTMLAttributes<HTMLDivElement> & { variant?: string }> = ({ 
+  children, 
+  className = '', 
+  variant = 'default',
+  ...props 
+}) => {
+  const variantClasses = {
+    default: 'bg-blue-50 border-blue-200 text-blue-800',
+    destructive: 'bg-red-50 border-red-200 text-red-800',
+    warning: 'bg-yellow-50 border-yellow-200 text-yellow-800'
+  };
+  
+  return (
+    <div className={`border rounded-md p-4 ${variantClasses[variant as keyof typeof variantClasses] || variantClasses.default} ${className}`} {...props}>
+      {children}
+    </div>
+  );
+};
+
+const AlertDescription: React.FC<React.HTMLAttributes<HTMLParagraphElement>> = ({ children, className = '', ...props }) => (
+  <p className={`text-sm ${className}`} {...props}>
+    {children}
+  </p>
+);
+
+const Separator: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className = '', ...props }) => (
+  <div className={`border-t border-gray-200 ${className}`} {...props} />
+);
+
+const Label: React.FC<React.LabelHTMLAttributes<HTMLLabelElement>> = ({ children, className = '', ...props }) => (
+  <label className={`text-sm font-medium text-gray-700 ${className}`} {...props}>
+    {children}
+  </label>
+);
+
+// Types
+interface FormDataType {
+  content?: string;
+  title?: string;
+  heading?: string;
+  categories?: string[];
+  coverImage?: string;
+  atoll?: string;
+  island?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  keywords?: string[];
+  tags?: string[];
+  collaborators?: string[];
+  publishSchedule?: string;
+  scheduledDate?: string;
+  scheduledTime?: string;
+  isBreaking?: boolean;
+  isFeatured?: boolean;
+  isDeveloping?: boolean;
+  isExclusive?: boolean;
+  isSponsored?: boolean;
+  [key: string]: unknown;
+}
 
 export const ReviewAndPublishStep: React.FC<StepProps> = ({ 
   formData, 
-  onFormDataChange,
   language = 'en',
   validationErrors = {}
 }) => {
@@ -121,24 +217,23 @@ export const ReviewAndPublishStep: React.FC<StepProps> = ({
       immediate: 'ހަމަ އެވަގުތު',
       scheduled_for: 'ޝެޑިއުލް ކުރެވުނު'
     }
-  };
+  } as const;
 
-  const text = t[language];
+  const text = t[language as keyof typeof t];
 
   // Calculate content statistics
   const calculateContentStats = () => {
-    const content = formData.content || '';
-    const wordCount = content.split(/\s+/).filter(word => word.length > 0).length;
+    const content = (formData as FormDataType).content || '';
+    const wordCount = content.split(/\s+/).filter((word: string) => word.length > 0).length;
     const estimatedReadTime = Math.ceil(wordCount / 200); // Average reading speed
     return { wordCount, estimatedReadTime };
   };
 
   const stats = calculateContentStats();
-
   // Get all validation errors
   const getAllErrors = () => {
     const allErrors: string[] = [];
-    Object.values(validationErrors).forEach((stepErrors: any) => {
+    Object.values(validationErrors).forEach((stepErrors: unknown) => {
       if (Array.isArray(stepErrors)) {
         allErrors.push(...stepErrors);
       }
@@ -149,17 +244,20 @@ export const ReviewAndPublishStep: React.FC<StepProps> = ({
   const allErrors = getAllErrors();
   const hasErrors = allErrors.length > 0;
 
+  // Type cast formData for better type safety
+  const typedFormData = formData as FormDataType;
+
   // Create preview sections
   const previewSections = [
     {
       icon: FileText,
       title: text.basicInfo,
       items: [
-        { label: text.title_field, value: formData.title },
-        { label: text.heading, value: formData.heading },
-        { label: text.categories, value: formData.categories?.join(', ') },
-        { label: text.coverImage, value: formData.coverImage ? 'Set' : text.noValue },
-        { label: text.wordCount, value: stats.wordCount },
+        { label: text.title_field, value: typedFormData.title },
+        { label: text.heading, value: typedFormData.heading },
+        { label: text.categories, value: typedFormData.categories?.join(', ') },
+        { label: text.coverImage, value: typedFormData.coverImage ? 'Set' : text.noValue },
+        { label: text.wordCount, value: stats.wordCount.toString() },
         { label: text.estimatedReadTime, value: `${stats.estimatedReadTime} ${text.minutes}` }
       ]
     },
@@ -167,8 +265,8 @@ export const ReviewAndPublishStep: React.FC<StepProps> = ({
       icon: MapPin,
       title: text.locationAndFlags,
       items: [
-        { label: text.location, value: [formData.atoll, formData.island].filter(Boolean).join(', ') || text.noValue },
-        { label: text.flags, value: Object.entries(formData)
+        { label: text.location, value: [typedFormData.atoll, typedFormData.island].filter(Boolean).join(', ') || text.noValue },
+        { label: text.flags, value: Object.entries(typedFormData)
           .filter(([key, value]) => ['isBreaking', 'isFeatured', 'isDeveloping', 'isExclusive', 'isSponsored'].includes(key) && value)
           .map(([key]) => key.replace('is', ''))
           .join(', ') || text.noValue }
@@ -178,19 +276,19 @@ export const ReviewAndPublishStep: React.FC<StepProps> = ({
       icon: Globe,
       title: text.seoMetadata,
       items: [
-        { label: text.metaTitle, value: formData.metaTitle },
-        { label: text.metaDescription, value: formData.metaDescription },
-        { label: text.keywords, value: formData.keywords?.join(', ') },
-        { label: text.tags, value: formData.tags?.join(', ') }
+        { label: text.metaTitle, value: typedFormData.metaTitle },
+        { label: text.metaDescription, value: typedFormData.metaDescription },
+        { label: text.keywords, value: typedFormData.keywords?.join(', ') },
+        { label: text.tags, value: typedFormData.tags?.join(', ') }
       ]
     },
     {
       icon: Users,
       title: text.collaboration,
       items: [
-        { label: text.collaborators, value: formData.collaborators?.length ? `${formData.collaborators.length} assigned` : text.noValue },
-        { label: text.publishSchedule, value: formData.publishSchedule === 'now' ? text.immediate : 
-          formData.scheduledDate ? `${text.scheduled_for} ${formData.scheduledDate} ${formData.scheduledTime}` : text.noValue }
+        { label: text.collaborators, value: typedFormData.collaborators?.length ? `${typedFormData.collaborators.length} assigned` : text.noValue },
+        { label: text.publishSchedule, value: typedFormData.publishSchedule === 'now' ? text.immediate : 
+          typedFormData.scheduledDate ? `${text.scheduled_for} ${typedFormData.scheduledDate} ${typedFormData.scheduledTime || ''}` : text.noValue }
       ]
     }
   ];
@@ -298,7 +396,7 @@ export const ReviewAndPublishStep: React.FC<StepProps> = ({
       </Card>
 
       {/* Content Preview */}
-      {formData.content && (
+      {typedFormData.content && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle>{text.content}</CardTitle>
@@ -307,10 +405,10 @@ export const ReviewAndPublishStep: React.FC<StepProps> = ({
             <div 
               className="prose dark:prose-invert max-w-none"
               dangerouslySetInnerHTML={{ 
-                __html: formData.content.substring(0, 500) + (formData.content.length > 500 ? '...' : '')
+                __html: typedFormData.content.substring(0, 500) + (typedFormData.content.length > 500 ? '...' : '')
               }}
             />
-            {formData.content.length > 500 && (
+            {typedFormData.content.length > 500 && (
               <Button variant="outline" className="mt-4">
                 <Eye className="h-4 w-4 mr-2" />
                 {text.viewPreview}
@@ -352,7 +450,7 @@ export const ReviewAndPublishStep: React.FC<StepProps> = ({
               className="flex-1"
             >
               <Send className="h-4 w-4 mr-2" />
-              {formData.publishSchedule === 'scheduled' ? text.schedulePublish : text.publishNow}
+              {typedFormData.publishSchedule === 'scheduled' ? text.schedulePublish : text.publishNow}
             </Button>
             
             <Button 
@@ -365,11 +463,11 @@ export const ReviewAndPublishStep: React.FC<StepProps> = ({
             </Button>
           </div>
 
-          {formData.publishSchedule === 'scheduled' && formData.scheduledDate && (
+          {typedFormData.publishSchedule === 'scheduled' && typedFormData.scheduledDate && (
             <Alert>
               <Calendar className="h-4 w-4" />
               <AlertDescription>
-                {text.scheduled_for}: {formData.scheduledDate} {formData.scheduledTime}
+                {text.scheduled_for}: {typedFormData.scheduledDate} {typedFormData.scheduledTime || ''}
               </AlertDescription>
             </Alert>
           )}
@@ -379,32 +477,4 @@ export const ReviewAndPublishStep: React.FC<StepProps> = ({
   );
 };
 
-// Validation function for this step
-export const validateReviewAndPublish = (formData: any): string[] => {
-  const errors: string[] = [];
-
-  // Final validation checks
-  if (!formData.title?.trim()) {
-    errors.push('Article title is required');
-  }
-
-  if (!formData.content?.trim()) {
-    errors.push('Article content is required');
-  }
-
-  if (!formData.categories?.length) {
-    errors.push('At least one category must be selected');
-  }
-
-  // Check if scheduled publishing has required fields
-  if (formData.publishSchedule === 'scheduled') {
-    if (!formData.scheduledDate) {
-      errors.push('Scheduled date is required for scheduled publishing');
-    }
-    if (!formData.scheduledTime) {
-      errors.push('Scheduled time is required for scheduled publishing');
-    }
-  }
-
-  return errors;
-};
+export default ReviewAndPublishStep;

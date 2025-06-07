@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useArticles } from '../hooks/useArticles';
+import { useArticles, Article } from '../hooks/useArticles';
 import { useCategories } from '../hooks/useCategories';
 import { getCategoryColor, getSubcategoryColor } from '../utils/categoryColors';
 import { Clock, Eye, MessageSquare, ThumbsUp } from 'lucide-react';
@@ -50,7 +50,7 @@ function Home() {
       article => article.category_id === category.id && article.status === 'published'
     ).slice(0, 4) || [];
     return acc;
-  }, {} as Record<number, typeof articles>);
+  }, {} as Record<number, Article[]>);
 
   // Default cover images for articles without images
   const defaultCoverImage = "https://images.pexels.com/photos/3944454/pexels-photo-3944454.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2";

@@ -9,6 +9,12 @@ type Island = Database['public']['Tables']['islands']['Row'] & {
     name_en: string;
     slug: string;
   } | null;
+  island_category: {
+    id: number;
+    name: string;
+    name_en: string;
+    slug: string;
+  } | null;
 };
 
 export function useIslandData(id?: number) {
@@ -33,6 +39,12 @@ export function useIslandData(id?: number) {
           .select(`
             *,
             atoll:atoll_id (
+              id,
+              name,
+              name_en,
+              slug
+            ),
+            island_category:island_categories_id (
               id,
               name,
               name_en,

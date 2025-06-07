@@ -11,7 +11,11 @@
     "check-supabase": "npx ts-node --esm check-supabase-updated.js",
     "populate-atolls": "npx ts-node --esm check-supabase-updated.js --populate",
     "check-edge-function": "node check-edge-function.js",
-    "check-all": "npx ts-node --esm check-supabase-updated.js && node check-edge-function.js"
+    "check-all": "npx ts-node --esm check-supabase-updated.js && node check-edge-function.js",
+    "migrate-island-categories": "node --loader ts-node/esm migrate-island-categories.js",
+    "migrate-via-supabase": "node --loader ts-node/esm migrate-via-supabase.js",
+    "simple-migrate": "node simple-migration.js",
+    "check-migration-status": "node --loader ts-node/esm check-migration-status.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8",

@@ -20,6 +20,7 @@ const BusinessDashboard: React.FC = () => {
   const [ads, setAds] = useState<Ad[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'paused'>('all');
+  const [loading, setLoading] = useState(false);
 
   // Fetch ads on component mount
   useEffect(() => {
@@ -112,7 +113,7 @@ const BusinessDashboard: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="dashboard-container">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Business Dashboard</h1>
         <p className="mt-1 text-sm text-gray-600">
@@ -122,7 +123,7 @@ const BusinessDashboard: React.FC = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="dashboard-card p-6 rounded-lg">
           <div className="flex items-center">
             <div className="p-2 bg-blue-100 rounded-lg">
               <BarChart2 className="h-6 w-6 text-blue-600" />
@@ -136,7 +137,7 @@ const BusinessDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="dashboard-card p-6 rounded-lg">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
               <Upload className="h-6 w-6 text-green-600" />
@@ -148,7 +149,7 @@ const BusinessDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="dashboard-card p-6 rounded-lg">
           <div className="flex items-center">
             <div className="p-2 bg-purple-100 rounded-lg">
               <Filter className="h-6 w-6 text-purple-600" />
@@ -162,7 +163,7 @@ const BusinessDashboard: React.FC = () => {
       </div>
 
       {/* Upload and Search */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+      <div className="dashboard-section mb-8">
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="w-full md:w-96 relative">
             <input
@@ -171,6 +172,7 @@ const BusinessDashboard: React.FC = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              disabled={loading}
             />
             <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
           </div>
@@ -183,23 +185,25 @@ const BusinessDashboard: React.FC = () => {
               onChange={(e) => setFilter(e.target.value as typeof filter)}
               className="rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
               aria-label="Filter advertisements"
+              disabled={loading}
             >
               <option value="all">All Ads</option>
               <option value="active">Active</option>
               <option value="paused">Paused</option>
             </select>
 
-            <label className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer">
+            <label className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}>
               <Upload size={20} className="mr-2" />
-              Upload New
+              {loading ? 'Uploading...' : 'Upload New'}
               <input
                 type="file"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) handleUpload(file);
+                  if (file && !loading) handleUpload(file);
                 }}
                 accept="image/*,video/*"
+                disabled={loading}
               />
             </label>
           </div>
@@ -207,12 +211,17 @@ const BusinessDashboard: React.FC = () => {
       </div>
 
       {/* Ads List */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="dashboard-section overflow-hidden">
+        {loading && (
+          <div className="flex justify-center my-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        )}
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="dashboard-table min-w-full">
+            <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Media
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -229,7 +238,7 @@ const BusinessDashboard: React.FC = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody>
               {ads.map((ad) => (
                 <tr key={ad.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -276,6 +285,7 @@ const BusinessDashboard: React.FC = () => {
                         className="p-1 hover:bg-gray-100 rounded-full text-gray-500 hover:text-red-600"
                         aria-label="Delete advertisement"
                         title="Delete advertisement"
+                        disabled={loading}
                       >
                         <Trash2 size={18} />
                       </button>

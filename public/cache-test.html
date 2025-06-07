@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cache API Test</title>
+</head>
+<body>
+  <h1>Cache API Test</h1>
+  <div id="results"></div>
+  
+  <script>
+    async function testCacheAPI() {
+      const results = document.getElementById('results');
+      
+      try {
+        // Test 1: Check if caches is available
+        if (typeof caches !== 'undefined') {
+          results.innerHTML += '<p>✅ caches API is available</p>';
+          
+          // Test 2: Try to open a cache
+          const cache = await caches.open('test-cache');
+          results.innerHTML += '<p>✅ caches.open() works</p>';
+          
+          // Test 3: Try to put something in cache
+          await cache.put('/test', new Response('test data'));
+          results.innerHTML += '<p>✅ cache.put() works</p>';
+          
+          // Test 4: Try to retrieve from cache
+          const response = await cache.match('/test');
+          if (response) {
+            const text = await response.text();
+            results.innerHTML += `<p>✅ cache.match() works: ${text}</p>`;
+          } else {
+            results.innerHTML += '<p>⚠️ cache.match() returned undefined</p>';
+          }
+          
+          // Test 5: Clean up
+          await caches.delete('test-cache');
+          results.innerHTML += '<p>✅ caches.delete() works</p>';
+          
+        } else {
+          results.innerHTML += '<p>❌ caches API is not available</p>';
+        }
+      } catch (error) {
+        results.innerHTML += `<p>❌ Error: ${error.message}</p>`;
+        console.error('Cache test error:', error);
+      }
+    }
+    
+    // Run the test when page loads
+    window.addEventListener('load', testCacheAPI);
+  </script>
+</body>
+</html>

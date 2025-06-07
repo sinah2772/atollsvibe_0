@@ -11,8 +11,9 @@ interface IslandSubmitOptions {
   name_en: string;
   slug: string;
   island_code?: string;
-  island_category: string;
-  island_category_en: string;
+  island_category?: string;  // Mark as optional as we're transitioning to island_categories_id
+  island_category_en?: string;  // Mark as optional as we're transitioning to island_categories_id
+  island_categories_id?: number;  // Add support for the new foreign key relationship
   island_details?: string;
   longitude?: string;
   latitude?: string;
@@ -69,26 +70,54 @@ export function useIslandManagement() {
         throw new Error(`Invalid atoll_id: ${options.atoll_id}`);
       }
 
-      // Create island
+      // If island_categories_id is provided, verify it exists
+      if (options.island_categories_id) {
+        const { data: category, error: categoryError } = await supabase
+          .from('island_categories')
+          .select('id')
+          .eq('id', options.island_categories_id)
+          .single();
+
+        if (categoryError || !category) {
+          throw new Error(`Invalid island_categories_id: ${options.island_categories_id}`);
+        }
+      }
+
+      // Create island with support for both old and new category fields
+      const insertData: InsertIsland = {
+        name: options.name,
+        name_en: options.name_en,
+        slug: options.slug,
+        island_code: options.island_code,
+        island_details: options.island_details,
+        longitude: options.longitude,
+        latitude: options.latitude,
+        election_commission_code: options.election_commission_code,
+        postal_code: options.postal_code,
+        other_name_en: options.other_name_en,
+        other_name_dv: options.other_name_dv,
+        list_order: options.list_order,
+        atoll_id: options.atoll_id
+      };
+
+      // Add category fields conditionally to support both legacy and new approach
+      if (options.island_categories_id) {
+        // @ts-expect-error - Adding a field that might not be in the type yet
+        insertData.island_categories_id = options.island_categories_id;
+      }
+      
+      // Keep backward compatibility by also setting the string fields if provided
+      if (options.island_category) {
+        insertData.island_category = options.island_category;
+      }
+      
+      if (options.island_category_en) {
+        insertData.island_category_en = options.island_category_en;
+      }
+
       const { data, error } = await supabase
         .from('islands')
-        .insert({
-          name: options.name,
-          name_en: options.name_en,
-          slug: options.slug,
-          island_code: options.island_code,
-          island_category: options.island_category,
-          island_category_en: options.island_category_en,
-          island_details: options.island_details,
-          longitude: options.longitude,
-          latitude: options.latitude,
-          election_commission_code: options.election_commission_code,
-          postal_code: options.postal_code,
-          other_name_en: options.other_name_en,
-          other_name_dv: options.other_name_dv,
-          list_order: options.list_order,
-          atoll_id: options.atoll_id
-        } as InsertIsland)
+        .insert(insertData)
         .select()
         .single();
 
@@ -137,10 +166,39 @@ export function useIslandManagement() {
         }
       }
 
+      // If island_categories_id is provided, verify it exists
+      if (options.island_categories_id) {
+        const { data: category, error: categoryError } = await supabase
+          .from('island_categories')
+          .select('id')
+          .eq('id', options.island_categories_id)
+          .single();
+
+        if (categoryError || !category) {
+          throw new Error(`Invalid island_categories_id: ${options.island_categories_id}`);
+        }
+      }
+
+      // Prepare update data with support for both old and new category fields
+      const updateData: UpdateIsland = {};
+      
+      // Copy all valid fields to the update object
+      for (const [key, value] of Object.entries(options)) {
+        if (value !== undefined) {
+          if (options.island_categories_id && (key === 'island_category' || key === 'island_category_en')) {
+            // Skip the legacy category fields if island_categories_id is provided
+            continue;
+          }
+          
+          // @ts-expect-error - Dynamic assignment
+          updateData[key] = value;
+        }
+      }
+
       // Update island
       const { data, error } = await supabase
         .from('islands')
-        .update(options as UpdateIsland)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();

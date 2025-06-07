@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Menu, Search, X } from 'lucide-react';
 import { useUser } from '../../hooks/useUser';
+// We don't need scroll direction for dashboard header as it should always be visible
+// import { useScrollDirection } from '../../hooks/useScrollDirection';
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -39,7 +41,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <header className="bg-white border-b border-gray-200 py-4 px-6 flex items-center justify-between">
+    <header className="bg-white border-b border-gray-200 py-4 px-6 flex items-center justify-between fixed top-0 left-0 right-0 z-40">
       <div className="flex items-center">
         <button 
           onClick={toggleSidebar}

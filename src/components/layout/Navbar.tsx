@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, Search, X, User, LogIn, ChevronDown, LayoutDashboard, Settings, LogOut } from 'lucide-react';
 import { useCategories } from '../../hooks/useCategories';
 import { useUser } from '../../hooks/useUser';
+import { useScrollDirection } from '../../hooks/useScrollDirection';
 
 interface HeaderProps {
   toggleSidebar?: () => void;
@@ -17,6 +18,7 @@ const Navbar: React.FC<HeaderProps> = () => {
   const { user, signOut } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
+  const { isVisible } = useScrollDirection();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,11 +49,18 @@ const Navbar: React.FC<HeaderProps> = () => {
   // Check if current route is dashboard
   const isDashboard = location.pathname.startsWith('/dashboard');
 
+  // Don't render navbar in dashboard routes
+  if (isDashboard) {
+    return null;
+  }
+  
   // Default avatar image
   const defaultAvatar = "https://images.pexels.com/photos/3763188/pexels-photo-3763188.jpeg?auto=compress&cs=tinysrgb&w=150";
-
+  
   return (
-    <nav className="bg-white shadow-lg sticky top-0 z-50">
+    <nav className={`bg-white shadow-lg fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
+      isVisible ? 'translate-y-0' : '-translate-y-full'
+    }`}>
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="text-2xl font-bold text-blue-800">

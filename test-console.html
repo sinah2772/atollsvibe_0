@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Console Test</title>
+</head>
+<body>
+    <h1>Console API and Cache Test</h1>
+    <button onclick="testConsoleAndCache()">Test Console & Cache APIs</button>
+    <div id="results"></div>
+
+    <script>
+        function testConsoleAndCache() {
+            const results = document.getElementById('results');
+            
+            try {
+                // Test console API
+                console.log('Testing console API...');
+                console.warn('This is a warning test');
+                console.error('This is an error test');
+                
+                // Test cache API
+                if ('caches' in window) {
+                    console.log('Cache API is available');
+                    results.innerHTML = '<p>✅ Cache API is available</p>';
+                    
+                    // Test cache operations
+                    caches.open('test-cache').then(cache => {
+                        console.log('Cache opened successfully');
+                        results.innerHTML += '<p>✅ Cache operations working</p>';
+                    }).catch(err => {
+                        console.error('Cache error:', err);
+                        results.innerHTML += '<p>❌ Cache error: ' + err.message + '</p>';
+                    });
+                } else {
+                    console.warn('Cache API not available');
+                    results.innerHTML = '<p>⚠️ Cache API not available</p>';
+                }
+                
+                results.innerHTML += '<p>✅ Console API working normally</p>';
+                
+            } catch (error) {
+                console.error('Test error:', error);
+                results.innerHTML = '<p>❌ Error: ' + error.message + '</p>';
+            }
+        }
+
+        // Auto-run test on page load
+        window.addEventListener('load', testConsoleAndCache);
+    </script>
+</body>
+</html>

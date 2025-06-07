@@ -60,12 +60,12 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
         try {
           const response = await fetch(url, {
             ...options,
-            // Add a reasonable timeout to each fetch request
-            signal: options?.signal || AbortSignal.timeout(15000)
+            // Add a more aggressive timeout to each fetch request (reduced from 15s to 8s)
+            signal: options?.signal || AbortSignal.timeout(8000)
           });
           
           const duration = performance.now() - startTime;
-          if (duration > 2000) {
+          if (duration > 1500) {
             console.warn(`Slow Supabase request: ${duration.toFixed(2)}ms for ${url}`);
           }
           

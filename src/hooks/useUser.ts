@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { AUTH_TIMEOUTS } from '../utils/authTimeoutManager';
 
 interface User {
   id: string;
@@ -28,14 +29,15 @@ export function useUser() {
         setLoading(true);
         setError(null);
         
-        // Set a longer timeout (15 seconds) to prevent infinite loading
+        console.log('Fetching current session');
+        
+        // Set a timeout using our enhanced timeout configuration
         timeoutId = window.setTimeout(() => {
           console.warn('Auth session fetch timeout - resetting loading state');
           setLoading(false);
           setError('Authentication session timed out. Please check your network connection and try again.');
-        }, 15000);
+        }, AUTH_TIMEOUTS.sessionFetch);
         
-        console.log('Fetching current session');
         const { data: { session } } = await supabase.auth.getSession();
         
         // Clear timeout since we got a response
@@ -134,11 +136,11 @@ export function useUser() {
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           setLoading(true);
           
-          // Set a timeout for the auth state change operation
+          // Set a timeout for the auth state change operation (using enhanced timeout)
           stateChangeTimeoutId = window.setTimeout(() => {
             console.warn('Auth state change timeout - resetting loading state');
             setLoading(false);
-          }, 10000);
+          }, AUTH_TIMEOUTS.authStateChange);
           
           if (session?.user) {
             console.log('User signed in, fetching profile data');
@@ -262,7 +264,7 @@ export function useUser() {
       
       // Set up a timeout to prevent hanging on sign out
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Sign out timed out')), 5000);
+        setTimeout(() => reject(new Error('Sign out timed out')), AUTH_TIMEOUTS.signOut);
       });
       
       // Race the sign-out and the timeout

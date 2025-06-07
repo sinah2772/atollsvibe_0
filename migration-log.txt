@@ -1,0 +1,11 @@
+Island categories migration log - 2025-06-06T13:33:56.531Z
+
+🏝️ Starting island categories migration...
+SQL file path: E:\Atolls_mv\atolslvibe\New\atollsvibe_02-main\atollsvibe_02-main\islands_rows.sql
+Environment configuration:
+- Database host: db.vtkxjgsnnslwjzfyvdqu.supabase.co
+- Database port: 5432
+- SSL enabled: true
+- Database URL defined: Yes
+- Supabase URL: https://vtkxjgsnnslw...
+Migration failed: Error: getaddrinfo ENOTFOUND db.vtkxjgsnnslwjzfyvdqu.supabase.co

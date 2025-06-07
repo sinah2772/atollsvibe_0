@@ -89,6 +89,7 @@ export interface Island {
   island_code?: string;
   island_category?: string;
   island_category_en?: string;
+  island_categories_id?: number;
   island_details?: string;
   longitude?: string;
   latitude?: string;

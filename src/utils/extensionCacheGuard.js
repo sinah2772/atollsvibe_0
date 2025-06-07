@@ -68,19 +68,18 @@
     
     try {
       const safeCacheStorage = createSafeCacheStorage();
-      
-      // Try non-configurable first (most secure)
+        // Try configurable property first (allows other polyfills to work)
       try {
         Object.defineProperty(context, 'caches', {
           value: safeCacheStorage,
           writable: false,
-          configurable: false,
+          configurable: true, // Allow other polyfills to modify if needed
           enumerable: false
         });
-        console.debug(`[Extension Cache Guard] Non-configurable caches installed on ${contextName}`);
+        console.debug(`[Extension Cache Guard] Configurable caches installed on ${contextName}`);
         return true;
       } catch (e) {
-        // Fallback to configurable
+        // Fallback to writable and configurable
         Object.defineProperty(context, 'caches', {
           value: safeCacheStorage,
           writable: true,

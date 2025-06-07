@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Console Error Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        .image-container {
+            width: 200px;
+            height: 150px;
+            background: #e9ecef;
+            margin: 10px;
+            border: 1px solid #dee2e6;
+            display: inline-block;
+            position: relative;
+        }
+        .dynamic-content {
+            min-height: 100px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 20px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Console Error Fix Test Page</h1>
+    <p>This page tests our console error fixes. Open browser DevTools Console to monitor.</p>
+    
+    <div class="test-section">
+        <h2>🌐 Browser Extension Cache API Test</h2>
+        <p>Testing cache API error suppression...</p>
+        <button class="test-button" onclick="testCacheAPI()">Test Cache API</button>
+        <div id="cache-status" class="status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>📏 Layout Shift Test</h2>
+        <p>Testing layout shift monitoring with increased threshold...</p>
+        <button class="test-button" onclick="triggerLayoutShift()">Trigger Small Layout Shift</button>
+        <button class="test-button" onclick="triggerLargeLayoutShift()">Trigger Large Layout Shift</button>
+        <div id="layout-status" class="status"></div>
+        
+        <div class="dynamic-content" id="dynamic-content">
+            Dynamic content will appear here...
+        </div>
+        
+        <!-- Images to test layout optimization -->
+        <div class="image-container" id="img-container-1">Image 1 will load here</div>
+        <div class="image-container" id="img-container-2">Image 2 will load here</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔐 Auth Timeout Test</h2>
+        <p>Testing improved authentication timeout handling...</p>
+        <button class="test-button" onclick="testAuthTimeout()">Test Auth Session Fetch</button>
+        <button class="test-button" onclick="testUserDataFetch()">Test User Data Fetch</button>
+        <div id="auth-status" class="status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>📊 Console Monitoring</h2>
+        <p>Monitor console output during tests:</p>
+        <button class="test-button" onclick="toggleConsoleLogging()">Toggle Debug Mode</button>
+        <button class="test-button" onclick="clearConsole()">Clear Console</button>
+        <div id="console-status" class="status"></div>
+    </div>
+
+    <script>
+        // Load our error suppression utilities
+        if (typeof window !== 'undefined') {
+            // Import quiet error suppression if available
+            try {
+                import('/src/utils/quietErrorSuppression.js').then(module => {
+                    console.log('✅ Quiet error suppression loaded');
+                }).catch(err => {
+                    console.log('ℹ️ Quiet error suppression not available:', err.message);
+                });
+            } catch (e) {
+                console.log('ℹ️ Error suppression import failed:', e.message);
+            }
+        }
+
+        function updateStatus(elementId, message, type = 'success') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+
+        function testCacheAPI() {
+            console.group('🧪 Testing Cache API');
+            
+            try {
+                // This should trigger cache API errors in browser extensions
+                if ('caches' in window) {
+                    caches.keys().then(names => {
+                        updateStatus('cache-status', '✅ Cache API works normally', 'success');
+                        console.log('Cache names:', names);
+                    }).catch(err => {
+                        updateStatus('cache-status', '⚠️ Cache API error (should be suppressed)', 'warning');
+                        console.error('Cache error:', err);
+                    });
+                } else {
+                    // This should be handled by our polyfill
+                    updateStatus('cache-status', '⚠️ Cache API not available (polyfill should handle)', 'warning');
+                }
+            } catch (error) {
+                updateStatus('cache-status', '❌ Cache API test failed: ' + error.message, 'error');
+            }
+            
+            console.groupEnd();
+        }
+
+        function triggerLayoutShift() {
+            console.group('🧪 Testing Small Layout Shift');
+            
+            const content = document.getElementById('dynamic-content');
+            const originalHeight = content.offsetHeight;
+            
+            // Create a small layout shift (should not trigger warning)
+            setTimeout(() => {
+                content.innerHTML = '<p>Small content added...</p>';
+                const newHeight = content.offsetHeight;
+                const shift = Math.abs(newHeight - originalHeight) / window.innerHeight;
+                
+                updateStatus('layout-status', `Small layout shift: ${shift.toFixed(3)} (should be silent)`, 'success');
+            }, 100);
+            
+            console.groupEnd();
+        }
+
+        function triggerLargeLayoutShift() {
+            console.group('🧪 Testing Large Layout Shift');
+            
+            const content = document.getElementById('dynamic-content');
+            
+            // Create a large layout shift (should trigger warning)
+            setTimeout(() => {
+                content.innerHTML = `
+                    <div style="height: 200px; background: linear-gradient(45deg, #ff6b6b, #4ecdc4); padding: 20px;">
+                        <h3>Large content block added!</h3>
+                        <p>This should trigger a layout shift warning in the console.</p>
+                        <p>The threshold is now set to 0.25, so only significant shifts are reported.</p>
+                    </div>
+                `;
+                
+                updateStatus('layout-status', 'Large layout shift triggered (check console)', 'warning');
+            }, 100);
+            
+            console.groupEnd();
+        }
+
+        async function testAuthTimeout() {
+            console.group('🧪 Testing Auth Session Timeout');
+            updateStatus('auth-status', 'Testing auth session fetch...', 'warning');
+            
+            try {
+                // Simulate auth session fetch (this will likely timeout)
+                const startTime = Date.now();
+                
+                // Import and test our auth timeout manager
+                const { fetchSessionWithTimeout } = await import('/src/utils/authTimeoutManager.ts');
+                
+                const result = await fetchSessionWithTimeout();
+                const duration = Date.now() - startTime;
+                
+                updateStatus('auth-status', `✅ Auth session fetch completed in ${duration}ms`, 'success');
+                console.log('Session result:', result);
+                
+            } catch (error) {
+                const duration = Date.now() - startTime;
+                updateStatus('auth-status', `⚠️ Auth timeout after ${duration}ms (expected)`, 'warning');
+                console.log('Auth timeout (expected):', error.message);
+            }
+            
+            console.groupEnd();
+        }
+
+        async function testUserDataFetch() {
+            console.group('🧪 Testing User Data Fetch Timeout');
+            updateStatus('auth-status', 'Testing user data fetch...', 'warning');
+            
+            try {
+                const { fetchUserDataWithTimeout } = await import('/src/utils/authTimeoutManager.ts');
+                
+                const startTime = Date.now();
+                const result = await fetchUserDataWithTimeout('test-user-id');
+                const duration = Date.now() - startTime;
+                
+                updateStatus('auth-status', `✅ User data fetch completed in ${duration}ms`, 'success');
+                console.log('User data result:', result);
+                
+            } catch (error) {
+                const duration = Date.now() - startTime;
+                updateStatus('auth-status', `⚠️ User data timeout after ${duration}ms (expected)`, 'warning');
+                console.log('User data timeout (expected):', error.message);
+            }
+            
+            console.groupEnd();
+        }
+
+        let debugMode = false;
+        function toggleConsoleLogging() {
+            debugMode = !debugMode;
+            
+            if (window.enableQuietErrorDebug) {
+                window.enableQuietErrorDebug(debugMode);
+            }
+            
+            updateStatus('console-status', 
+                debugMode ? '🔍 Debug mode enabled - all errors visible' : '🔇 Debug mode disabled - errors suppressed',
+                debugMode ? 'warning' : 'success'
+            );
+        }
+
+        function clearConsole() {
+            console.clear();
+            updateStatus('console-status', '🧹 Console cleared', 'success');
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Console Error Fix Test Page loaded');
+            console.log('📋 Available tests:');
+            console.log('   • Cache API error suppression');
+            console.log('   • Layout shift threshold adjustment');
+            console.log('   • Auth timeout improvements');
+            console.log('📊 Open DevTools Console to monitor results');
+            
+            updateStatus('console-status', '🎯 Ready for testing', 'success');
+        });
+    </script>
+</body>
+</html>

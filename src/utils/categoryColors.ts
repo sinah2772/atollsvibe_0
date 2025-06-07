@@ -84,7 +84,12 @@ const colorSchemes: CategoryColor[] = [
 /**
  * Get color scheme for a category based on its ID
  */
-export function getCategoryColor(categoryId: number): CategoryColor {
+export function getCategoryColor(categoryId: number | null | undefined): CategoryColor {
+  // Handle invalid category IDs by defaulting to the first color scheme
+  if (!categoryId || categoryId <= 0) {
+    return colorSchemes[0];
+  }
+  
   const index = (categoryId - 1) % colorSchemes.length;
   return colorSchemes[index];
 }
@@ -92,9 +97,33 @@ export function getCategoryColor(categoryId: number): CategoryColor {
 /**
  * Get color scheme for a subcategory (slightly lighter than parent category)
  */
-export function getSubcategoryColor(categoryId: number): CategoryColor {
+export function getSubcategoryColor(categoryId: number | null | undefined): CategoryColor {
+  // Handle invalid category IDs by defaulting to the first color scheme
+  if (!categoryId || categoryId <= 0) {
+    const defaultScheme = colorSchemes[0];
+    return {
+      bg: defaultScheme.bg.replace('-50', '-100'),
+      text: defaultScheme.text.replace('-700', '-600'),
+      border: defaultScheme.border.replace('-200', '-300'),
+      hover: defaultScheme.hover.replace('-100', '-200'),
+      selected: defaultScheme.selected.replace('-100', '-200')
+    };
+  }
+  
   const index = (categoryId - 1) % colorSchemes.length;
   const scheme = colorSchemes[index];
+  
+  // Ensure scheme exists before accessing its properties
+  if (!scheme) {
+    const defaultScheme = colorSchemes[0];
+    return {
+      bg: defaultScheme.bg.replace('-50', '-100'),
+      text: defaultScheme.text.replace('-700', '-600'),
+      border: defaultScheme.border.replace('-200', '-300'),
+      hover: defaultScheme.hover.replace('-100', '-200'),
+      selected: defaultScheme.selected.replace('-100', '-200')
+    };
+  }
   
   // Return a slightly modified version for subcategories using valid Tailwind classes
   return {

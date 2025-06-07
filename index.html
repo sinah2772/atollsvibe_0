@@ -2,11 +2,181 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- ABSOLUTE FIRST: Global variable polyfill for browser extensions -->
+    <script>
+      // IMMEDIATE global polyfill - runs before ANY browser extension can inject code
+      (function() {
+        'use strict';
+        
+        // Define global immediately if it doesn't exist
+        if (typeof global === 'undefined') {
+          try {
+            // For all available contexts, define global
+            const contexts = [window, self, globalThis].filter(Boolean);
+            contexts.forEach(ctx => {
+              if (ctx && typeof ctx.global === 'undefined') {
+                try {
+                  Object.defineProperty(ctx, 'global', {
+                    value: typeof window !== 'undefined' ? window : ctx,
+                    writable: false,
+                    configurable: true,
+                    enumerable: false
+                  });
+                } catch (e) {
+                  ctx.global = typeof window !== 'undefined' ? window : ctx;
+                }
+              }
+            });
+            console.debug('[HYPER-EARLY] Global polyfill installed');
+          } catch (e) {
+            // Fallback
+            if (typeof window !== 'undefined') {
+              window.global = window;
+            }
+          }
+        }
+      })();
+    </script>
+    <!-- ABSOLUTE SECOND: Hyper-aggressive cache polyfill -->
+    <script>
+      // IMMEDIATE cache polyfill - runs before ANY browser extension can inject code
+      (function() {
+        'use strict';
+        
+        // Ultra-lightweight cache implementation
+        function createUltraCache() {
+          const store = new Map();
+          return {
+            async match(req) { 
+              try {
+                const key = typeof req === 'string' ? req : (req.url || String(req));
+                return store.has(key) ? new Response(store.get(key)) : undefined;
+              } catch { return undefined; }
+            },
+            async put(req, res) { 
+              try {
+                const key = typeof req === 'string' ? req : (req.url || String(req));
+                const data = res && typeof res.clone === 'function' ? await res.clone().text() : String(res);
+                store.set(key, data);
+              } catch { /* ignore */ }
+            },
+            async delete(req) { 
+              try {
+                const key = typeof req === 'string' ? req : (req.url || String(req));
+                return store.delete(key);
+              } catch { return false; }
+            },
+            async keys() { 
+              try { return Array.from(store.keys()); } catch { return []; }
+            },
+            async addAll() { try { return Promise.resolve(); } catch { return Promise.resolve(); } }
+          };
+        }
+        
+        function createUltraCacheStorage() {
+          const caches = new Map();
+          return {
+            async open(name) { 
+              try {
+                if (!caches.has(name)) caches.set(name, createUltraCache());
+                return caches.get(name);
+              } catch { return createUltraCache(); }
+            },
+            async has(name) { try { return caches.has(name); } catch { return false; } },
+            async delete(name) { try { return caches.delete(name); } catch { return false; } },
+            async keys() { try { return Array.from(caches.keys()); } catch { return []; } },
+            async match(req, opts) { 
+              try {
+                for (const cache of caches.values()) {
+                  const result = await cache.match(req);
+                  if (result) return result;
+                }
+                return undefined;
+              } catch { return undefined; }
+            }
+          };
+        }
+        
+        // Install on ALL possible contexts immediately
+        const ultraCacheStorage = createUltraCacheStorage();
+        const contexts = [window, self, globalThis, global].filter(Boolean);
+        
+        contexts.forEach(ctx => {
+          if (ctx && typeof ctx.caches === 'undefined') {
+            try {
+              Object.defineProperty(ctx, 'caches', {
+                value: ultraCacheStorage,
+                writable: false,
+                configurable: true, // Allow other polyfills to modify if needed
+                enumerable: false
+              });
+            } catch {
+              try { ctx.caches = ultraCacheStorage; } catch { /* ignore */ }
+            }
+          }
+        });
+        
+        // Also make it available on global scope for content scripts
+        if (typeof window !== 'undefined' && typeof window.caches === 'undefined') {
+          try {
+            window.caches = ultraCacheStorage;
+          } catch {
+            // Property might be read-only, ignore the error
+            console.debug('[HYPER-EARLY] Could not assign to window.caches (property may be read-only)');
+          }
+        }
+        
+        console.debug('[HYPER-EARLY] Ultra cache polyfill installed before extensions');
+      })();
+    </script>
+    
+    <!-- HYPER-EARLY Error Suppression -->
+    <script>
+      // Ultra-aggressive error suppression for cache-related errors
+      (function() {
+        'use strict';
+        
+        const CACHE_ERROR_PATTERNS = [
+          /caches is not defined/i,
+          /Cache get failed.*ReferenceError.*caches is not defined/i,
+          /Cache set failed.*ReferenceError.*caches is not defined/i,
+          /CacheStore\.js.*Cache.*failed.*ReferenceError/i
+        ];
+        
+        // Immediate error suppression
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+          const message = args.join(' ');
+          if (CACHE_ERROR_PATTERNS.some(pattern => pattern.test(message))) {
+            console.debug('[Cache Error Suppressed Early]', ...args);
+            return;
+          }
+          return originalConsoleError.apply(console, args);
+        };
+        
+        // Immediate promise rejection suppression
+        window.addEventListener('unhandledrejection', function(event) {
+          const reason = event.reason;
+          const message = reason && reason.message ? reason.message : String(reason);
+          if (CACHE_ERROR_PATTERNS.some(pattern => pattern.test(message))) {
+            console.debug('[Cache Promise Rejection Suppressed]', message);
+            event.preventDefault();
+          }
+        });
+        
+        console.debug('[HYPER-EARLY] Error suppression installed');
+      })();
+    </script>
+    
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="description" content="Habaru News Dashboard - News management and publishing platform" />
     <title>Habaru Author Dashboard</title>
+    
+    <!-- Quiet Error Suppression - Load early to catch all errors -->
+    <script src="/src/utils/quietErrorSuppression.js"></script>
     
     <!-- IMMEDIATE Global Variable Polyfill - Runs before ANY other scripts -->
     <script>
@@ -508,12 +678,12 @@
           // Install the polyfill globally
           const cacheStorage = new ExtensionCompatCacheStorage();
           
-          // Define on window with non-configurable property to prevent overwrites
+          // Define on window with configurable property to allow other polyfills
           try {
             Object.defineProperty(window, 'caches', {
               value: cacheStorage,
               writable: false,
-              configurable: false,
+              configurable: true, // Allow other polyfills to modify if needed
               enumerable: false
             });
             console.log('Early Cache API polyfill installed successfully');

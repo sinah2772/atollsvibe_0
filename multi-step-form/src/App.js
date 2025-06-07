@@ -1,11 +1,11 @@
 import React from 'react';
-import MultiStepForm from './components/MultiStepFormSimple';
+import ArticleMultiStepForm from './components/ArticleMultiStepForm';
 import './App.css';
 
 function App() {
   return (
     <div className="App">
-      <MultiStepForm />
+      <ArticleMultiStepForm />
     </div>
   );
 }

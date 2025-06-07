@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test New Article Wizard</title>
+</head>
+<body>
+    <h1>Testing New Article Wizard</h1>
+    <p>Open this URL to test the wizard: <a href="http://localhost:3006/dashboard/new-article-wizard" target="_blank" rel="noopener">http://localhost:3006/dashboard/new-article-wizard</a></p>
+    
+    <script>
+        // Check for any JavaScript errors
+        window.addEventListener('error', function(e) {
+            console.error('Error detected:', e.error);
+            document.body.innerHTML += '<div style="color:red;padding:10px;border:1px solid red;margin:10px;">ERROR: ' + e.message + '</div>';
+        });
+        
+        // Check if the page loads correctly
+        setTimeout(() => {
+            console.log('Checking if wizard page loads...');
+            fetch('http://localhost:3006/dashboard/new-article-wizard')
+                .then(response => {
+                    if (response.ok) {
+                        document.body.innerHTML += '<div style="color:green;padding:10px;border:1px solid green;margin:10px;">✓ Wizard page loads successfully</div>';
+                    } else {
+                        document.body.innerHTML += '<div style="color:red;padding:10px;border:1px solid red;margin:10px;">✗ Wizard page failed to load: ' + response.status + '</div>';
+                    }
+                })
+                .catch(err => {
+                    document.body.innerHTML += '<div style="color:red;padding:10px;border:1px solid red;margin:10px;">✗ Error accessing wizard: ' + err.message + '</div>';
+                });
+        }, 1000);
+    </script>
+</body>
+</html>

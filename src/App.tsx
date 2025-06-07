@@ -24,6 +24,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Articles = lazy(() => import('./pages/Articles'));
 const Analytics = lazy(() => import('./pages/Analytics'));
 const NewArticle = lazy(() => import('./pages/NewArticle'));
+const NewArticleMultiStep = lazy(() => import('./pages/NewArticleMultiStep'));
 const EditArticle = lazy(() => import('./pages/EditArticle'));
 const Comments = lazy(() => import('./pages/Comments'));
 const Audience = lazy(() => import('./pages/Audience'));
@@ -57,8 +58,14 @@ function App() {
   
   return (
     <AuthProvider>
-      <Router basename={basePath.endsWith('/') ? basePath.slice(0, -1) : basePath}>
-        <NetworkStatusBanner />
+      <NetworkStatusBanner />
+      <Router 
+        basename={basePath.endsWith('/') ? basePath.slice(0, -1) : basePath}
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true
+        }}
+      >
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Layout />}>
@@ -122,6 +129,11 @@ function App() {
             <Route path="new-article" element={
               <Suspense fallback={<div></div>}>
                 <NewArticle />
+              </Suspense>
+            } />
+            <Route path="new-article-wizard" element={
+              <Suspense fallback={<div></div>}>
+                <NewArticleMultiStep />
               </Suspense>
             } />
             <Route path="edit-article/:id" element={

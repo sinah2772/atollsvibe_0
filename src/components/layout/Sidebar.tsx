@@ -29,6 +29,7 @@ const Sidebar: React.FC = () => {
     { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/dashboard' },
     { name: 'Articles', icon: <FileText size={20} />, path: 'articles' },
     { name: 'New Article', icon: <PenSquare size={20} />, path: 'new-article' },
+    { name: 'New Article Wizard', icon: <PenSquare size={20} />, path: 'new-article-wizard' },
     { name: 'Analytics', icon: <BarChart2 size={20} />, path: 'analytics' },
     { name: 'Advanced Analytics', icon: <TrendingUp size={20} />, path: 'advanced-analytics' },
     { name: 'Workflow', icon: <GitBranch size={20} />, path: 'workflow' },
