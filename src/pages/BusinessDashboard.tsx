@@ -113,112 +113,113 @@ const BusinessDashboard: React.FC = () => {
   };
 
   return (
-    <div className="dashboard-container">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Business Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Manage your advertisements and media content
-        </p>
-      </div>
+    <div className="dashboard-bg min-h-screen">
+      <div className="dashboard-container">
+        <div className="mb-8 glass-card p-6 rounded-xl">
+          <h1 className="text-2xl font-bold text-gray-900">Business Dashboard</h1>
+          <p className="mt-1 text-sm text-gray-600">
+            Manage your advertisements and media content
+          </p>
+        </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="dashboard-card p-6 rounded-lg">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <BarChart2 className="h-6 w-6 text-blue-600" />
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="glass-stat-card p-6">
+            <div className="flex items-center">
+              <div className="glass-icon text-blue-600">
+                <BarChart2 className="h-6 w-6" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-700">Active Ads</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {ads.filter(ad => ad.status === 'active').length}
+                </p>
+              </div>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Active Ads</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {ads.filter(ad => ad.status === 'active').length}
-              </p>
+          </div>
+
+          <div className="glass-stat-card p-6">
+            <div className="flex items-center">
+              <div className="glass-icon text-green-600">
+                <Upload className="h-6 w-6" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-700">Total Uploads</p>
+                <p className="text-2xl font-semibold text-gray-900">{ads.length}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="glass-stat-card p-6">
+            <div className="flex items-center">
+              <div className="glass-icon text-purple-600">
+                <Filter className="h-6 w-6" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-700">Storage Used</p>
+                <p className="text-2xl font-semibold text-gray-900">2.4 GB</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="dashboard-card p-6 rounded-lg">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Upload className="h-6 w-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Total Uploads</p>
-              <p className="text-2xl font-semibold text-gray-900">{ads.length}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="dashboard-card p-6 rounded-lg">
-          <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Filter className="h-6 w-6 text-purple-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Storage Used</p>
-              <p className="text-2xl font-semibold text-gray-900">2.4 GB</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Upload and Search */}
-      <div className="dashboard-section mb-8">
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="w-full md:w-96 relative">
-            <input
-              type="text"
-              placeholder="Search ads..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-              disabled={loading}
-            />
-            <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
-          </div>
-
-          <div className="flex items-center gap-4">
-            <label htmlFor="ad-filter" className="sr-only">Filter ads</label>
-            <select
-              id="ad-filter"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value as typeof filter)}
-              className="rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-              aria-label="Filter advertisements"
-              disabled={loading}
-            >
-              <option value="all">All Ads</option>
-              <option value="active">Active</option>
-              <option value="paused">Paused</option>
-            </select>
-
-            <label className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}>
-              <Upload size={20} className="mr-2" />
-              {loading ? 'Uploading...' : 'Upload New'}
+        {/* Upload and Search */}
+        <div className="glass-card p-6 rounded-xl mb-8">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="w-full md:w-96 relative">
               <input
-                type="file"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file && !loading) handleUpload(file);
-                }}
-                accept="image/*,video/*"
+                type="text"
+                placeholder="Search ads..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="glass-input w-full pl-10 pr-4 py-2"
                 disabled={loading}
               />
-            </label>
+              <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <label htmlFor="ad-filter" className="sr-only">Filter ads</label>
+              <select
+                id="ad-filter"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value as typeof filter)}
+                className="glass-select rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                aria-label="Filter advertisements"
+                disabled={loading}
+              >
+                <option value="all">All Ads</option>
+                <option value="active">Active</option>
+                <option value="paused">Paused</option>
+              </select>
+
+              <label className={`glass-button-primary inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white ${loading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}>
+                <Upload size={20} className="mr-2" />
+                {loading ? 'Uploading...' : 'Upload New'}
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file && !loading) handleUpload(file);
+                  }}
+                  accept="image/*,video/*"
+                  disabled={loading}
+                />
+              </label>
+            </div>
           </div>
         </div>
-      </div>
 
       {/* Ads List */}
-      <div className="dashboard-section overflow-hidden">
+      <div className="glass-card rounded-xl overflow-hidden">
         {loading && (
           <div className="flex justify-center my-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            <div className="glass-shimmer rounded-full h-12 w-12"></div>
           </div>
         )}
         <div className="overflow-x-auto">
-          <table className="dashboard-table min-w-full">
+          <table className="glass-table min-w-full">
             <thead>
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
@@ -274,7 +275,7 @@ const BusinessDashboard: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => {/* Handle edit */}}
-                        className="p-1 hover:bg-gray-100 rounded-full text-gray-500 hover:text-blue-600"
+                        className="glass-button p-1 hover:bg-gray-100 rounded-full text-gray-500 hover:text-blue-600"
                         aria-label="Edit advertisement"
                         title="Edit advertisement"
                       >
@@ -282,7 +283,7 @@ const BusinessDashboard: React.FC = () => {
                       </button>
                       <button
                         onClick={() => handleDelete(ad.id)}
-                        className="p-1 hover:bg-gray-100 rounded-full text-gray-500 hover:text-red-600"
+                        className="glass-button p-1 hover:bg-gray-100 rounded-full text-gray-500 hover:text-red-600"
                         aria-label="Delete advertisement"
                         title="Delete advertisement"
                         disabled={loading}

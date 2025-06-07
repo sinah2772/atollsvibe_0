@@ -96,24 +96,23 @@ export const CollaborativeInput: React.FC<CollaborativeInputProps> = ({
       setHasUnseenUpdate(false);
     }
   }, [pendingUpdate, onChange]);
-
   // Determine input styling based on state
   const getInputClassName = () => {
-    const baseClasses = 'w-full px-3 py-2 border rounded-md transition-colors duration-200 focus:outline-none focus:ring-2';
+    const baseClasses = 'glass-input w-full transition-colors duration-200';
     
     if (isLockedByOther) {
-      return `${baseClasses} border-red-300 bg-red-50 cursor-not-allowed ${className}`;
+      return `${baseClasses} border-red-400/50 text-red-600 cursor-not-allowed ${className}`;
     }
     
     if (hasUnseenUpdate) {
-      return `${baseClasses} border-blue-300 bg-blue-50 ${className}`;
+      return `${baseClasses} border-blue-400 ring-2 ring-blue-500/20 ${className}`;
     }
     
     if (isFocused) {
-      return `${baseClasses} border-blue-500 bg-white ring-2 ring-blue-200 ${className}`;
+      return `${baseClasses} border-blue-400 ring-2 ring-blue-500/20 ${className}`;
     }
     
-    return `${baseClasses} border-gray-300 bg-white hover:border-gray-400 ${className}`;
+    return `${baseClasses} hover:border-blue-400/50 ${className}`;
   };
 
   const inputProps = {

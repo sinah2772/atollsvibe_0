@@ -52,7 +52,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
         <select
           value={selectedCategoryId}
           onChange={handleCategoryChange}
-          className={`w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
+          className={`glass-input ${
             language === 'dv' ? 'thaana-waheed placeholder:thaana-waheed' : ''
           }`}
           dir={language === 'dv' ? 'rtl' : 'ltr'}
@@ -82,7 +82,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
           <select
             value={selectedSubcategoryId || ''}
             onChange={handleSubcategoryChange}
-            className={`w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
+            className={`glass-input ${
               language === 'dv' ? 'thaana-waheed placeholder:thaana-waheed' : ''
             }`}
             dir={language === 'dv' ? 'rtl' : 'ltr'}

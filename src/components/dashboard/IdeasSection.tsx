@@ -145,10 +145,12 @@ const IdeasSection: React.FC<IdeasSectionProps> = ({ language = 'en' }) => {
   );
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+    <div className="glass-card p-8">
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Lightbulb className="text-yellow-500" />
+        <div className="flex items-center gap-3">
+          <div className="glass-icon">
+            <Lightbulb className="text-yellow-500" />
+          </div>
           <h2 className={`text-lg font-semibold text-gray-900 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
             {language === 'dv' ? 'އައު އައިޑިއާތައް' : 'Story Ideas'}
           </h2>
@@ -163,11 +165,11 @@ const IdeasSection: React.FC<IdeasSectionProps> = ({ language = 'en' }) => {
             }
             setShowForm(!showForm);
           }}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-medium transition-all duration-200 ${
             showForm
-              ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              : 'bg-blue-600 text-white hover:bg-blue-700'
-          } transition-colors`}
+              ? 'glass-button text-gray-700'
+              : 'glass-button-primary text-white'
+          }`}
         >
           {showForm ? (
             <>

@@ -107,7 +107,7 @@ export const IslandsSelect: React.FC<IslandsSelectProps> = ({
   if (loading) {
     return (
       <div className={`animate-pulse ${className}`}>
-        <div className="h-[38px] bg-gray-200 rounded-lg w-full"></div>
+        <div className="h-[38px] glass-input w-full"></div>
       </div>
     );
   }
@@ -115,14 +115,14 @@ export const IslandsSelect: React.FC<IslandsSelectProps> = ({
   if (error) {
     console.error('Islands loading error:', error);
     return (
-      <div className={`text-red-500 text-sm p-3 bg-red-50 border border-red-200 rounded-md ${className}`}>
-        <div className="mb-2">
+      <div className={`glass-card border-red-200 ${className}`}>
+        <div className="text-red-600 text-sm mb-2">
           {language === 'dv' ? 'މައްސަލައެއް ދިމާވެއްޖެ' : `Failed to load islands: ${error}`}
         </div>
         <div className="flex space-x-2">
           <button 
             onClick={() => window.location.reload()}
-            className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+            className="glass-button text-xs"
           >
             {language === 'dv' ? 'އަލުން ލޯޑުކުރުމަށް' : 'Refresh Page'}
           </button>

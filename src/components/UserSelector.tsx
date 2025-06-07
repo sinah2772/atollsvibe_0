@@ -130,12 +130,11 @@ export const UserSelector: React.FC<UserSelectorProps> = ({
   const selectedUsers = getSelectedUsers();
 
   return (
-    <div className={`relative ${className}`} ref={dropdownRef}>
-      {/* Selected users display */}
+    <div className={`relative ${className}`} ref={dropdownRef}>      {/* Selected users display */}
       <div 
-        className={`min-h-[42px] w-full px-3 py-2 border rounded-lg bg-white cursor-pointer flex items-center gap-2 flex-wrap ${
-          disabled ? 'bg-gray-50 cursor-not-allowed' : 'hover:border-gray-400'
-        } ${isOpen ? 'border-blue-500 ring-2 ring-blue-500 ring-opacity-20' : 'border-gray-300'}`}
+        className={`glass-input min-h-[42px] w-full px-3 py-2 cursor-pointer flex items-center gap-2 flex-wrap ${
+          disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-blue-400/50'
+        } ${isOpen ? 'ring-2 ring-blue-500/20 border-blue-400' : ''}`}
         onClick={() => !disabled && setIsOpen(!isOpen)}
       >
         {selectedUsers.length === 0 ? (
@@ -143,11 +142,10 @@ export const UserSelector: React.FC<UserSelectorProps> = ({
             {placeholder || (language === 'dv' ? 'ޔޫޒަރ އައޭ' : 'Select users')}
           </span>
         ) : (
-          <div className="flex flex-wrap gap-1 flex-1">
-            {selectedUsers.map(user => (
+          <div className="flex flex-wrap gap-1 flex-1">            {selectedUsers.map(user => (
               <div
                 key={user.id}
-                className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm"
+                className="glass-button inline-flex items-center gap-1 text-blue-700 px-2 py-1 text-sm"
               >
                 <div className="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">
                   {getUserInitials(user)}
@@ -181,20 +179,18 @@ export const UserSelector: React.FC<UserSelectorProps> = ({
             className={`text-gray-400 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} 
           />
         </div>
-      </div>
-
-      {/* Dropdown */}
+      </div>      {/* Dropdown */}
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
+        <div className="glass-dropdown absolute z-50 w-full mt-1 max-h-60 overflow-hidden">
           {/* Search input */}
-          <div className="p-2 border-b border-gray-200">
+          <div className="p-2 border-b border-white/10">
             <input
               ref={inputRef}
               type="text"
               placeholder={language === 'dv' ? 'ފާޚަކަށް ނުވަތަ އީމެއިލް' : 'Search by name or email...'}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
+              className="glass-input w-full px-3 py-2 text-sm"
               autoFocus
             />
           </div>
@@ -216,11 +212,10 @@ export const UserSelector: React.FC<UserSelectorProps> = ({
             ) : (
               filteredUsers.map(user => {
                 const isSelected = selectedUserIds.includes(user.id);
-                return (
-                  <div
+                return (                  <div
                     key={user.id}
-                    className={`p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 ${
-                      isSelected ? 'bg-blue-50' : ''
+                    className={`p-3 hover:bg-white/10 cursor-pointer border-b border-white/5 last:border-b-0 transition-colors ${
+                      isSelected ? 'bg-blue-500/10' : ''
                     }`}
                     onClick={() => handleUserToggle(user.id)}
                   >

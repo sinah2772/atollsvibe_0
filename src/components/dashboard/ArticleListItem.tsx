@@ -22,7 +22,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
   
   if (viewMode === 'grid') {
     return (
-      <div className="bg-black rounded-lg overflow-hidden relative group">
+      <div className="glass-card rounded-3xl overflow-hidden relative group">
         <div className="aspect-[4/3] relative">
           {article.coverImage ? (
             <img 
@@ -31,19 +31,19 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-              <span className="text-gray-400">No image</span>
+            <div className="w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+              <span className="text-gray-500 font-medium">No image</span>
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         </div>
 
-        <div className="absolute top-2 right-2 flex items-center gap-2">
-          <span className={`text-xs px-2 py-1 rounded-full ${statusColor}`}>
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          <span className={`text-xs px-3 py-1 rounded-full glass-button ${statusColor}`}>
             {article.status}
           </span>
           {article.isBreaking && (
-            <span className="text-xs px-2 py-1 rounded-full bg-red-500 text-white">
+            <span className="text-xs px-3 py-1 rounded-full bg-red-500/80 backdrop-blur-sm text-white border border-red-400/50">
               Breaking
             </span>
           )}
@@ -84,11 +84,11 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
           </div>
         </div>
 
-        <div className="absolute top-2 left-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-3 left-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           {onEdit && (
             <button
               onClick={() => onEdit(article.id)}
-              className="p-1.5 bg-white/90 hover:bg-white rounded-full text-gray-700 hover:text-blue-600 transition-colors"
+              className="p-2 glass-button text-gray-700 hover:text-blue-600 transition-colors"
               title={language === 'dv' ? 'އެޑިޓްކުރައްވާ' : 'Edit'}
               aria-label={language === 'dv' ? 'އެޑިޓްކުރައްވާ' : 'Edit'}
             >
@@ -98,7 +98,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
           {onDelete && (
             <button
               onClick={() => onDelete(article.id)}
-              className="p-1.5 bg-white/90 hover:bg-white rounded-full text-gray-700 hover:text-red-600 transition-colors"
+              className="p-2 glass-button text-gray-700 hover:text-red-600 transition-colors"
               title={language === 'dv' ? 'ޑިލީޓްކުރައްވާ' : 'Delete'}
               aria-label={language === 'dv' ? 'ޑިލީޓްކުރައްވާ' : 'Delete'}
             >
@@ -111,9 +111,9 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
   }
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+    <div className="glass-card p-6 transition-all duration-300">
       <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative group aspect-video md:w-[200px] flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500">
+        <div className="relative group aspect-video md:w-[200px] flex-shrink-0 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl overflow-hidden hover:ring-2 hover:ring-blue-400/50">
           {article.coverImage ? (
             <img 
               src={article.coverImage}
@@ -123,7 +123,7 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <span className="text-gray-400">No image</span>
+              <span className="text-gray-500 font-medium">No image</span>
             </div>
           )}
         </div>
@@ -132,37 +132,38 @@ const ArticleListItem: React.FC<ArticleListItemProps> = ({
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <div className="flex items-center gap-2 mb-2">
-                <span className={`text-xs px-2 py-1 rounded-full ${statusColor}`}>
+                <span className={`text-xs px-3 py-1 rounded-full glass-button ${statusColor}`}>
                   {article.status}
                 </span>
                 {article.isBreaking && (
-                  <span className="text-xs px-2 py-1 rounded-full bg-red-500 text-white">
+                  <span className="text-xs px-3 py-1 rounded-full bg-red-500/80 backdrop-blur-sm text-white border border-red-400/50">
                     Breaking
                   </span>
                 )}
               </div>
-              <h3 className={`font-medium text-gray-900 mb-1 line-clamp-2 ${language === 'dv' ? 'thaana-waheed text-right' : ''}`}>
+              <h3 className={`font-semibold text-gray-900 mb-1 line-clamp-2 ${language === 'dv' ? 'thaana-waheed text-right' : ''}`}>
                 {article.title}
               </h3>
-              <p className={`text-sm text-gray-500 line-clamp-2 ${language === 'dv' ? 'thaana-waheed text-right' : ''}`}>
+              <p className={`text-sm text-gray-600 line-clamp-2 ${language === 'dv' ? 'thaana-waheed text-right' : ''}`}>
                 {language === 'dv' ? article.title : article.title}
               </p>
             </div>
 
             <div className="flex items-center gap-2">
-              {onEdit && (              <button
-                onClick={() => onEdit(article.id)}
-                className="p-1.5 hover:bg-gray-100 rounded-full text-gray-500 hover:text-blue-600 transition-colors"
-                title={language === 'dv' ? 'އެޑިޓްކުރައްވާ' : 'Edit'}
-                aria-label={language === 'dv' ? 'އެޑިޓްކުރައްވާ' : 'Edit'}
-              >
-                <Edit size={16} />
-              </button>
+              {onEdit && (
+                <button
+                  onClick={() => onEdit(article.id)}
+                  className="p-2 glass-button text-gray-600 hover:text-blue-600 transition-colors"
+                  title={language === 'dv' ? 'އެޑިޓްކުރައްވާ' : 'Edit'}
+                  aria-label={language === 'dv' ? 'އެޑިޓްކުރައްވާ' : 'Edit'}
+                >
+                  <Edit size={16} />
+                </button>
               )}
               {onDelete && (
                 <button
                   onClick={() => onDelete(article.id)}
-                  className="p-1.5 hover:bg-gray-100 rounded-full text-gray-500 hover:text-red-600 transition-colors"
+                  className="p-2 glass-button text-gray-600 hover:text-red-600 transition-colors"
                   title={language === 'dv' ? 'ޑިލީޓްކުރައްވާ' : 'Delete'}
                   aria-label={language === 'dv' ? 'ޑިލީޓްކުރައްވާ' : 'Delete'}
                 >

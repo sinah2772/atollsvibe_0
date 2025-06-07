@@ -26,9 +26,8 @@ export const TitleStep: React.FC<StepProps> = ({
     ]
   };
 
-  return (
-    <div className="max-w-2xl mx-auto">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+  return (    <div className="max-w-2xl mx-auto">
+      <div className="glass-card">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
@@ -53,8 +52,7 @@ export const TitleStep: React.FC<StepProps> = ({
           >
             {language === 'en' ? 'Article Title' : 'ލިޔުމުގެ ނަން'}
             <span className="text-red-500 ml-1">*</span>
-          </label>
-          <input
+          </label>          <input
             id="title"
             type="text"
             value={title}
@@ -63,7 +61,7 @@ export const TitleStep: React.FC<StepProps> = ({
               ? 'Enter your article title...' 
               : 'ތިޔަ ލިޔުމުގެ ނަން ލިޔެލާ...'
             }
-            className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="glass-input text-lg"
             autoFocus
           />
           <div className="mt-2 flex items-center justify-between text-sm">
@@ -114,12 +112,11 @@ export const TitleStep: React.FC<StepProps> = ({
           <h3 className="text-sm font-medium text-gray-700 mb-3">
             {language === 'en' ? 'Popular title formats:' : 'މަޤުބޫލު ނަމުގެ ބޭނުން:'}
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {suggestions[language].map((suggestion, index) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">            {suggestions[language].map((suggestion, index) => (
               <button
                 key={index}
                 onClick={() => onFormDataChange({ title: suggestion })}
-                className="text-left p-3 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors"
+                className="glass-button text-left text-sm"
               >
                 {suggestion}
               </button>

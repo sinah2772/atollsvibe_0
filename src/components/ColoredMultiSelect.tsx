@@ -162,12 +162,11 @@ export const ColoredMultiSelect: React.FC<ColoredMultiSelectProps> = ({
         });
       }
     }
-  }, [highlightedIndex]);
-  return (
+  }, [highlightedIndex]);  return (
     <div ref={wrapperRef} className="relative">
       <div 
-        className={`min-h-[38px] w-full rounded-lg border border-gray-300 bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 ${
-          isOpen ? 'border-blue-500 ring-1 ring-blue-500' : ''
+        className={`glass-input min-h-[38px] w-full ${
+          isOpen ? 'ring-2 ring-blue-500/20 border-blue-400' : ''
         }`}
         onClick={() => {
           inputRef.current?.focus();
@@ -183,12 +182,11 @@ export const ColoredMultiSelect: React.FC<ColoredMultiSelectProps> = ({
             const colors = getOptionColors(option);
             const displayName = getDisplayName(option);
             
-            return (
-              <div 
+            return (              <div 
                 key={selectedId}
-                className={`inline-flex items-center ${
-                  showColors ? `${colors.bg} ${colors.text}` : 'bg-blue-50 text-blue-700'
-                } rounded-full px-3 py-1 text-sm ${
+                className={`inline-flex items-center glass-button ${
+                  showColors ? `${colors.text}` : 'text-blue-700'
+                } px-3 py-1 text-sm ${
                   language === 'dv' ? 'flex-row-reverse' : ''
                 }`}
               >
@@ -228,13 +226,11 @@ export const ColoredMultiSelect: React.FC<ColoredMultiSelectProps> = ({
               dir={language === 'dv' ? 'rtl' : 'ltr'}
             />
           </div>        </div>
-      </div>
-
-      {/* Dropdown */}
+      </div>      {/* Dropdown */}
       {isOpen && (
         <div 
           ref={listRef}
-          className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-auto"
+          className="glass-dropdown absolute z-10 w-full mt-1 max-h-60 overflow-auto"
         >
           {filteredOptions.length > 0 ? (
             <div className="py-1">
@@ -242,13 +238,12 @@ export const ColoredMultiSelect: React.FC<ColoredMultiSelectProps> = ({
                 const colors = getOptionColors(option);
                 const displayName = getDisplayName(option);
                 
-                return (
-                  <button
+                return (                  <button
                     key={option.id}
-                    className={`w-full text-left px-4 py-2 text-sm ${
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-white/10 transition-colors ${
                       index === highlightedIndex 
-                        ? 'bg-blue-50 text-blue-700' 
-                        : 'hover:bg-gray-100'
+                        ? 'bg-blue-500/10 text-blue-700' 
+                        : 'hover:bg-gray-100/10'
                     } ${language === 'dv' ? 'thaana-waheed text-right' : ''}`}
                     onClick={() => handleSelect(option.id)}
                     onMouseEnter={() => setHighlightedIndex(index)}

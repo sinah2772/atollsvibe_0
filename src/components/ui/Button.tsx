@@ -20,7 +20,7 @@ const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyles = `
-    inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg 
+    glass-button inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg 
     text-sm font-medium transition-all duration-200 
     focus:outline-none focus:ring-2 focus:ring-offset-2 
     disabled:opacity-50 disabled:cursor-not-allowed
@@ -28,9 +28,9 @@ const Button: React.FC<ButtonProps> = ({
   `;
   
   const variants = {
-    add: 'bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-emerald-500',
-    edit: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500',
-    delete: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 border border-red-600',
+    add: 'text-emerald-700 hover:text-emerald-800 focus:ring-emerald-500',
+    edit: 'text-blue-700 hover:text-blue-800 focus:ring-blue-500',
+    delete: 'text-red-700 hover:text-red-800 focus:ring-red-500',
   };
 
   const icons = {

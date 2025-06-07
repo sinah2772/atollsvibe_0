@@ -12,22 +12,22 @@ const StatCard: React.FC<StatCardProps> = ({ metric, icon }) => {
   const trendIcon = getTrendIcon(metric.change);
   
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 transform hover:scale-[1.02] transition-transform duration-300">
+    <div className="glass-stat-card p-6 transform transition-all duration-300">
       <div className="flex items-center">
-        <div className="p-3 rounded-lg bg-blue-50 text-blue-600">
+        <div className="glass-icon text-blue-600">
           {icon}
         </div>
         <div className="ml-4">
-          <h3 className="text-sm font-medium text-gray-500">{metric.name}</h3>
+          <h3 className="text-sm font-medium text-gray-700">{metric.name}</h3>
           <div className="mt-1 flex items-baseline">
-            <p className="text-2xl font-semibold text-gray-900">
+            <p className="text-2xl font-bold text-gray-900">
               {formatNumber(metric.value)}
             </p>
             <span className={`ml-2 text-sm font-medium flex items-center ${trendColor}`}>
               {trendIcon} {Math.abs(metric.change)}%
             </span>
           </div>
-          <span className="text-xs text-gray-400 block mt-1">{metric.timeframe}</span>
+          <span className="text-xs text-gray-500 block mt-1">{metric.timeframe}</span>
         </div>
       </div>
     </div>

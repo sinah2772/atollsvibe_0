@@ -601,16 +601,8 @@ const ArticleMultiStepForm: React.FC = () => {
   const isContentStep = currentStep === 7; // Content & Submission step
   
   // Show both next button and submission buttons on the content step
-  const showNextOnContentStep = formData.content?.submissionStatus && currentStep === 7;
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-75"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-300 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse delay-150"></div>
-      </div>
-
+  const showNextOnContentStep = formData.content?.submissionStatus && currentStep === 7;  return (
+    <div className="flex h-screen dashboard-bg">
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Modern Header */}
         <div className="text-center mb-12">

@@ -50,9 +50,8 @@ const MetadataStep = ({ formData, updateFormData, errors }) => {
         <div className="form-group">
           <label className="form-label">
             News Type
-          </label>
-          <select
-            className="form-select"
+          </label>          <select
+            className="glass-input"
             value={formData.metadata?.newsType || ''}
             onChange={(e) => handleChange('newsType', e.target.value)}
           >
@@ -68,9 +67,8 @@ const MetadataStep = ({ formData, updateFormData, errors }) => {
         <div className="form-group">
           <label className="form-label">
             News Priority
-          </label>
-          <select
-            className="form-select"
+          </label>          <select
+            className="glass-input"
             value={formData.metadata?.newsPriority || ''}
             onChange={(e) => handleChange('newsPriority', e.target.value)}
           >
@@ -87,9 +85,8 @@ const MetadataStep = ({ formData, updateFormData, errors }) => {
       <div className="form-group">
         <label className="form-label">
           News Source
-        </label>
-        <select
-          className="form-select"
+        </label>        <select
+          className="glass-input"
           value={formData.metadata?.newsSource || ''}
           onChange={(e) => handleChange('newsSource', e.target.value)}
         >
@@ -105,10 +102,9 @@ const MetadataStep = ({ formData, updateFormData, errors }) => {
       <div className="form-group">
         <label className="form-label">
           Tags (comma-separated)
-        </label>
-        <input
+        </label>        <input
           type="text"
-          className="form-input"
+          className="glass-input"
           value={formData.metadata?.tagsInput || ''}
           onChange={handleTagsChange}
           placeholder="Enter tags separated by commas (e.g., politics, economy, election)"

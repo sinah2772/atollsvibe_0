@@ -108,7 +108,6 @@ export const CollaborativeTextArea: React.FC<CollaborativeTextAreaProps> = ({
   };
 
   const canEdit = !isLocked || isLockedByMe;
-
   return (
     <div className="relative">
       <textarea
@@ -118,12 +117,14 @@ export const CollaborativeTextArea: React.FC<CollaborativeTextAreaProps> = ({
         onFocus={handleFocus}
         onBlur={handleBlur}
         placeholder={placeholder}
-        className={`${className} ${
-          !canEdit ? 'bg-gray-100 cursor-not-allowed' : ''
+        className={`glass-input ${className} ${
+          !canEdit ? 'opacity-60 cursor-not-allowed' : ''
         } ${
-          isLocked && !isLockedByMe ? 'border-red-300' : ''
+          isLocked && !isLockedByMe ? 'border-red-400/50' : ''
         } ${
-          isLockedByMe ? 'border-blue-300 ring-1 ring-blue-200' : ''
+          isLockedByMe ? 'border-blue-400 ring-2 ring-blue-500/20' : ''
+        } ${
+          hasPendingUpdate ? 'border-amber-400/50' : ''
         }`}
         disabled={!canEdit}
         dir={dir}
@@ -150,11 +151,9 @@ export const CollaborativeTextArea: React.FC<CollaborativeTextAreaProps> = ({
             <span className="text-xs">Update pending</span>
           </div>
         )}
-      </div>
-
-      {/* Conflict resolution dialog */}
+      </div>      {/* Conflict resolution dialog */}
       {showConflictDialog && pendingRemoteValue !== null && (
-        <div className="absolute top-full left-0 right-0 z-50 mt-1 p-3 bg-white border border-amber-300 rounded-lg shadow-lg">
+        <div className="glass-card absolute top-full left-0 right-0 z-50 mt-1 p-3">
           <div className="flex items-start gap-2 mb-2">
             <AlertCircle size={16} className="text-amber-600 mt-0.5" />
             <div>
@@ -170,21 +169,22 @@ export const CollaborativeTextArea: React.FC<CollaborativeTextAreaProps> = ({
           <div className="space-y-2 mb-3">
             <div>
               <label className="text-xs font-medium text-gray-600">Your version:</label>
-              <div className="text-xs p-2 bg-blue-50 border border-blue-200 rounded max-h-20 overflow-y-auto">
+              <div className="glass-card text-xs p-2 max-h-20 overflow-y-auto bg-blue-500/10 border-blue-400/30">
                 {localValue || <em>Empty</em>}
               </div>
             </div>
             <div>
               <label className="text-xs font-medium text-gray-600">Their version:</label>
-              <div className="text-xs p-2 bg-green-50 border border-green-200 rounded max-h-20 overflow-y-auto">
+              <div className="glass-card text-xs p-2 max-h-20 overflow-y-auto bg-green-500/10 border-green-400/30">
                 {pendingRemoteValue || <em>Empty</em>}
               </div>
             </div>
           </div>
           
-          <div className="flex gap-2">            <button
+          <div className="flex gap-2">
+            <button
               onClick={handleKeepLocal}
-              className="flex-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="glass-button flex-1 px-2 py-1 text-xs text-blue-700 hover:bg-blue-500/20"
               aria-label="Keep your version of the text"
               title="Keep your version of the text"
             >
@@ -192,7 +192,7 @@ export const CollaborativeTextArea: React.FC<CollaborativeTextAreaProps> = ({
             </button>
             <button
               onClick={handleAcceptRemote}
-              className="flex-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+              className="glass-button flex-1 px-2 py-1 text-xs text-green-700 hover:bg-green-500/20"
               aria-label="Accept other user's version of the text"
               title="Accept other user's version of the text"
             >

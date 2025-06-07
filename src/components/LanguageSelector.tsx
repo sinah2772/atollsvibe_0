@@ -38,12 +38,11 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     { code: 'tr', name: 'Turkish', nativeName: 'Türkçe' },
     { code: 'ur', name: 'Urdu', nativeName: 'اردو' },
   ];
-
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+      className="glass-input"
       aria-label={language === 'dv' ? 'ތަރުޖަމާ ބަސް' : 'Translation Source Language'}
     >
       <option value="">

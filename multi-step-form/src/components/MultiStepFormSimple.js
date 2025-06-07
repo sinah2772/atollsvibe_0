@@ -249,10 +249,8 @@ const MultiStepForm = () => {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Form Card */}
-        <div className="form-card">
+        </div>        {/* Form Card */}
+        <div className="glass-card">
           {/* Step Header */}
           <div className="step-header">
             <h2 className="step-title-main">

@@ -16,10 +16,9 @@ const PersonalInfoStep = ({ formData, updateFormData, errors }) => {
         <div className="form-group">
           <label className="form-label">
             First Name *
-          </label>
-          <input
+          </label>          <input
             type="text"
-            className={`form-input ${errors.firstName ? 'error' : ''}`}
+            className={`glass-input ${errors.firstName ? 'error' : ''}`}
             value={formData.personalInfo?.firstName || ''}
             onChange={(e) => handleChange('firstName', e.target.value)}
             placeholder="Enter your first name"
@@ -32,10 +31,9 @@ const PersonalInfoStep = ({ formData, updateFormData, errors }) => {
         <div className="form-group">
           <label className="form-label">
             Last Name *
-          </label>
-          <input
+          </label>          <input
             type="text"
-            className={`form-input ${errors.lastName ? 'error' : ''}`}
+            className={`glass-input ${errors.lastName ? 'error' : ''}`}
             value={formData.personalInfo?.lastName || ''}
             onChange={(e) => handleChange('lastName', e.target.value)}
             placeholder="Enter your last name"
@@ -50,10 +48,9 @@ const PersonalInfoStep = ({ formData, updateFormData, errors }) => {
         <div className="form-group">
           <label className="form-label">
             Date of Birth *
-          </label>
-          <input
+          </label>          <input
             type="date"
-            className={`form-input ${errors.dateOfBirth ? 'error' : ''}`}
+            className={`glass-input ${errors.dateOfBirth ? 'error' : ''}`}
             value={formData.personalInfo?.dateOfBirth || ''}
             onChange={(e) => handleChange('dateOfBirth', e.target.value)}
           />
@@ -65,9 +62,8 @@ const PersonalInfoStep = ({ formData, updateFormData, errors }) => {
         <div className="form-group">
           <label className="form-label">
             Gender *
-          </label>
-          <select
-            className={`form-select ${errors.gender ? 'error' : ''}`}
+          </label>          <select
+            className={`glass-input ${errors.gender ? 'error' : ''}`}
             value={formData.personalInfo?.gender || ''}
             onChange={(e) => handleChange('gender', e.target.value)}
           >
@@ -86,9 +82,8 @@ const PersonalInfoStep = ({ formData, updateFormData, errors }) => {
       <div className="form-group">
         <label className="form-label">
           Country
-        </label>
-        <select
-          className="form-select"
+        </label>        <select
+          className="glass-input"
           value={formData.personalInfo?.country || ''}
           onChange={(e) => handleChange('country', e.target.value)}
         >

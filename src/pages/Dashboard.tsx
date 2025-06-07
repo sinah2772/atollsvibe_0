@@ -98,25 +98,25 @@ const Dashboard = () => {
 
   if (loading || userLoading || articlesLoading) {
     return (
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex h-screen dashboard-bg">
         <MobileSidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
         
         <div className="flex-1 flex flex-col overflow-hidden">
           <main className="flex-1 overflow-y-auto p-4 md:p-6">
             <div className="animate-pulse space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="dashboard-card p-6 rounded-xl">
-                    <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
-                    <div className="h-10 bg-gray-200 rounded w-3/4"></div>
+                  <div key={i} className="glass-card p-6">
+                    <div className="glass-skeleton h-6 rounded w-1/2 mb-4"></div>
+                    <div className="glass-skeleton h-10 rounded w-3/4"></div>
                   </div>
                 ))}
               </div>
-              <div className="dashboard-card p-6 rounded-xl">
-                <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+              <div className="glass-card p-8">
+                <div className="glass-skeleton h-8 rounded w-1/4 mb-6"></div>
                 <div className="space-y-4">
                   {[...Array(5)].map((_, i) => (
-                    <div key={i} className="h-16 bg-gray-200 rounded"></div>
+                    <div key={i} className="glass-skeleton h-16 rounded"></div>
                   ))}
                 </div>
               </div>
@@ -129,15 +129,17 @@ const Dashboard = () => {
 
   if (!user) {
     return (
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Please Sign In</h2>
-        <p className="text-gray-600 mb-6">You need to be signed in to view your dashboard.</p>
-        <Link 
-          to="/login" 
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Sign In
-        </Link>
+      <div className="min-h-screen dashboard-bg flex items-center justify-center">
+        <div className="text-center glass-card p-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Please Sign In</h2>
+          <p className="text-gray-600 mb-6">You need to be signed in to view your dashboard.</p>
+          <Link 
+            to="/login" 
+            className="glass-button-primary px-6 py-3 text-white rounded-2xl font-medium transition-all duration-200"
+          >
+            Sign In
+          </Link>
+        </div>
       </div>
     );
   }
@@ -165,7 +167,7 @@ const Dashboard = () => {
                 <div className="ml-auto">
                   <Link
                     to="/dashboard/new-article"
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="flex items-center gap-2 px-6 py-3 glass-button-primary text-white rounded-2xl font-medium transition-all duration-200"
                   >
                     <Plus size={18} />
                     <span className="thaana-waheed">އާ ލިޔުމެއް</span>
@@ -175,67 +177,67 @@ const Dashboard = () => {
             </div>
 
             {/* Stats Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="dashboard-card p-6 rounded-xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="glass-stat-card p-6">
                 <div className="flex items-center">
-                  <div className="p-3 rounded-lg bg-blue-50 text-blue-600">
+                  <div className="glass-icon text-blue-600">
                     <Newspaper size={24} />
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-500">Total Articles</h3>
-                    <p className="text-2xl font-semibold text-gray-900">{stats.totalArticles}</p>
+                    <h3 className="text-sm font-medium text-gray-700">Total Articles</h3>
+                    <p className="text-2xl font-bold text-gray-900">{stats.totalArticles}</p>
                     <div className="flex items-center mt-1">
-                      <span className="text-xs text-gray-500">{stats.publishedArticles} published</span>
-                      <span className="mx-2 text-gray-300">•</span>
-                      <span className="text-xs text-gray-500">{stats.draftArticles} drafts</span>
+                      <span className="text-xs text-gray-600">{stats.publishedArticles} published</span>
+                      <span className="mx-2 text-gray-400">•</span>
+                      <span className="text-xs text-gray-600">{stats.draftArticles} drafts</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="dashboard-card p-6 rounded-xl">
+              <div className="glass-stat-card p-6">
                 <div className="flex items-center">
-                  <div className="p-3 rounded-lg bg-green-50 text-green-600">
+                  <div className="glass-icon text-green-600">
                     <Eye size={24} />
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-500">Total Views</h3>
-                    <p className="text-2xl font-semibold text-gray-900">{stats.totalViews.toLocaleString()}</p>
+                    <h3 className="text-sm font-medium text-gray-700">Total Views</h3>
+                    <p className="text-2xl font-bold text-gray-900">{stats.totalViews.toLocaleString()}</p>
                     <div className="flex items-center mt-1">
                       <TrendingUp size={14} className="text-green-500 mr-1" />
-                      <span className="text-xs text-green-500">12% increase this month</span>
+                      <span className="text-xs text-green-600">12% increase this month</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="dashboard-card p-6 rounded-xl">
+              <div className="glass-stat-card p-6">
                 <div className="flex items-center">
-                  <div className="p-3 rounded-lg bg-yellow-50 text-yellow-600">
+                  <div className="glass-icon text-yellow-600">
                     <ThumbsUp size={24} />
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-500">Total Likes</h3>
-                    <p className="text-2xl font-semibold text-gray-900">{stats.totalLikes.toLocaleString()}</p>
+                    <h3 className="text-sm font-medium text-gray-700">Total Likes</h3>
+                    <p className="text-2xl font-bold text-gray-900">{stats.totalLikes.toLocaleString()}</p>
                     <div className="flex items-center mt-1">
                       <TrendingUp size={14} className="text-green-500 mr-1" />
-                      <span className="text-xs text-green-500">8% increase this month</span>
+                      <span className="text-xs text-green-600">8% increase this month</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="dashboard-card p-6 rounded-xl">
+              <div className="glass-stat-card p-6">
                 <div className="flex items-center">
-                  <div className="p-3 rounded-lg bg-purple-50 text-purple-600">
+                  <div className="glass-icon text-purple-600">
                     <MessageSquare size={24} />
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-500">Total Comments</h3>
-                    <p className="text-2xl font-semibold text-gray-900">{stats.totalComments.toLocaleString()}</p>
+                    <h3 className="text-sm font-medium text-gray-700">Total Comments</h3>
+                    <p className="text-2xl font-bold text-gray-900">{stats.totalComments.toLocaleString()}</p>
                     <div className="flex items-center mt-1">
                       <TrendingUp size={14} className="text-green-500 mr-1" />
-                      <span className="text-xs text-green-500">5% increase this month</span>
+                      <span className="text-xs text-green-600">5% increase this month</span>
                     </div>
                   </div>
                 </div>
@@ -243,7 +245,7 @@ const Dashboard = () => {
             </div>
 
             {/* Enhanced Features Section */}
-            <div className="dashboard-card p-6 rounded-xl">
+            <div className="glass-card p-8">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">Enhanced Article Management</h2>
                 <p className="text-sm text-gray-600">Powerful tools for content analysis and workflow</p>
@@ -252,15 +254,15 @@ const Dashboard = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Link 
                   to="/dashboard/advanced-analytics"
-                  className="group block p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 hover:border-blue-300 transition-all duration-200"
+                  className="group block glass-card p-8 transition-all duration-300 hover:transform hover:scale-[1.02]"
                 >
                   <div className="flex items-center mb-4">
-                    <div className="p-3 rounded-lg bg-blue-600 text-white group-hover:bg-blue-700 transition-colors">
+                    <div className="glass-icon bg-gradient-to-br from-blue-500 to-blue-600 text-white">
                       <BarChart size={24} />
                     </div>
-                    <h3 className="ml-3 text-lg font-semibold text-gray-900">Advanced Analytics</h3>
+                    <h3 className="ml-4 text-lg font-semibold text-gray-900">Advanced Analytics</h3>
                   </div>
-                  <p className="text-sm text-gray-600 mb-3">
+                  <p className="text-sm text-gray-600 mb-4">
                     Comprehensive analytics dashboard with engagement metrics, editorial workflow statistics, and content performance insights.
                   </p>
                   <div className="flex items-center text-blue-600 text-sm font-medium">
@@ -271,15 +273,15 @@ const Dashboard = () => {
 
                 <Link 
                   to="/dashboard/workflow"
-                  className="group block p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200 hover:border-green-300 transition-all duration-200"
+                  className="group block glass-card p-8 transition-all duration-300 hover:transform hover:scale-[1.02]"
                 >
                   <div className="flex items-center mb-4">
-                    <div className="p-3 rounded-lg bg-green-600 text-white group-hover:bg-green-700 transition-colors">
+                    <div className="glass-icon bg-gradient-to-br from-green-500 to-green-600 text-white">
                       <Users size={24} />
                     </div>
-                    <h3 className="ml-3 text-lg font-semibold text-gray-900">Editorial Workflow</h3>
+                    <h3 className="ml-4 text-lg font-semibold text-gray-900">Editorial Workflow</h3>
                   </div>
-                  <p className="text-sm text-gray-600 mb-3">
+                  <p className="text-sm text-gray-600 mb-4">
                     Manage editorial workflow with fact-checking, approval processes, and article status tracking for streamlined content management.
                   </p>
                   <div className="flex items-center text-green-600 text-sm font-medium">
@@ -290,13 +292,13 @@ const Dashboard = () => {
 
                 <Link 
                   to="/dashboard/data-analysis"
-                  className="group block p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200 hover:border-purple-300 transition-all duration-200"
+                  className="group block glass-card p-8 transition-all duration-300 hover:transform hover:scale-[1.02]"
                 >
                   <div className="flex items-center mb-4">
-                    <div className="p-3 rounded-lg bg-purple-600 text-white group-hover:bg-purple-700 transition-colors">
+                    <div className="glass-icon bg-gradient-to-br from-purple-500 to-purple-600 text-white">
                       <BarChart size={24} />
                     </div>
-                    <h3 className="ml-3 text-lg font-semibold text-gray-900">Data Analysis</h3>
+                    <h3 className="ml-4 text-lg font-semibold text-gray-900">Data Analysis</h3>
                   </div>
                   <p className="text-sm text-gray-600 mb-3">
                     Deep dive into article data with CSV analysis tools, content quality metrics, and comprehensive reporting features.
@@ -347,10 +349,10 @@ const Dashboard = () => {
                     </button>
                     <button
                       onClick={() => setFilter('draft')}
-                      className={`px-3 py-1.5 rounded-md text-sm ${
+                      className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                         filter === 'draft' 
-                          ? 'bg-white shadow-sm text-gray-800' 
-                          : 'text-gray-600 hover:bg-gray-200'
+                          ? 'glass-button-primary text-white' 
+                          : 'glass-button text-gray-600'
                       }`}
                     >
                       Drafts
@@ -364,10 +366,10 @@ const Dashboard = () => {
                   {filteredArticles.map((article) => (
                     <div 
                       key={article.id} 
-                      className="flex items-start p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="glass-card p-6 transition-all duration-300"
                     >
                       {article.cover_image ? (
-                        <div className="relative group aspect-video w-20 rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500 flex-shrink-0">
+                        <div className="relative group aspect-video w-24 rounded-2xl overflow-hidden hover:ring-2 hover:ring-blue-400/50 flex-shrink-0">
                           <img 
                             src={article.cover_image} 
                             alt={article.title}
@@ -375,28 +377,28 @@ const Dashboard = () => {
                           />
                         </div>
                       ) : (
-                        <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Newspaper size={24} className="text-gray-400" />
+                        <div className="w-24 h-24 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl flex items-center justify-center flex-shrink-0">
+                          <Newspaper size={24} className="text-gray-500" />
                         </div>
                       )}
                       
-                      <div className="ml-4 flex-1 min-w-0">
+                      <div className="ml-6 flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <span className={`px-2 py-1 text-xs rounded-full ${
+                          <div className="flex items-center gap-3">
+                            <span className={`px-3 py-1 text-xs rounded-full glass-button ${
                               article.status === 'published' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-gray-100 text-gray-800'
+                                ? 'text-green-700 border-green-200' 
+                                : 'text-gray-700 border-gray-200'
                             }`}>
                               {article.status === 'published' ? 'Published' : 'Draft'}
                             </span>
                             {article.category && (
-                              <span className="flex items-center gap-2 mt-1">
-                                <span className={`px-2 py-0.5 rounded-full text-xs ${getCategoryColor(article.category_id).bg} ${getCategoryColor(article.category_id).text} border ${getCategoryColor(article.category_id).border}`}>
+                              <span className="flex items-center gap-2">
+                                <span className={`px-3 py-1 rounded-full text-xs glass-button ${getCategoryColor(article.category_id).bg} ${getCategoryColor(article.category_id).text} border ${getCategoryColor(article.category_id).border}`}>
                                   🏷️ {article.category.name}
                                 </span>
                                 {article.subcategory && (
-                                  <span className={`px-2 py-0.5 rounded-full text-xs ${getSubcategoryColor(article.category_id).bg} ${getSubcategoryColor(article.category_id).text} border ${getSubcategoryColor(article.category_id).border}`}>
+                                  <span className={`px-3 py-1 rounded-full text-xs glass-button ${getSubcategoryColor(article.category_id).bg} ${getSubcategoryColor(article.category_id).text} border ${getSubcategoryColor(article.category_id).border}`}>
                                     → {article.subcategory.name}
                                   </span>
                                 )}

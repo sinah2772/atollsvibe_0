@@ -11,10 +11,9 @@ const ArticleIdentityStep = ({ formData, updateFormData, errors }) => {
       <div className="form-group">
         <label className="form-label">
           Title (Latin) *
-        </label>
-        <input
+        </label>        <input
           type="text"
-          className={`form-input ${errors.title ? 'error' : ''}`}
+          className={`glass-input ${errors.title ? 'error' : ''}`}
           value={formData.articleIdentity?.title || ''}
           onChange={(e) => handleChange('title', e.target.value)}
           placeholder="Enter article title in Latin"
@@ -27,10 +26,9 @@ const ArticleIdentityStep = ({ formData, updateFormData, errors }) => {
       <div className="form-group">
         <label className="form-label">
           Heading (Thaana) *
-        </label>
-        <input
+        </label>        <input
           type="text"
-          className={`form-input ${errors.headingThaana ? 'error' : ''}`}
+          className={`glass-input ${errors.headingThaana ? 'error' : ''}`}
           value={formData.articleIdentity?.headingThaana || ''}
           onChange={(e) => handleChange('headingThaana', e.target.value)}
           placeholder="Enter heading in Thaana"
@@ -44,10 +42,9 @@ const ArticleIdentityStep = ({ formData, updateFormData, errors }) => {
       <div className="form-group">
         <label className="form-label">
           Social Heading
-        </label>
-        <input
+        </label>        <input
           type="text"
-          className="form-input"
+          className="glass-input"
           value={formData.articleIdentity?.socialHeading || ''}
           onChange={(e) => handleChange('socialHeading', e.target.value)}
           placeholder="Enter social media heading"

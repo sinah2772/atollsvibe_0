@@ -58,14 +58,14 @@ const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="hidden md:flex flex-col w-64 h-screen bg-white border-r border-gray-200 py-6 px-4">
+    <aside className="hidden md:flex flex-col w-64 h-screen glass-sidebar py-6 px-4">
       <div className="mb-8 px-2">
         <h2 className="text-xl font-bold text-blue-800">Habaru</h2>
-        <p className="text-sm text-gray-500">Author Dashboard</p>
+        <p className="text-sm text-gray-600">Author Dashboard</p>
       </div>
       
       <nav className="flex-1">
-        <ul className="space-y-1">
+        <ul className="space-y-2">
           {navItems.map((item) => (
             <li key={item.name}>
               <NavLink
@@ -73,10 +73,10 @@ const Sidebar: React.FC = () => {
                 target={item.external ? '_blank' : '_self'}
                 rel={item.external ? 'noopener noreferrer' : undefined}
                 className={({ isActive }) => 
-                  `flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors duration-150 ease-in-out ${
+                  `flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 glass-nav-item ${
                     isActive 
-                      ? 'bg-blue-50 text-blue-700' 
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'active text-blue-700' 
+                      : 'text-gray-700 hover:text-blue-600'
                   }`
                 }
               >
@@ -88,10 +88,10 @@ const Sidebar: React.FC = () => {
         </ul>
       </nav>
       
-      <div className="mt-auto pt-6 border-t border-gray-200">
+      <div className="mt-auto pt-6 border-t border-white/20">
         <button 
           onClick={handleLogout}
-          className="flex items-center w-full px-3 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors duration-150 ease-in-out"
+          className="flex items-center w-full px-3 py-3 text-sm font-medium text-gray-700 rounded-lg glass-button transition-all duration-200"
         >
           <LogOut size={20} className="mr-3" />
           Log Out

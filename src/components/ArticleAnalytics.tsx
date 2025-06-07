@@ -111,7 +111,6 @@ const ArticleAnalytics: React.FC<ArticleAnalyticsProps> = ({ articles }) => {  c
 
     return data;
   }, [articles]);
-
   const StatCard: React.FC<{
     title: string;
     value: string | number;
@@ -119,32 +118,36 @@ const ArticleAnalytics: React.FC<ArticleAnalyticsProps> = ({ articles }) => {  c
     color: string;
     subtitle?: string;
   }> = ({ title, value, icon, color, subtitle }) => (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="glass-stat-card">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
+          <p className="text-sm font-medium text-gray-700">{title}</p>
           <p className={`text-2xl font-bold ${color}`}>{value}</p>
-          {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
+          {subtitle && <p className="text-xs text-gray-600 mt-1">{subtitle}</p>}
         </div>
-        <div className={`p-3 rounded-full ${color.includes('blue') ? 'bg-blue-100' : 
-                                           color.includes('green') ? 'bg-green-100' : 
-                                           color.includes('yellow') ? 'bg-yellow-100' : 
-                                           color.includes('red') ? 'bg-red-100' : 'bg-gray-100'}`}>
+        <div className={`glass-icon ${color.includes('blue') ? 'text-blue-600' : 
+                                      color.includes('green') ? 'text-green-600' : 
+                                      color.includes('yellow') ? 'text-yellow-600' : 
+                                      color.includes('red') ? 'text-red-600' : 
+                                      color.includes('purple') ? 'text-purple-600' :
+                                      color.includes('orange') ? 'text-orange-600' : 
+                                      'text-gray-600'}`}>
           {icon}
         </div>
       </div>
     </div>
-  );
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Article Analytics</h2>
-        <div className="flex items-center space-x-2 text-sm text-gray-500">
-          <Calendar className="w-4 h-4" />
-          <span>Last updated: {new Date().toLocaleDateString()}</span>
+  );  return (
+    <div className="dashboard-bg min-h-screen">
+      <div className="dashboard-container space-y-6">
+        <div className="glass-card p-6 rounded-xl">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Article Analytics</h2>
+            <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <Calendar className="w-4 h-4" />
+              <span>Last updated: {new Date().toLocaleDateString()}</span>
+            </div>
+          </div>
         </div>
-      </div>
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -207,16 +210,16 @@ const ArticleAnalytics: React.FC<ArticleAnalyticsProps> = ({ articles }) => {  c
       </div>
 
       {/* Detailed Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Status Distribution */}
-        <div className="bg-white rounded-lg shadow p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">        {/* Status Distribution */}
+        <div className="glass-card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Status Distribution</h3>
           <div className="space-y-3">
             {Object.entries(analytics.statusDistribution).map(([status, count]) => {
               const percentage = Math.round((count / analytics.totalArticles) * 100);
               return (
                 <div key={status} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">                    <div className={`w-3 h-3 rounded-full ${
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-3 h-3 rounded-full ${
                       status === 'published' ? 'bg-green-500' :
                       status === 'draft' ? 'bg-yellow-500' :
                       status === 'scheduled' ? 'bg-blue-500' : 'bg-gray-500'
@@ -224,8 +227,8 @@ const ArticleAnalytics: React.FC<ArticleAnalyticsProps> = ({ articles }) => {  c
                     <span className="text-sm font-medium capitalize">{status}</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">{count}</span>
-                    <span className="text-xs text-gray-400">({percentage}%)</span>
+                    <span className="text-sm text-gray-700">{count}</span>
+                    <span className="text-xs text-gray-500">({percentage}%)</span>
                   </div>
                 </div>
               );
@@ -234,14 +237,14 @@ const ArticleAnalytics: React.FC<ArticleAnalyticsProps> = ({ articles }) => {  c
         </div>
 
         {/* Editorial Workflow Stats */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="glass-card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Editorial Workflow</h3>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Fact-Checked Articles</span>
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-bold text-green-600">{analytics.factCheckedArticles}</span>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-gray-500">
                   ({Math.round((analytics.factCheckedArticles / analytics.totalArticles) * 100)}%)
                 </span>
               </div>
@@ -250,7 +253,7 @@ const ArticleAnalytics: React.FC<ArticleAnalyticsProps> = ({ articles }) => {  c
               <span className="text-sm font-medium">Pending Approval</span>
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-bold text-orange-600">{analytics.pendingApproval}</span>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-gray-500">
                   ({Math.round((analytics.pendingApproval / analytics.totalArticles) * 100)}%)
                 </span>
               </div>
@@ -259,17 +262,15 @@ const ArticleAnalytics: React.FC<ArticleAnalyticsProps> = ({ articles }) => {  c
               <span className="text-sm font-medium">Drafts</span>
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-bold text-yellow-600">{analytics.draftArticles}</span>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-gray-500">
                   ({Math.round((analytics.draftArticles / analytics.totalArticles) * 100)}%)
                 </span>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Engagement Metrics */}
-      <div className="bg-white rounded-lg shadow p-6">
+      </div>      {/* Engagement Metrics */}
+      <div className="glass-card">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Engagement Overview</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center">
@@ -286,6 +287,7 @@ const ArticleAnalytics: React.FC<ArticleAnalyticsProps> = ({ articles }) => {  c
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

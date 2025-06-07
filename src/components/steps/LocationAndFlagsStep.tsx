@@ -187,10 +187,9 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
     { value: 5, label: language === 'dv' ? 'އޮތް ދަށް' : 'Very Low Priority' }
   ];
 
-  return (
-    <div className="space-y-6">
+  return (    <div className="space-y-6">
       {/* Location Section */}
-      <div className="bg-gray-50 p-4 rounded-lg border">
+      <div className="glass-card p-4">
         <h3 className={`text-lg font-semibold text-gray-900 mb-4 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
           {language === 'dv' ? 'ޤައުމީ މަޢުލޫމާތު' : 'Location Information'}
         </h3>
@@ -249,10 +248,8 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
             />
           </div>
         </div>
-      </div>
-
-      {/* News Type and Priority */}
-      <div className="bg-gray-50 p-4 rounded-lg border">
+      </div>      {/* News Type and Priority */}
+      <div className="glass-card p-4">
         <h3 className={`text-lg font-semibold text-gray-900 mb-4 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
           {language === 'dv' ? 'ޚަބަރުގެ ބާވަތާއި މުހިއްމުކަން' : 'News Type & Priority'}
         </h3>
@@ -265,7 +262,7 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
             </label>            <select
               value={newsType}
               onChange={(e) => setNewsType(e.target.value)}
-              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`glass-input ${
                 language === 'dv' ? 'thaana-waheed text-right' : ''
               }`}
               dir={language === 'dv' ? 'rtl' : 'ltr'}
@@ -288,7 +285,7 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
             </label>            <select
               value={newsPriority}
               onChange={(e) => setNewsPriority(parseInt(e.target.value))}
-              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`glass-input ${
                 language === 'dv' ? 'thaana-waheed text-right' : ''
               }`}
               dir={language === 'dv' ? 'rtl' : 'ltr'}
@@ -303,10 +300,8 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
             </select>
           </div>
         </div>
-      </div>
-
-      {/* Article Flags */}
-      <div className="bg-gray-50 p-4 rounded-lg border">
+      </div>      {/* Article Flags */}
+      <div className="glass-card p-4">
         <h3 className={`text-lg font-semibold text-gray-900 mb-4 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
           {language === 'dv' ? 'މަޝްހޫރުގެ ޚާއްސަ އަލާމާތްތައް' : 'Article Flags'}
         </h3>
@@ -376,9 +371,7 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
               {language === 'dv' ? 'ސްޕޮންސަރ ކުރެވިފައި' : 'Sponsored'}
             </span>
           </label>
-        </div>
-
-        {/* Developing Until Date */}
+        </div>        {/* Developing Until Date */}
         {isDeveloping && (
           <div className="mt-4">
             <label className={`block text-sm font-medium text-gray-700 mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
@@ -387,7 +380,7 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
               type="datetime-local"
               value={developingUntil}
               onChange={(e) => setDevelopingUntil(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="glass-input"
               title={language === 'dv' ? 'ޑިވެލޮޕިން ސްޓޯރީ ކަން މަނާ ތާރީޚު ހޮއްވަވާ' : 'Select developing story end date'}
               placeholder={language === 'dv' ? 'ތާރީޚް ހޮއްވަވާ' : 'Select date and time'}
             />
@@ -400,30 +393,28 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
             <div>
               <label className={`block text-sm font-medium text-gray-700 mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
                 {language === 'dv' ? 'ސްޕޮންސަރ ކުރި ފަރާތް' : 'Sponsored By'}
-              </label>
-              <CollaborativeInput
+              </label>              <CollaborativeInput
                 fieldId="sponsoredBy"
                 value={sponsoredBy}
                 onChange={setSponsoredBy}
                 collaborative={collaborative}
                 currentUser={currentUser}
                 placeholder={language === 'dv' ? 'ސްޕޮންސަރ ކުރި ފަރާތުގެ ނަން' : 'Sponsor name'}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="glass-input"
                 dir={language === 'dv' ? 'rtl' : 'ltr'}
               />
             </div>
             <div>
               <label className={`block text-sm font-medium text-gray-700 mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
                 {language === 'dv' ? 'ސްޕޮންސަރ ޔޫ.އާރ.އެލް' : 'Sponsor URL'}
-              </label>
-              <CollaborativeInput
+              </label>              <CollaborativeInput
                 fieldId="sponsoredUrl"
                 value={sponsoredUrl}
                 onChange={setSponsoredUrl}
                 collaborative={collaborative}
                 currentUser={currentUser}
                 placeholder={language === 'dv' ? 'ސްޕޮންސަރ ވެބްސައިޓް' : 'Sponsor website URL'}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="glass-input"
                 type="url"
               />
             </div>

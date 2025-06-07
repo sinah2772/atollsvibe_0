@@ -84,9 +84,8 @@ export const ContentStep: React.FC<StepProps> = ({
     );
   };
 
-  return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+  return (    <div className="max-w-4xl mx-auto">
+      <div className="glass-card border-0">
         {/* Header */}
         <div className="border-b border-gray-200 p-6">
           <div className="flex items-center justify-between">
@@ -101,26 +100,24 @@ export const ContentStep: React.FC<StepProps> = ({
                 }
               </p>
             </div>
-            
-            {/* Tab Switcher */}
-            <div className="flex bg-gray-100 rounded-lg p-1">
+              {/* Tab Switcher */}
+            <div className="flex glass-input rounded-lg p-1">
               <button
                 onClick={() => setActiveTab('edit')}
                 className={`flex items-center px-3 py-1.5 text-sm rounded-md transition-colors ${
                   activeTab === 'edit' 
-                    ? 'bg-white text-gray-900 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white/20 text-gray-900 shadow-sm' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-white/10'
                 }`}
               >
                 <Edit3 className="w-4 h-4 mr-1" />
                 {language === 'en' ? 'Edit' : 'އިޞްލާޙު'}
-              </button>
-              <button
+              </button>              <button
                 onClick={() => setActiveTab('preview')}
                 className={`flex items-center px-3 py-1.5 text-sm rounded-md transition-colors ${
                   activeTab === 'preview' 
-                    ? 'bg-white text-gray-900 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white/20 text-gray-900 shadow-sm' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-white/10'
                 }`}
               >
                 <Eye className="w-4 h-4 mr-1" />
@@ -133,39 +130,38 @@ export const ContentStep: React.FC<StepProps> = ({
         <div className="p-6">
           {activeTab === 'edit' ? (
             <div>
-              {/* Formatting Toolbar */}
-              <div className="flex items-center space-x-2 mb-4 pb-4 border-b border-gray-200">
+              {/* Formatting Toolbar */}              <div className="flex items-center space-x-2 mb-4 pb-4 border-b border-white/20">
                 <button
                   onClick={() => formatText('bold')}
-                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+                  className="glass-button p-2"
                   title={language === 'en' ? 'Bold' : 'ބޯއަރަލް'}
                 >
                   <strong>B</strong>
                 </button>
                 <button
                   onClick={() => formatText('italic')}
-                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+                  className="glass-button p-2"
                   title={language === 'en' ? 'Italic' : 'އިޓެލިކް'}
                 >
                   <em>I</em>
                 </button>
                 <button
                   onClick={() => formatText('heading')}
-                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+                  className="glass-button p-2"
                   title={language === 'en' ? 'Heading' : 'ހެޑިންވ'}
                 >
                   <Type className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => formatText('list')}
-                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+                  className="glass-button p-2"
                   title={language === 'en' ? 'List' : 'ލިސްޓް'}
                 >
                   ≡
                 </button>
                 <button
                   onClick={() => formatText('quote')}
-                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+                  className="glass-button p-2"
                   title={language === 'en' ? 'Quote' : 'ކޯޓް'}
                 >
                   "
@@ -173,8 +169,7 @@ export const ContentStep: React.FC<StepProps> = ({
               </div>
 
               {/* Content Textarea */}
-              <div className="mb-4">
-                <textarea
+              <div className="mb-4">                <textarea
                   id="content"
                   value={content}
                   onChange={(e) => onFormDataChange({ content: e.target.value })}
@@ -182,7 +177,7 @@ export const ContentStep: React.FC<StepProps> = ({
                     ? 'Start writing your article content here...\n\nTips:\n- Use ## for headings\n- Use **text** for bold\n- Use *text* for italic\n- Use > for quotes\n- Use - for lists'
                     : 'ތިޔަ ލިޔުމުގެ ކޮންޓެންޓް މިތަނުން ފަށާލާ...\n\nޙަރުކަތައް:\n- ## ބޭނުންކޮށް ހެޑިންގަށް\n- **ޓެކްސްޓް** ބޭނުންކޮށް ބޯލްޑަށް\n- *ޓެކްސްޓް* ބޭނުންކޮށް އިޓެލިކަށް\n- > ބޭނުންކޮށް ކޯޓަށް\n- - ބޭނުންކޮށް ލިސްޓަށް'
                   }
-                  className="w-full h-96 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm"
+                  className="glass-input h-96 resize-none font-mono text-sm"
                 />
                 <div className="mt-2 flex items-center justify-between text-sm">
                   <span className={`${content.length >= 10 ? 'text-green-600' : 'text-gray-500'}`}>
@@ -199,8 +194,7 @@ export const ContentStep: React.FC<StepProps> = ({
             <div>
               <h3 className="text-lg font-semibold mb-4">
                 {language === 'en' ? 'Preview' : 'ކުރިން ބައްލަވާ'}
-              </h3>
-              <div className="min-h-96 p-4 border border-gray-200 rounded-lg bg-gray-50">
+              </h3>              <div className="glass-card bg-white/5">
                 {content ? (
                   renderPreview()
                 ) : (

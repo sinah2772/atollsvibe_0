@@ -18,7 +18,7 @@ interface PerformanceChartProps {
 
 const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, title = "Performance Over Time" }) => {
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-[400px]">
+    <div className="glass-card p-6 rounded-xl h-[400px]">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
       
       <ResponsiveContainer width="100%" height="85%">
@@ -45,10 +45,11 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, title = "Perf
           />
           <Tooltip 
             contentStyle={{ 
-              backgroundColor: 'white', 
+              backgroundColor: 'rgba(255, 255, 255, 0.95)', 
               borderRadius: '8px',
-              border: '1px solid #e0e0e0',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+              backdropFilter: 'blur(10px)'
             }}
           />
           <Legend wrapperStyle={{ paddingTop: '10px' }} />

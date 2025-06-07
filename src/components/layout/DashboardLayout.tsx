@@ -64,10 +64,10 @@ const DashboardLayout: React.FC = () => {
 
   if (loading || isCheckingAuth) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-4">Loading...</div>
-          <p className="text-gray-600">Loading dashboard...</p>
+      <div className="flex items-center justify-center min-h-screen dashboard-bg">
+        <div className="text-center glass-card p-8">
+          <div className="w-12 h-12 mx-auto mb-4 glass-skeleton rounded-full"></div>
+          <p className="text-gray-700 font-medium">Loading dashboard...</p>
         </div>
       </div>
     );

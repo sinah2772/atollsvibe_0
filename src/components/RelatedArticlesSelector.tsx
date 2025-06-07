@@ -107,8 +107,7 @@ const RelatedArticlesSelector: React.FC<RelatedArticlesSelectorProps> = ({
 
   return (
     <div className="w-full">
-      <div className="relative mb-2">
-        <input
+      <div className="relative mb-2">        <input
           type="text"
           value={searchTerm}
           onChange={(e) => {
@@ -116,7 +115,7 @@ const RelatedArticlesSelector: React.FC<RelatedArticlesSelectorProps> = ({
             setShowDropdown(true);
           }}
           onFocus={() => setShowDropdown(true)}
-          className={`w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${language === 'dv' ? 'thaana-waheed placeholder:thaana-waheed' : ''}`}
+          className={`glass-input ${language === 'dv' ? 'thaana-waheed placeholder:thaana-waheed' : ''}`}
           placeholder={language === 'dv' ? 'މަޟްމޫނެއް ހޯދާ' : 'Search for articles'}
           dir={language === 'dv' ? 'rtl' : 'ltr'}
         />
@@ -128,13 +127,12 @@ const RelatedArticlesSelector: React.FC<RelatedArticlesSelectorProps> = ({
             </svg>
           </div>
         )}
-        
-        {showDropdown && searchTerm.length >= 3 && articles.length > 0 && (
-          <div className="absolute z-10 mt-1 w-full bg-white rounded-md shadow-lg max-h-60 overflow-auto">
+          {showDropdown && searchTerm.length >= 3 && articles.length > 0 && (
+          <div className="glass-dropdown">
             {articles.map((article) => (
               <div
                 key={article.id}
-                className="p-2 hover:bg-gray-100 cursor-pointer"
+                className="p-2 hover:bg-white/20 cursor-pointer transition-colors"
                 onClick={() => handleSelectArticle(article)}
               >
                 <div className={`font-medium ${language === 'dv' ? 'thaana-waheed text-right' : ''}`}>
@@ -148,15 +146,15 @@ const RelatedArticlesSelector: React.FC<RelatedArticlesSelectorProps> = ({
           </div>
         )}
       </div>
-      
-      <div className="space-y-2">
+        <div className="space-y-2">
         {selectedArticles.map((article) => (
-          <div key={article.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+          <div key={article.id} className="glass-card flex items-center justify-between">
             <span className={language === 'dv' ? 'thaana-waheed' : ''}>
               {language === 'dv' ? article.heading : article.title}
-            </span>            <button
+            </span>
+            <button
               onClick={() => handleRemoveArticle(article.id)}
-              className="text-red-500 hover:text-red-700"
+              className="text-red-500 hover:text-red-700 transition-colors"
               aria-label="Remove article"
               title="Remove article"
             >
