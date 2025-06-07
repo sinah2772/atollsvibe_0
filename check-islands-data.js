@@ -13,11 +13,44 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function checkIslandsData() {
   console.log('🏝️ Checking current islands data...');
   
-  try {
+  try {    // Let's examine if we can see the islands table structure
+    console.log('Checking islands table structure...');
+    
+    try {
+      // Try fetching a single record to see what fields are available
+      const { data: sampleIsland, error: sampleError } = await supabase
+        .from('islands')
+        .select('*')
+        .limit(1)
+        .single();
+      
+      if (!sampleError && sampleIsland) {
+        console.log('Island fields found in the database:');
+        
+        // Print all fields in the island record
+        const fields = Object.keys(sampleIsland);
+        fields.forEach(field => {
+          console.log(`- ${field}: ${typeof sampleIsland[field]}`);
+        });
+        
+        // Check if created_at exists
+        if (fields.includes('created_at')) {
+          console.log('✅ created_at field exists in the islands table');
+        } else {
+          console.log('❌ created_at field is MISSING from the islands table');
+          console.log('See fix-islands-created-at.js for instructions on how to fix this');
+        }
+      } else {
+        console.error('Error fetching sample island:', sampleError);
+      }
+    } catch (schemaErr) {
+      console.error('Could not analyze island structure:', schemaErr);
+    }
+    
     const { data: islands, error } = await supabase
       .from('islands')
       .select('*')
-      .order('created_at', { ascending: true });
+      .order('id', { ascending: true });
 
     if (error) {
       console.error('❌ Error fetching islands:', error);

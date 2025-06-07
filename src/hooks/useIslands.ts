@@ -3,11 +3,11 @@ import { supabase } from '../lib/supabase';
 
 type Island = {
   id: number;
-  name: string;
+  name_dv: string;
   name_en: string;
   slug: string;
   island_code: string | null;
-  island_category: string | null;
+  island_category_dv: string | null;
   island_category_en: string | null;
   island_details: string | null;
   longitude: string | null;
@@ -16,9 +16,8 @@ type Island = {
   postal_code: string | null;
   other_name_en: string | null;
   other_name_dv: string | null;
-  list_order: number | null;
   atoll_id: number | null;
-  created_at: string;
+  created_at?: string;  // Made optional since it might be missing in the database
   atoll?: {
     id: number;
     name: string;
@@ -55,8 +54,23 @@ export function useIslands(atollIds?: number[]) {
       let query = supabase
         .from('islands')
         .select(`
-          *,
-          atoll:atoll_id (
+          id,
+          name_dv,
+          name_en,
+          slug,
+          island_code,
+          island_category_dv,
+          island_category_en,
+          island_details,
+          longitude,
+          latitude,
+          election_commission_code,
+          postal_code,
+          other_name_en,
+          other_name_dv,
+          atoll_id,
+          created_at,
+          atolls:atoll_id (
             id,
             name,
             name_en,
@@ -70,11 +84,29 @@ export function useIslands(atollIds?: number[]) {
       }
 
       // Apply ordering after filtering
-      query = query.order('list_order', { ascending: true });
+      query = query.order('name_en', { ascending: true });
 
-      const { data, error: dbError } = await query;
+      const { data: rawData, error: dbError } = await query;
 
       if (dbError) throw dbError;
+      
+      // Add a created_at field if missing to prevent errors and handle atoll data
+      const data = rawData?.map(island => {
+        // Process island data to ensure it has all required fields
+        const processedIsland = {
+          ...island,
+          created_at: island.created_at || new Date().toISOString(),
+          atoll: Array.isArray(island.atolls) ? island.atolls[0] : island.atolls
+        };
+        
+        // Log missing fields for debugging purposes
+        if (!island.created_at) {
+          console.log(`Fixed missing created_at field for island: ${island.name_en || island.name_dv} (ID: ${island.id})`);
+        }
+        
+        return processedIsland;
+      });
+      
       console.log('Islands data fetched:', data?.length || 0, 'islands');
       setIslands(data || []);
     } catch (err) {

@@ -320,7 +320,7 @@ export function ArticleFilters({ onFilterChange, initialFilters }: ArticleFilter
             <option value="">All Islands</option>
             {islands.map(island => (
               <option key={island.id} value={island.id}>
-                {island.name} ({island.name_en})
+                {island.name_dv} ({island.name_en})
               </option>
             ))}
           </select>
@@ -331,7 +331,7 @@ export function ArticleFilters({ onFilterChange, initialFilters }: ArticleFilter
                 const island = islands.find(i => i.id === id);
                 return island ? (
                   <span key={`selected-island-${id}`} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                    {island.name}
+                    {island.name_dv}
                     <button
                       type="button"
                       className="ml-1 text-amber-600 hover:text-amber-800"

@@ -83,13 +83,12 @@ export interface Atoll {
 
 export interface Island {
   id: number;
-  name: string;
+  name_dv: string;
   name_en: string;
   slug: string;
   island_code?: string;
-  island_category?: string;
+  island_category_dv?: string;
   island_category_en?: string;
-  island_categories_id?: number;
   island_details?: string;
   longitude?: string;
   latitude?: string;
@@ -97,12 +96,11 @@ export interface Island {
   postal_code?: string;
   other_name_en?: string;
   other_name_dv?: string;
-  list_order?: number;
   atoll_id?: number;
-  created_at: string;
+  created_at?: string; // Made optional since it might be missing in the database
   atoll?: {
     id: number;
-    name: string;
+    name_dv: string;
     name_en: string;
     slug: string;
   };

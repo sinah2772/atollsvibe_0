@@ -12,13 +12,12 @@ export interface Database {
       islands: {
         Row: {
           id: number
-          name: string
+          name_dv: string
           name_en: string
           slug: string
           island_code: string | null
-          island_category: string | null
+          island_category_dv: string | null
           island_category_en: string | null
-          island_categories_id: number | null
           island_details: string | null
           longitude: string | null
           latitude: string | null
@@ -26,19 +25,18 @@ export interface Database {
           postal_code: string | null
           other_name_en: string | null
           other_name_dv: string | null
-          list_order: number | null
           atoll_id: number | null
+          atoll_reference: string | null
           created_at: string
         }
         Insert: {
           id?: number
-          name: string
+          name_dv: string
           name_en: string
           slug: string
           island_code?: string | null
-          island_category?: string | null
+          island_category_dv?: string | null
           island_category_en?: string | null
-          island_categories_id?: number | null
           island_details?: string | null
           longitude?: string | null
           latitude?: string | null
@@ -46,19 +44,18 @@ export interface Database {
           postal_code?: string | null
           other_name_en?: string | null
           other_name_dv?: string | null
-          list_order?: number | null
           atoll_id?: number | null
+          atoll_reference?: string | null
           created_at?: string
         }
         Update: {
           id?: number
-          name?: string
+          name_dv?: string
           name_en?: string
           slug?: string
           island_code?: string | null
-          island_category?: string | null
+          island_category_dv?: string | null
           island_category_en?: string | null
-          island_categories_id?: number | null
           island_details?: string | null
           longitude?: string | null
           latitude?: string | null
@@ -66,8 +63,8 @@ export interface Database {
           postal_code?: string | null
           other_name_en?: string | null
           other_name_dv?: string | null
-          list_order?: number | null
           atoll_id?: number | null
+          atoll_reference?: string | null
           created_at?: string
         }
       }

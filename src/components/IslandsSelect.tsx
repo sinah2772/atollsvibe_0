@@ -4,11 +4,11 @@ import { useIslands } from '../hooks/useIslands';
 
 type IslandData = {
   id: number;
-  name: string;
+  name_dv: string;
   name_en: string;
   slug: string;
   island_code: string | null;
-  island_category: string | null;
+  island_category_dv: string | null;
   island_category_en: string | null;
   island_details: string | null;
   longitude: string | null;
@@ -17,9 +17,8 @@ type IslandData = {
   postal_code: string | null;
   other_name_en: string | null;
   other_name_dv: string | null;
-  list_order: number | null;
   atoll_id: number | null;
-  created_at: string;
+  created_at?: string;
   atoll?: {
     id: number;
     name: string;
@@ -70,13 +69,22 @@ export const IslandsSelect: React.FC<IslandsSelectProps> = ({
         const categories = Array.isArray(islandCategory) ? islandCategory : [islandCategory];
         
         filtered = islands.filter(island => {
+          // Safety check in case island is null or undefined
+          if (!island) return false;
+          
           // Check if the island matches any of the selected categories
-          return categories.some(category => 
-            island.island_category === category || 
-            island.island_category_en === category ||
-            (island.island_category && island.island_category.toLowerCase() === category.toLowerCase()) ||
-            (island.island_category_en && island.island_category_en.toLowerCase() === category.toLowerCase())
-          );
+          return categories.some(category => {
+            // Skip empty categories
+            if (!category) return false;
+            
+            const islandCategory = island.island_category_dv || '';
+            const islandCategoryEn = island.island_category_en || '';
+            
+            return islandCategory === category || 
+                   islandCategoryEn === category ||
+                   islandCategory.toLowerCase() === category.toLowerCase() ||
+                   islandCategoryEn.toLowerCase() === category.toLowerCase();
+          });
         });
         console.log('Filtered islands count:', filtered.length);
       }
@@ -105,20 +113,40 @@ export const IslandsSelect: React.FC<IslandsSelectProps> = ({
   }
 
   if (error) {
+    console.error('Islands loading error:', error);
     return (
-      <div className={`text-red-500 text-sm ${className}`}>
-        {language === 'dv' ? 'މައްސަލައެއް ދިމާވެއްޖެ' : 'Failed to load islands'}
+      <div className={`text-red-500 text-sm p-3 bg-red-50 border border-red-200 rounded-md ${className}`}>
+        <div className="mb-2">
+          {language === 'dv' ? 'މައްސަލައެއް ދިމާވެއްޖެ' : `Failed to load islands: ${error}`}
+        </div>
+        <div className="flex space-x-2">
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+          >
+            {language === 'dv' ? 'އަލުން ލޯޑުކުރުމަށް' : 'Refresh Page'}
+          </button>
+        </div>
       </div>
     );
   }
   
   // Filter and map islands to match MultiSelect option format
-  const options = filteredIslands?.map(island => ({
-    id: island.id,
-    name: island.name,
-    name_en: island.name_en,
-    atoll: island.atoll
-  })) || [];
+  const options = filteredIslands?.map(island => {
+    // Ensure all required fields are present and have valid values
+    const safeIsland = {
+      id: island.id,
+      name: island.name_dv || '(No Name)',
+      name_en: island.name_en || '(Unnamed)',
+      atoll: island.atoll ? {
+        id: island.atoll.id,
+        name: island.atoll.name || island.atoll.name_en || '(No Name)',
+        name_en: island.atoll.name_en || '(Unnamed)',
+        slug: island.atoll.slug || ''
+      } : undefined
+    };
+    return safeIsland;
+  }) || [];
 
   return (
     <div className={className}>

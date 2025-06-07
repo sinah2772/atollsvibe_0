@@ -47,7 +47,7 @@ export const IslandArticle: React.FC<IslandArticleProps> = ({ id, language = 'en
         <h1 className={`text-4xl font-bold text-gray-900 mb-2 ${
           language === 'dv' ? 'text-right thaana-waheed' : ''
         }`}>
-          {language === 'dv' ? island.name : island.name_en}
+          {language === 'dv' ? island.name_dv : island.name_en}
         </h1>
         
         <div className={`flex items-center text-gray-600 gap-4 ${
@@ -59,14 +59,11 @@ export const IslandArticle: React.FC<IslandArticleProps> = ({ id, language = 'en
               {language === 'dv' ? island.atoll?.name : island.atoll?.name_en}
             </span>
           </div>
-          {(island.island_category || island.island_category_en || island.island_categories_id) && (
+          {(island.island_category_dv || island.island_category_en) && (
             <div className="flex items-center gap-1">
               <Building size={16} />
               <span className={language === 'dv' ? 'thaana-waheed' : ''}>
-                {island.island_category?.name ? 
-                  (language === 'dv' ? island.island_category.name : island.island_category.name_en) : 
-                  (language === 'dv' ? island.island_category : island.island_category_en)
-                }
+                {language === 'dv' ? island.island_category_dv : island.island_category_en}
               </span>
             </div>
           )}
