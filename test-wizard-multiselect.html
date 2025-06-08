@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Multi-Selection in New Article Wizard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-title {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .checkbox-item {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .selected-items {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f0f8ff;
+            border-radius: 4px;
+        }
+        .tag {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 4px 8px;
+            margin: 2px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .state-display {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #tags-input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Test Multi-Selection Hooks in New Article Wizard</h1>
+        <p>This test simulates the multi-selection functionality found in the ClassificationStep and MetadataStep components.</p>
+
+        <!-- Test Classification Step Multi-Selection -->
+        <div class="test-section">
+            <h2 class="test-title">Classification Step - Categories Multi-Selection</h2>
+            <div id="categories-container"></div>
+            <div class="selected-items">
+                <strong>Selected Categories:</strong>
+                <div id="selected-categories"></div>
+            </div>
+        </div>
+
+        <!-- Test Subcategories Multi-Selection -->
+        <div class="test-section">
+            <h2 class="test-title">Classification Step - Subcategories Multi-Selection</h2>
+            <div id="subcategories-container"></div>
+            <div class="selected-items">
+                <strong>Selected Subcategories:</strong>
+                <div id="selected-subcategories"></div>
+            </div>
+        </div>
+
+        <!-- Test Related Articles Multi-Selection -->
+        <div class="test-section">
+            <h2 class="test-title">Metadata Step - Related Articles Multi-Selection</h2>
+            <div id="articles-container"></div>
+            <div class="selected-items">
+                <strong>Selected Related Articles:</strong>
+                <div id="selected-articles"></div>
+            </div>
+
+        <!-- Test Tags Input -->
+        <div class="test-section">
+            <h2 class="test-title">Metadata Step - Tags Input</h2>
+            <input type="text" id="tags-input" placeholder="Enter tags separated by commas">
+            <div class="selected-items">
+                <strong>Processed Tags:</strong>
+                <div id="processed-tags"></div>
+            </div>
+        </div>
+
+        <!-- State Display -->
+        <div class="test-section">
+            <h2 class="test-title">Current Form State</h2>
+            <button onclick="updateStateDisplay()">Refresh State</button>
+            <button onclick="resetState()">Reset All</button>
+            <div class="state-display" id="state-display"></div>
+        </div>
+    </div>
+
+    <script>
+        // Simulate the form data structure from ArticleMultiStepForm
+        let formData = {
+            classification: {
+                categories: [],
+                subcategories: []
+            },
+            metadata: {
+                tags: [],
+                tagsInput: '',
+                relatedArticles: []
+            }
+        };
+
+        // Mock data matching the wizard components
+        const categories = [
+            'News', 'Politics', 'Sports', 'Business', 'Technology', 
+            'Entertainment', 'Health', 'Science', 'Education'
+        ];
+
+        const subcategories = {
+            'News': ['Local', 'International', 'Breaking'],
+            'Politics': ['Government', 'Elections', 'Policy'],
+            'Sports': ['Football', 'Cricket', 'Water Sports', 'Athletics'],
+            'Business': ['Economy', 'Finance', 'Trade', 'Tourism'],
+            'Technology': ['Internet', 'Mobile', 'Software', 'Hardware'],
+            'Entertainment': ['Movies', 'Music', 'Celebrity', 'Arts'],
+            'Health': ['Medicine', 'Wellness', 'Nutrition'],
+            'Science': ['Research', 'Environment', 'Space'],
+            'Education': ['Schools', 'University', 'Training']
+        };
+
+        const relatedArticleSuggestions = [
+            { id: '1', title: 'Government Announces New Healthcare Initiative' },
+            { id: '2', title: 'Tourism Numbers Reach Record High in Maldives' },
+            { id: '3', title: 'Parliament Passes Key Environmental Protection Bill' },
+            { id: '4', title: 'President Meets with Foreign Dignitaries' },
+            { id: '5', title: 'New Marine Conservation Efforts Launched' }
+        ];
+
+        // Simulate updateFormData function from ArticleMultiStepForm
+        function updateFormData(section, data) {
+            formData[section] = {
+                ...formData[section],
+                ...data
+            };
+            console.log('FormData updated:', formData[section]);
+            updateDisplays();
+        }
+
+        // Simulate handleMultiSelect from ClassificationStep
+        function handleMultiSelect(field, value, isChecked) {
+            const currentValues = formData.classification[field] || [];
+            let newValues;
+            
+            if (isChecked) {
+                newValues = [...currentValues, value];
+            } else {
+                newValues = currentValues.filter(item => item !== value);
+            }
+            
+            updateFormData('classification', { [field]: newValues });
+        }
+
+        // Simulate handleRelatedArticleSelect from MetadataStep
+        function handleRelatedArticleSelect(articleId) {
+            const currentRelated = formData.metadata.relatedArticles || [];
+            
+            if (currentRelated.some(item => item.id === articleId)) {
+                // Remove if already selected
+                updateFormData('metadata', { 
+                    relatedArticles: currentRelated.filter(item => item.id !== articleId) 
+                });
+            } else {
+                // Add if not already selected
+                const articleToAdd = relatedArticleSuggestions.find(article => article.id === articleId);
+                if (articleToAdd) {
+                    updateFormData('metadata', { 
+                        relatedArticles: [...currentRelated, articleToAdd] 
+                    });
+                }
+            }
+        }
+
+        // Simulate handleTagsChange from MetadataStep
+        function handleTagsChange(tagsText) {
+            const tagsArray = tagsText.split(',').map(tag => tag.trim()).filter(tag => tag);
+            updateFormData('metadata', { 
+                tags: tagsArray,
+                tagsInput: tagsText 
+            });
+        }
+
+        // Initialize the UI
+        function initializeUI() {
+            // Create categories checkboxes
+            const categoriesContainer = document.getElementById('categories-container');
+            categories.forEach(category => {
+                const div = document.createElement('div');
+                div.className = 'checkbox-item';
+                div.innerHTML = `
+                    <input type="checkbox" id="category-${category}" 
+                           onchange="handleMultiSelect('categories', '${category}', this.checked)">
+                    <label for="category-${category}">${category}</label>
+                `;
+                categoriesContainer.appendChild(div);
+            });
+
+            // Create related articles checkboxes
+            const articlesContainer = document.getElementById('articles-container');
+            relatedArticleSuggestions.forEach(article => {
+                const div = document.createElement('div');
+                div.className = 'checkbox-item';
+                div.innerHTML = `
+                    <input type="checkbox" id="article-${article.id}" 
+                           onchange="handleRelatedArticleSelect('${article.id}')">
+                    <label for="article-${article.id}">${article.title}</label>
+                `;
+                articlesContainer.appendChild(div);
+            });
+
+            // Set up tags input
+            const tagsInput = document.getElementById('tags-input');
+            tagsInput.addEventListener('input', (e) => {
+                handleTagsChange(e.target.value);
+            });
+
+            updateDisplays();
+        }
+
+        // Update subcategories based on selected categories
+        function updateSubcategoriesDisplay() {
+            const subcategoriesContainer = document.getElementById('subcategories-container');
+            subcategoriesContainer.innerHTML = '';
+
+            const selectedCategories = formData.classification.categories || [];
+            const availableSubcategories = Array.from(new Set(
+                selectedCategories.flatMap(cat => subcategories[cat] || [])
+            ));
+
+            if (availableSubcategories.length > 0) {
+                availableSubcategories.forEach(subcategory => {
+                    const div = document.createElement('div');
+                    div.className = 'checkbox-item';
+                    const isChecked = (formData.classification.subcategories || []).includes(subcategory);
+                    div.innerHTML = `
+                        <input type="checkbox" id="subcategory-${subcategory}" ${isChecked ? 'checked' : ''}
+                               onchange="handleMultiSelect('subcategories', '${subcategory}', this.checked)">
+                        <label for="subcategory-${subcategory}">${subcategory}</label>
+                    `;
+                    subcategoriesContainer.appendChild(div);
+                });
+            } else {
+                subcategoriesContainer.innerHTML = '<p>Select categories to see available subcategories</p>';
+            }
+        }
+
+        // Update all displays
+        function updateDisplays() {
+            // Update selected categories
+            const selectedCategoriesDiv = document.getElementById('selected-categories');
+            const categories = formData.classification.categories || [];
+            selectedCategoriesDiv.innerHTML = categories.map(cat => `<span class="tag">${cat}</span>`).join('');
+
+            // Update selected subcategories
+            const selectedSubcategoriesDiv = document.getElementById('selected-subcategories');
+            const subcats = formData.classification.subcategories || [];
+            selectedSubcategoriesDiv.innerHTML = subcats.map(sub => `<span class="tag">${sub}</span>`).join('');
+
+            // Update selected articles
+            const selectedArticlesDiv = document.getElementById('selected-articles');
+            const articles = formData.metadata.relatedArticles || [];
+            selectedArticlesDiv.innerHTML = articles.map(art => `<span class="tag">${art.title}</span>`).join('');
+
+            // Update processed tags
+            const processedTagsDiv = document.getElementById('processed-tags');
+            const tags = formData.metadata.tags || [];
+            processedTagsDiv.innerHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+
+            // Update subcategories display
+            updateSubcategoriesDisplay();
+        }
+
+        // Update state display
+        function updateStateDisplay() {
+            const stateDisplay = document.getElementById('state-display');
+            stateDisplay.textContent = JSON.stringify(formData, null, 2);
+        }
+
+        // Reset state
+        function resetState() {
+            formData = {
+                classification: {
+                    categories: [],
+                    subcategories: []
+                },
+                metadata: {
+                    tags: [],
+                    tagsInput: '',
+                    relatedArticles: []
+                }
+            };
+            
+            // Reset all checkboxes
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            document.getElementById('tags-input').value = '';
+            
+            updateDisplays();
+            updateStateDisplay();
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeUI();
+            updateStateDisplay();
+        });
+    </script>
+</body>
+</html>

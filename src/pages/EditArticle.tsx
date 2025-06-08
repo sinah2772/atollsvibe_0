@@ -10,6 +10,7 @@ import { useCategories } from '../hooks/useCategories';
 import { useAtolls } from '../hooks/useAtolls';
 import { useUser } from '../hooks/useUser';
 import { useGovernment } from '../hooks/useGovernment';
+import { useIslandCategories } from '../hooks/useIslandCategories';
 import { useCollaborativeArticle } from '../hooks/useCollaborativeArticle';
 import { useCollaborators } from '../hooks/useCollaborators';
 import useAutoSave from '../hooks/useAutoSave';
@@ -36,12 +37,12 @@ import {
 
 const EditArticle: React.FC = () => {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const { articles, updateArticle } = useArticles();
+  const { id } = useParams<{ id: string }>();  const { articles, updateArticle } = useArticles();
   const { categories } = useCategories();
   const { atolls } = useAtolls();
   const { user } = useUser();
   const { government, error: governmentError, useFallbackData: useGovernmentFallbackData } = useGovernment();
+  const { islandCategories, loading: categoriesLoading, error: categoriesError } = useIslandCategories();
   
   // Generate session ID for collaborative editing
   const [sessionId] = useState(() => `edit_session_${id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
@@ -81,12 +82,10 @@ const EditArticle: React.FC = () => {
   const [isSponsored, setIsSponsored] = useState(false);
   const [sponsoredBy, setSponsoredBy] = useState('');
   const [sponsoredUrl, setSponsoredUrl] = useState('');
-  
-  // Enhanced features from NewArticle
+    // Enhanced features from NewArticle
   const [islandCategory, setIslandCategory] = useState<string[]>([]);
   const [developingUntil, setDevelopingUntil] = useState<string>('');
   const [sponsoredImage, setSponsoredImage] = useState<string>('');
-  const [selectedIslandCategory, setSelectedIslandCategory] = useState<string[]>([]);
   const [newsPriority, setNewsPriority] = useState<number>(3);
   const [relatedArticles, setRelatedArticles] = useState<string>('');
   const [tags, setTags] = useState<string>('');
@@ -134,12 +133,10 @@ const EditArticle: React.FC = () => {
     isDeveloping,
     isExclusive,
     isSponsored,
-    sponsoredBy,
-    sponsoredUrl,
+    sponsoredBy,    sponsoredUrl,
     islandCategory,
     developingUntil,
     sponsoredImage,
-    selectedIslandCategory,
     newsPriority,
     relatedArticles,
     tags,
@@ -666,35 +663,10 @@ const EditArticle: React.FC = () => {
             <>
               <div className="md:col-span-2">
                 <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                  {language === 'dv' ? 'ރަށުގެ ބަި ފިލްޓަރ' : 'Island Category Filter'}
-                </label>
-                <MultiSelect
-                  options={[
-                    { id: 'residential', name: language === 'dv' ? 'އާބާދީ' : 'Residential', name_en: 'Residential' },
-                    { id: 'resort', name: language === 'dv' ? 'ރިސޯޓް' : 'Resort', name_en: 'Resort' },
-                    { id: 'airport', name: language === 'dv' ? 'އެއަރޕޯޓް' : 'Airport', name_en: 'Airport' },
-                    { id: 'industrial', name: language === 'dv' ? 'ސިނާޢީ' : 'Industrial', name_en: 'Industrial' },
-                    { id: 'agricultural', name: language === 'dv' ? 'ދަނޑުވެރިކަން' : 'Agricultural', name_en: 'Agricultural' },
-                    { id: 'uninhabited', name: language === 'dv' ? 'އާބާދީ ނެތް' : 'Uninhabited', name_en: 'Uninhabited' }
-                  ]}
-                  value={selectedIslandCategory || []}
-                  onChange={(values) => {
-                    console.log('Selected island category filter changed:', values);
-                    setSelectedIslandCategory((values || []).filter(id => typeof id === 'string') as string[]);
-                    setSelectedIslands([]);
-                  }}
-                  language={language}
-                  placeholder={language === 'dv' ? 'ރަށުގެ ބައި ފިލްޓަރ' : 'Filter by island category'}
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
                   {language === 'dv' ? 'ރަށްތައް' : 'Islands'}
                 </label>
                 <IslandsSelect
                   atollIds={selectedAtolls}
-                  islandCategory={selectedIslandCategory}
                   value={selectedIslands || []}
                   onChange={(values) => {
                     console.log('Selected islands changed:', values);
@@ -710,22 +682,30 @@ const EditArticle: React.FC = () => {
             <div className="md:col-span-2">              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
                 {language === 'dv' ? 'ރަށުގެ ބައި' : 'Island Category'}
               </label>
-              <MultiSelect
-                options={[
-                  { id: 'residential', name: language === 'dv' ? 'އާބާދީ' : 'Residential', name_en: 'Residential' },
-                  { id: 'resort', name: language === 'dv' ? 'ރިސޯޓް' : 'Resort', name_en: 'Resort' },
-                  { id: 'airport', name: language === 'dv' ? 'އެއަރޕޯޓް' : 'Airport', name_en: 'Airport' },
-                  { id: 'industrial', name: language === 'dv' ? 'ސިނާޢީ' : 'Industrial', name_en: 'Industrial' },
-                  { id: 'agricultural', name: language === 'dv' ? 'ދަނޑުވެރިކަން' : 'Agricultural', name_en: 'Agricultural' },
-                  { id: 'uninhabited', name: language === 'dv' ? 'އާބާދީ ނެތް' : 'Uninhabited', name_en: 'Uninhabited' }
-                ]}
-                value={islandCategory || []}
-                onChange={(values) => {
-                  console.log('Selected island category changed:', values);
-                  setIslandCategory((values || []).filter(id => typeof id === 'string') as string[]);                }}
-                language={language}
-                placeholder={language === 'dv' ? 'ރަށުގެ ބައި އިޚްތިޔާރު ކުރައްވާ' : 'Select island categories'}
-              />
+              {categoriesLoading ? (
+                <div className="w-full rounded-lg border-gray-300 shadow-sm p-3 text-center text-gray-500">
+                  {language === 'dv' ? 'ލޯޑްވަނީ...' : 'Loading categories...'}
+                </div>
+              ) : categoriesError ? (
+                <div className="w-full rounded-lg border-red-300 shadow-sm p-3 text-center text-red-500">
+                  {language === 'dv' ? 'ކެޓެގަރީ ލޯޑް ނުކުރެވުނު' : 'Failed to load categories'}
+                </div>
+              ) : (
+                <MultiSelect
+                  options={islandCategories.map(category => ({
+                    id: category.slug,
+                    name: category.name,
+                    name_en: category.name_en
+                  }))}
+                  value={islandCategory || []}
+                  onChange={(values) => {
+                    console.log('Selected island category changed:', values);
+                    setIslandCategory((values || []).filter(id => typeof id === 'string') as string[]);
+                  }}
+                  language={language}
+                  placeholder={language === 'dv' ? 'ރަށުގެ ބައި އިޚްތިޔާރު ކުރައްވާ' : 'Select island categories'}
+                />
+              )}
             </div>
           )}
           
@@ -926,40 +906,15 @@ const EditArticle: React.FC = () => {
               />
             </div>
           )}
-        </div>        {/* Island Category Filter Section */}
+        </div>        {/* Island Section */}
         {selectedAtolls.length > 0 && (
           <>
-            <div className="md:col-span-2">
-              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                {language === 'dv' ? 'ރަށުގެ ބަި ފިލްޓަރ' : 'Island Category Filter'}
-              </label>
-              <MultiSelect
-                options={[
-                  { id: 'residential', name: language === 'dv' ? 'އާބާދީ' : 'Residential', name_en: 'Residential' },
-                  { id: 'resort', name: language === 'dv' ? 'ރިސޯޓް' : 'Resort', name_en: 'Resort' },
-                  { id: 'airport', name: language === 'dv' ? 'އެއަރޕޯޓް' : 'Airport', name_en: 'Airport' },
-                  { id: 'industrial', name: language === 'dv' ? 'ސިނާޢީ' : 'Industrial', name_en: 'Industrial' },
-                  { id: 'agricultural', name: language === 'dv' ? 'ދަނޑުވެރިކަން' : 'Agricultural', name_en: 'Agricultural' },
-                  { id: 'uninhabited', name: language === 'dv' ? 'އާބާދީ ނެތް' : 'Uninhabited', name_en: 'Uninhabited' }
-                ]}
-                value={selectedIslandCategory || []}
-                onChange={(values) => {
-                  console.log('Selected island category filter changed:', values);
-                  setSelectedIslandCategory((values || []).filter(id => typeof id === 'string') as string[]);
-                  setSelectedIslands([]);
-                }}
-                language={language}
-                placeholder={language === 'dv' ? 'ރަށުގެ ބައި ފިލްޓަރ' : 'Filter by island category'}
-              />
-            </div>
-
             <div className="md:col-span-2">
               <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
                 {language === 'dv' ? 'ރަށްައްތައް' : 'Islands'}
               </label>
               <IslandsSelect
                 atollIds={selectedAtolls}
-                islandCategory={selectedIslandCategory}
                 value={selectedIslands || []}
                 onChange={(values) => {
                   console.log('Selected islands changed:', values);
@@ -969,28 +924,34 @@ const EditArticle: React.FC = () => {
               />
             </div>
           </>
-        )}        {selectedIslands && selectedIslands.length > 0 && (
-          <div className="md:col-span-2">
-            <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+        )}{selectedIslands && selectedIslands.length > 0 && (
+          <div className="md:col-span-2">            <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
               {language === 'dv' ? 'ރަށުގެ ބައި' : 'Island Category'}
             </label>
-            <MultiSelect
-              options={[
-                { id: 'residential', name: language === 'dv' ? 'އާބާދީ' : 'Residential', name_en: 'Residential' },
-                { id: 'resort', name: language === 'dv' ? 'ރިސޯޓް' : 'Resort', name_en: 'Resort' },
-                { id: 'airport', name: language === 'dv' ? 'އެއަރޕޯޓް' : 'Airport', name_en: 'Airport' },
-                { id: 'industrial', name: language === 'dv' ? 'ސިނާޢީ' : 'Industrial', name_en: 'Industrial' },
-                { id: 'agricultural', name: language === 'dv' ? 'ދަނޑުވެރިކަން' : 'Agricultural', name_en: 'Agricultural' },
-                { id: 'uninhabited', name: language === 'dv' ? 'އާބާދީ ނެތް' : 'Uninhabited', name_en: 'Uninhabited' }
-              ]}
-              value={islandCategory || []}
-              onChange={(values) => {
-                console.log('Selected island category changed:', values);
-                setIslandCategory((values || []).filter(id => typeof id === 'string') as string[]);
-              }}
-              language={language}
-              placeholder={language === 'dv' ? 'ރަށުގެ ބައި އިޚްތިޔާރު ކުރައްވާ' : 'Select island categories'}
-            />
+            {categoriesLoading ? (
+              <div className="w-full rounded-lg border-gray-300 shadow-sm p-3 text-center text-gray-500">
+                {language === 'dv' ? 'ލޯޑްވަނީ...' : 'Loading categories...'}
+              </div>
+            ) : categoriesError ? (
+              <div className="w-full rounded-lg border-red-300 shadow-sm p-3 text-center text-red-500">
+                {language === 'dv' ? 'ކެޓެގަރީ ލޯޑް ނުކުރެވުނު' : 'Failed to load categories'}
+              </div>
+            ) : (
+              <MultiSelect
+                options={islandCategories.map(category => ({
+                  id: category.slug,
+                  name: category.name,
+                  name_en: category.name_en
+                }))}
+                value={islandCategory || []}
+                onChange={(values) => {
+                  console.log('Selected island category changed:', values);
+                  setIslandCategory((values || []).filter(id => typeof id === 'string') as string[]);
+                }}
+                language={language}
+                placeholder={language === 'dv' ? 'ރަށުގެ ބައި އިޚްތިޔާރު ކުރައްވާ' : 'Select island categories'}
+              />
+            )}
           </div>
         )}
         

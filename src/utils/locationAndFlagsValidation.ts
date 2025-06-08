@@ -3,12 +3,11 @@ import { ValidationField } from '../types/editor';
 // Validation function for location and flags step
 export const validateLocationAndFlags = (data: Record<string, unknown>): ValidationField[] => {
   const validationFields: ValidationField[] = [];
-
   // If islands are selected, island category should be selected
   if (data.selectedIslands && Array.isArray(data.selectedIslands) && data.selectedIslands.length > 0) {
     validationFields.push({
-      field: 'selectedIslandCategory',
-      valid: Boolean(data.selectedIslandCategory && Array.isArray(data.selectedIslandCategory) && data.selectedIslandCategory.length > 0),
+      field: 'islandCategory',
+      valid: Boolean(data.islandCategory && Array.isArray(data.islandCategory) && data.islandCategory.length > 0),
       message: data.language === 'dv' ? 'ރަށް ހޮއްވާފައި ވާނަމަ ރަށުގެ ބާވަތް ހޮއްވަވާ' : 'Island category is required when islands are selected'
     });
   }

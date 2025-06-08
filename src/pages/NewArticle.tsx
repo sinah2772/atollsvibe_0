@@ -10,12 +10,14 @@ import { useCategories } from '../hooks/useCategories';
 import { useAtolls } from '../hooks/useAtolls';
 import { useUser } from '../hooks/useUser';
 import { useGovernment } from '../hooks/useGovernment';
+import { useIslandCategories } from '../hooks/useIslandCategories';
 import { useCollaborativeArticle } from '../hooks/useCollaborativeArticle';
 import { useCollaborators } from '../hooks/useCollaborators';
 import useAutoSave from '../hooks/useAutoSave';
 import { MultiSelect } from '../components/MultiSelect';
 import { ColoredMultiSelect } from '../components/ColoredMultiSelect';
 import { IslandsSelect } from '../components/IslandsSelect';
+import { CategoryDependentIslandSelector } from '../components/CategoryDependentIslandSelector';
 import { CollaborativeInput } from '../components/CollaborativeInput';
 import { CollaborativeTextArea } from '../components/CollaborativeTextArea';
 import { CollaborativePresence } from '../components/CollaborativePresence';
@@ -42,6 +44,7 @@ const NewArticle: React.FC = () => {
   const { atolls } = useAtolls();
   const { user } = useUser();
   const { government, error: governmentError, useFallbackData: useGovernmentFallbackData } = useGovernment();
+  const { islandCategories, loading: categoriesLoading, error: categoriesError } = useIslandCategories();
   
   // Generate session ID for collaborative editing
   const [sessionId] = useState(() => `new_session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
@@ -61,6 +64,8 @@ const NewArticle: React.FC = () => {
   const [subcategory, setSubcategory] = useState<string[]>([]);
   const [selectedAtolls, setSelectedAtolls] = useState<number[]>([]);
   const [selectedIslands, setSelectedIslands] = useState<number[]>([]);
+  // New state for category-dependent island selection
+  const [selectedIslandCategories, setSelectedIslandCategories] = useState<number[]>([]);
   const [selectedGovernmentIds, setSelectedGovernmentIds] = useState<string[]>([]);
   const [coverImage, setCoverImage] = useState('');
   const [imageCaption, setImageCaption] = useState('');
@@ -88,7 +93,6 @@ const NewArticle: React.FC = () => {
   const [islandCategory, setIslandCategory] = useState<string[]>([]);
   const [developingUntil, setDevelopingUntil] = useState<string>('');
   const [sponsoredImage, setSponsoredImage] = useState<string>('');
-  const [selectedIslandCategory, setSelectedIslandCategory] = useState<string[]>([]);
   const [newsPriority, setNewsPriority] = useState<number>(3);
   const [relatedArticles, setRelatedArticles] = useState<string>('');
   const [tags, setTags] = useState<string>('');
@@ -125,7 +129,7 @@ const NewArticle: React.FC = () => {
     socialHeading,
     category,
     subcategory,
-    selectedAtolls,
+    selectedIslandCategories,
     selectedIslands,
     selectedGovernmentIds,
     coverImage,
@@ -141,7 +145,6 @@ const NewArticle: React.FC = () => {
     islandCategory,
     developingUntil,
     sponsoredImage,
-    selectedIslandCategory,
     newsPriority,
     relatedArticles,
     tags,
@@ -305,7 +308,7 @@ const NewArticle: React.FC = () => {
         sponsored_by: isSponsored ? sponsoredBy : null,
         sponsored_url: isSponsored ? sponsoredUrl : null,
         // Enhanced features from NewArticle
-        island_category: selectedIslandCategory.length > 0 ? selectedIslandCategory.join(',') : null,
+        island_category: islandCategory.length > 0 ? islandCategory.join(',') : null,
         developing_until: isDeveloping && developingUntil ? new Date(developingUntil).toISOString() : null,
         ideas: null,
         sponsored_image: isSponsored ? sponsoredImage : null,
@@ -390,7 +393,7 @@ const NewArticle: React.FC = () => {
         sponsored_by: isSponsored ? sponsoredBy : null,
         sponsored_url: isSponsored ? sponsoredUrl : null,
         // Enhanced features from NewArticle
-        island_category: selectedIslandCategory.length > 0 ? selectedIslandCategory.join(',') : null,
+        island_category: islandCategory.length > 0 ? islandCategory.join(',') : null,
         developing_until: isDeveloping && developingUntil ? new Date(developingUntil).toISOString() : null,
         ideas: null,
         sponsored_image: isSponsored ? sponsoredImage : null,
@@ -475,7 +478,7 @@ const NewArticle: React.FC = () => {
         sponsored_by: isSponsored ? sponsoredBy : null,
         sponsored_url: isSponsored ? sponsoredUrl : null,
         // Enhanced features from NewArticle
-        island_category: selectedIslandCategory.length > 0 ? selectedIslandCategory.join(',') : null,
+        island_category: islandCategory.length > 0 ? islandCategory.join(',') : null,
         developing_until: isDeveloping && developingUntil ? new Date(developingUntil).toISOString() : null,
         ideas: null,
         sponsored_image: isSponsored ? sponsoredImage : null,
@@ -789,83 +792,17 @@ const NewArticle: React.FC = () => {
             />
           </div>
 
+          {/* Island Selection with Category-Based Filtering */}
           <div className="md:col-span-2">
-            <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-              {language === 'dv' ? 'އަތޮޅުތައް' : 'Atolls'}
-            </label>
-            <MultiSelect
-              options={atolls || []}
-              value={selectedAtolls}
-              onChange={(values) => setSelectedAtolls(values.filter(id => typeof id === 'number') as number[])}
+            <CategoryDependentIslandSelector
+              selectedCategories={selectedIslandCategories}
+              selectedIslands={selectedIslands}
+              onCategoriesChange={setSelectedIslandCategories}
+              onIslandsChange={setSelectedIslands}
               language={language}
-              placeholder={language === 'dv' ? 'އަތޮޅުތައް އިޚްތިޔާރު ކުރައްވާ' : 'Select atolls'}
+              className="space-y-4"
             />
-          </div>          {selectedAtolls.length > 0 && (
-            <>
-              <div className="md:col-span-2">
-                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                  {language === 'dv' ? 'ރަށުގެ ބަި ފިލްޓަރ' : 'Island Category Filter'}
-                </label>
-                <MultiSelect
-                  options={[
-                    { id: 'residential', name: language === 'dv' ? 'އާބާދީ' : 'Residential', name_en: 'Residential' },
-                    { id: 'resort', name: language === 'dv' ? 'ރިސޯޓް' : 'Resort', name_en: 'Resort' },
-                    { id: 'airport', name: language === 'dv' ? 'އެއަރޕޯޓް' : 'Airport', name_en: 'Airport' },
-                    { id: 'industrial', name: language === 'dv' ? 'ސިނާޢީ' : 'Industrial', name_en: 'Industrial' },
-                    { id: 'agricultural', name: language === 'dv' ? 'ދަނޑުވެރިކަން' : 'Agricultural', name_en: 'Agricultural' },
-                    { id: 'uninhabited', name: language === 'dv' ? 'އާބާދީ ނެތް' : 'Uninhabited', name_en: 'Uninhabited' }
-                  ]}
-                  value={selectedIslandCategory || []}
-                  onChange={(values) => {
-                    console.log('Selected island category filter changed:', values);
-                    setSelectedIslandCategory((values || []).filter(id => typeof id === 'string') as string[]);
-                    setSelectedIslands([]);
-                  }}
-                  language={language}
-                  placeholder={language === 'dv' ? 'ރަށުގެ ބައި ފިލްޓަރ' : 'Filter by island category'}
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                  {language === 'dv' ? 'ރަށްތައް' : 'Islands'}
-                </label>
-                <IslandsSelect
-                  atollIds={selectedAtolls}
-                  islandCategory={selectedIslandCategory}
-                  value={selectedIslands || []}
-                  onChange={(values) => {
-                    console.log('Selected islands changed:', values);
-                    setSelectedIslands((values || []).filter(id => typeof id === 'number') as number[]);
-                  }}
-                  language={language}
-                />
-              </div>
-            </>
-          )}
-
-          {selectedIslands && selectedIslands.length > 0 && (
-            <div className="md:col-span-2">              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                {language === 'dv' ? 'ރަށުގެ ބައި' : 'Island Category'}
-              </label>
-              <MultiSelect
-                options={[
-                  { id: 'residential', name: language === 'dv' ? 'އާބާދީ' : 'Residential', name_en: 'Residential' },
-                  { id: 'resort', name: language === 'dv' ? 'ރިސޯޓް' : 'Resort', name_en: 'Resort' },
-                  { id: 'airport', name: language === 'dv' ? 'އެއަރޕޯޓް' : 'Airport', name_en: 'Airport' },
-                  { id: 'industrial', name: language === 'dv' ? 'ސިނާޢީ' : 'Industrial', name_en: 'Industrial' },
-                  { id: 'agricultural', name: language === 'dv' ? 'ދަނޑުވެރިކަން' : 'Agricultural', name_en: 'Agricultural' },
-                  { id: 'uninhabited', name: language === 'dv' ? 'އާބާދީ ނެތް' : 'Uninhabited', name_en: 'Uninhabited' }
-                ]}
-                value={islandCategory || []}
-                onChange={(values) => {
-                  console.log('Selected island category changed:', values);
-                  setIslandCategory((values || []).filter(id => typeof id === 'string') as string[]);                }}
-                language={language}
-                placeholder={language === 'dv' ? 'ރަށުގެ ބައި އިޚްތިޔާރު ކުރައްވާ' : 'Select island categories'}
-              />
-            </div>
-          )}
+          </div>
           
           <div className="md:col-span-2">
             <div className="flex justify-between items-center mb-1">
@@ -1085,71 +1022,51 @@ const NewArticle: React.FC = () => {
               />
             </div>
           )}
-        </div>        {/* Island Category Filter Section */}
+        </div>        {/* Islands Selection Section */}
         {selectedAtolls.length > 0 && (
-          <>
-            <div className="md:col-span-2">
-              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                {language === 'dv' ? 'ރަށުގެ ބަި ފިލްޓަރ' : 'Island Category Filter'}
-              </label>
-              <MultiSelect
-                options={[
-                  { id: 'residential', name: language === 'dv' ? 'އާބާދީ' : 'Residential', name_en: 'Residential' },
-                  { id: 'resort', name: language === 'dv' ? 'ރިސޯޓް' : 'Resort', name_en: 'Resort' },
-                  { id: 'airport', name: language === 'dv' ? 'އެއަރޕޯޓް' : 'Airport', name_en: 'Airport' },
-                  { id: 'industrial', name: language === 'dv' ? 'ސިނާޢީ' : 'Industrial', name_en: 'Industrial' },
-                  { id: 'agricultural', name: language === 'dv' ? 'ދަނޑުވެރިކަން' : 'Agricultural', name_en: 'Agricultural' },
-                  { id: 'uninhabited', name: language === 'dv' ? 'އާބާދީ ނެތް' : 'Uninhabited', name_en: 'Uninhabited' }
-                ]}
-                value={selectedIslandCategory || []}
-                onChange={(values) => {
-                  console.log('Selected island category filter changed:', values);
-                  setSelectedIslandCategory((values || []).filter(id => typeof id === 'string') as string[]);
-                  setSelectedIslands([]);
-                }}
-                language={language}
-                placeholder={language === 'dv' ? 'ރަށުގެ ބައި ފިލްޓަރ' : 'Filter by island category'}
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
-                {language === 'dv' ? 'ރަށްައްތައް' : 'Islands'}
-              </label>
-              <IslandsSelect
-                atollIds={selectedAtolls}
-                islandCategory={selectedIslandCategory}
-                value={selectedIslands || []}
-                onChange={(values) => {
-                  console.log('Selected islands changed:', values);
-                  setSelectedIslands((values || []).filter(id => typeof id === 'number') as number[]);
-                }}
-                language={language}
-              />
-            </div>
-          </>
+          <div className="md:col-span-2">
+            <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
+              {language === 'dv' ? 'ރަށްައްތައް' : 'Islands'}
+            </label>
+            <IslandsSelect
+              atollIds={selectedAtolls}
+              value={selectedIslands || []}
+              onChange={(values) => {
+                console.log('Selected islands changed:', values);
+                setSelectedIslands((values || []).filter(id => typeof id === 'number') as number[]);
+              }}
+              language={language}
+            />
+          </div>
         )}        {selectedIslands && selectedIslands.length > 0 && (
           <div className="md:col-span-2">
             <label className={`block text-sm font-medium text-gray-700 mb-1 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
               {language === 'dv' ? 'ރަށުގެ ބައި' : 'Island Category'}
             </label>
-            <MultiSelect
-              options={[
-                { id: 'residential', name: language === 'dv' ? 'އާބާދީ' : 'Residential', name_en: 'Residential' },
-                { id: 'resort', name: language === 'dv' ? 'ރިސޯޓް' : 'Resort', name_en: 'Resort' },
-                { id: 'airport', name: language === 'dv' ? 'އެއަރޕޯޓް' : 'Airport', name_en: 'Airport' },
-                { id: 'industrial', name: language === 'dv' ? 'ސިނާޢީ' : 'Industrial', name_en: 'Industrial' },
-                { id: 'agricultural', name: language === 'dv' ? 'ދަނޑުވެރިކަން' : 'Agricultural', name_en: 'Agricultural' },
-                { id: 'uninhabited', name: language === 'dv' ? 'އާބާދީ ނެތް' : 'Uninhabited', name_en: 'Uninhabited' }
-              ]}
-              value={islandCategory || []}
-              onChange={(values) => {
-                console.log('Selected island category changed:', values);
-                setIslandCategory((values || []).filter(id => typeof id === 'string') as string[]);
-              }}
-              language={language}
-              placeholder={language === 'dv' ? 'ރަށުގެ ބައި އިޚްތިޔާރު ކުރައްވާ' : 'Select island categories'}
-            />
+            {categoriesLoading ? (
+              <div className="w-full rounded-lg border-gray-300 shadow-sm p-3 text-center text-gray-500">
+                {language === 'dv' ? 'ލޯޑްވަނީ...' : 'Loading categories...'}
+              </div>
+            ) : categoriesError ? (
+              <div className="w-full rounded-lg border-red-300 shadow-sm p-3 text-center text-red-500">
+                {language === 'dv' ? 'ކެޓެގަރީ ލޯޑް ނުކުރެވުނު' : 'Failed to load categories'}
+              </div>
+            ) : (
+              <MultiSelect
+                options={islandCategories.map(category => ({
+                  id: category.slug,
+                  name: category.name,
+                  name_en: category.name_en
+                }))}
+                value={islandCategory || []}
+                onChange={(values) => {
+                  console.log('Selected island category changed:', values);
+                  setIslandCategory((values || []).filter(id => typeof id === 'string') as string[]);
+                }}
+                language={language}
+                placeholder={language === 'dv' ? 'ރަށުގެ ބައި އިޚްތިޔާރު ކުރައްވާ' : 'Select island categories'}
+              />
+            )}
           </div>
         )}
         

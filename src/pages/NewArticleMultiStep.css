@@ -1,0 +1,39 @@
+/* NewArticleMultiStep Component Styles */
+
+.pattern-dots {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%236366f1' fill-opacity='0.05'%3E%3Ccircle cx='10' cy='10' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background-size: 60px 60px;
+}
+
+/* Enhance glassmorphism effects */
+.glass-card {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Animation enhancements */
+.bounce-gentle {
+  animation: bounce-gentle 2s infinite;
+}
+
+@keyframes bounce-gentle {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40%, 43% {
+    transform: translateY(-5px);
+  }
+  70% {
+    transform: translateY(-3px);
+  }
+  90% {
+    transform: translateY(-2px);
+  }
+}
+
+/* Thaana font support */
+.thaana-waheed {
+  font-family: 'Waheed', 'Faruma', 'MV Boli', system-ui, sans-serif;
+  direction: rtl;
+  text-align: right;
+}

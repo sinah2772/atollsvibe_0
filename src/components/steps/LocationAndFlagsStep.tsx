@@ -3,6 +3,7 @@ import { CollaborativeInput } from '../CollaborativeInput';
 import { MultiSelect } from '../MultiSelect';
 import { IslandsSelect } from '../IslandsSelect';
 import { ColoredMultiSelect } from '../ColoredMultiSelect';
+import { useIslandCategories } from '../../hooks/useIslandCategories';
 
 // Define proper data types for atolls and government
 interface AtollData {
@@ -77,8 +78,8 @@ interface LocationAndFlagsStepProps {
   setSelectedIslands: (value: number[]) => void;
   selectedGovernmentIds: string[];
   setSelectedGovernmentIds: (value: string[]) => void;
-  selectedIslandCategory: string[];
-  setSelectedIslandCategory: (value: string[]) => void;
+  islandCategory: string[];
+  setIslandCategory: (value: string[]) => void;
   
   // Article flags
   isBreaking: boolean;
@@ -121,8 +122,8 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
   setSelectedIslands,
   selectedGovernmentIds,
   setSelectedGovernmentIds,
-  selectedIslandCategory,
-  setSelectedIslandCategory,
+  islandCategory,
+  setIslandCategory,
   isBreaking,
   setIsBreaking,
   isFeatured,
@@ -148,7 +149,11 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
   collaborative,
   currentUser,
   language
-}) => {  const atollOptions: AtollOption[] = atolls.map(atoll => ({
+}) => {
+  // Use the hook to fetch island categories from Supabase
+  const { islandCategories, loading: categoriesLoading, error: categoriesError } = useIslandCategories();
+
+  const atollOptions: AtollOption[] = atolls.map(atoll => ({
     id: atoll.id,
     name: atoll.name,
     name_en: atoll.name_en || atoll.name
@@ -162,13 +167,12 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
     categoryId: parseInt(gov.id)
   }));
 
-  const islandCategoryOptions: IslandCategoryOption[] = [
-    { id: 'residential', name: 'އާބާދީގެ', name_en: 'Residential' },
-    { id: 'resort', name: 'ރީސޯޓް', name_en: 'Resort' },
-    { id: 'industrial', name: 'ސިނާއީ', name_en: 'Industrial' },
-    { id: 'uninhabited', name: 'އާބާދިކުރެވިފައިނުވާ', name_en: 'Uninhabited' },
-    { id: 'picnic', name: 'ގޮއްވާ', name_en: 'Picnic Island' }
-  ];
+  // Convert island categories from Supabase to option format
+  const islandCategoryOptions: IslandCategoryOption[] = islandCategories.map(category => ({
+    id: category.id,
+    name: category.name,
+    name_en: category.name_en
+  }));
 
   const newsTypeOptions = [
     { value: 'breaking', label: language === 'dv' ? 'ބްރޭކިން' : 'Breaking News' },
@@ -218,20 +222,31 @@ export const LocationAndFlagsStep: React.FC<LocationAndFlagsStepProps> = ({
               onChange={setSelectedIslands}
               language={language}
             />
-          </div>
-
-          {/* Island Categories */}
+          </div>          {/* Island Categories */}
           {selectedIslands.length > 0 && (
             <div>
               <label className={`block text-sm font-medium text-gray-700 mb-2 ${language === 'dv' ? 'thaana-waheed' : ''}`}>
                 {language === 'dv' ? 'ރަށުގެ ބާވަތް' : 'Island Category'}
-              </label>              <MultiSelect
-                options={islandCategoryOptions}
-                value={selectedIslandCategory.map(id => id.toString())}
-                onChange={(values) => setSelectedIslandCategory(values.map(v => v.toString()))}
-                placeholder={language === 'dv' ? 'ރަށުގެ ބާވަތް ހޮއްވަވާ' : 'Select island categories'}
-                language={language}
-              />
+              </label>
+              {categoriesLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-[38px] glass-input w-full"></div>
+                </div>
+              ) : categoriesError ? (
+                <div className="glass-card border-red-200">
+                  <div className="text-red-600 text-sm">
+                    {language === 'dv' ? 'ރަށުގެ ބާވަތްތައް ލޯޑުކުރެވޭ ގޮތެއް ނެތް' : `Failed to load island categories: ${categoriesError}`}
+                  </div>
+                </div>
+              ) : (
+                <MultiSelect
+                  options={islandCategoryOptions}
+                  value={islandCategory.map(id => id.toString())}
+                  onChange={(values) => setIslandCategory(values.map(v => v.toString()))}
+                  placeholder={language === 'dv' ? 'ރަށުގެ ބާވަތް ހޮއްވަވާ' : 'Select island categories'}
+                  language={language}
+                />
+              )}
             </div>
           )}
 
